@@ -3,14 +3,9 @@
 <nav class="col-md-3 col-lg-2 d-md-block sidebar collapse border-end position-sticky side-nav">
     
     <div class="holas">
-        <div class="d-flex align-items-center img-container">
-            <a class="imagen" href="#"> <img src="{% static 'img/logo.png' %}" alt="example" class="logo-img"></a>
-            
-        </div>
-       
         <ul class="nav flex-column mt-4">
+            <i class="bi bi-list toggle-sidebar-btn d-block d-lg-none"></i>
             <li class="nav-item"><a class="nav-option nav-link" href="/"><i class="bi bi-house-door-fill"></i>  Inicio</a></li>
- 
             <li class="nav-item"><a class="nav-option nav-link" href="/marcaje"><i class="bi bi-list-check"></i>   Descarga de Marcajes</a></li>
             <li class="nav-item"><a class="nav-option nav-link " href="/marcaje/registrados"><i class="bi bi-people-fill"></i>   Empleados Registrados</a></li>
             <li class="nav-item"><a class="nav-option nav-link " href="/marcaje/validar-asistencia"><i class="bi bi-journal-check"></i>   Validación de asistencia</a></li>
