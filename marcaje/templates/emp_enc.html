@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<script src="https://unpkg.com/htmx.org@1.9.2"></script>
+
+<div id="tablas" class="d-flex justify-content-around">
+    
+
+
+<div id="tabla-empleados">
+    <table id="empleados" class="table table-hover">
+        <thead>
+            <th>Empleado</th>
+            <th>Accion</th>
+        </thead>
+    
+        <tbody>
+            {% for emp in empleados %}
+            <tr>
+                <td>{{ emp.nombre }}</td>
+                <td>
+                  <form method="POST"
+                        hx-post="{% url 'convertir_a_encargado' emp.id %}"
+                        hx-target="#tablas"
+                        hx-swap="innerHTML">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-primary btn-sm">
+                      Convertir a encargado
+                    </button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div id="tabla-encargados">
+    <table id="encargados" class="table table-hover">
+        <thead>
+            <th>Encargados</th>
+            <th>Accion</th>
+        </thead>
+    
+        <tbody>
+            {% for encargado in encargados %}
+            <tr>
+                <td>{{ encargado.nombre }}</td>
+                <td>
+                  <form method="POST"
+                        hx-post="{% url 'convertir_a_empleado' encargado.id %}"
+                        hx-target="#tablas"
+                        hx-swap="innerHTML">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-primary btn-sm">
+                        Quitar encargado
+                    </button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+</div>
+{%endblock%}

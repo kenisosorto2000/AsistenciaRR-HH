@@ -1,0 +1,45 @@
+body{
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+.global-container{
+  
+   margin: 0 auto;
+   text-align: center;
+   padding: 0 16px;
+}
+
+
+.tabla-asis {
+    border-collapse: collapse;
+    margin: 0 auto;
+    
+    font-size: 15px;
+    width: 100%;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .tabla-asis thead tr {
+    background-color: #f44;
+    color: #ffffff;
+    text-align: left;
+  }
+  
+  .tabla-asis th, .tabla-asis td {
+    padding: 10px 15px;
+  }
+  
+  .tabla-asis tbody tr {
+    border-bottom: 1px solid #dddddd;
+  }
+  
+  .tabla-asis tbody tr:nth-child(even) {
+    background-color: #f3f3f3;
+  }
+  
+  .tabla-asis tbody tr:hover {
+    background-color: #d1f0e1;
+  }
+
+  

@@ -1,0 +1,23 @@
+
+    <h3>Asignar Empleados a {{ encargado.nombre }}</h3>
+    
+    <form method="post"  hx-post="{% url 'asignar_empleados' encargado.id %}"
+    hx-target="#asignar"
+    hx-swap="innerHTML">
+        {% csrf_token %}
+        <div class="empleados-container">
+            {% for empleado in empleados %}
+                <div class="empleado-item">
+                    <input type="checkbox" name="empleados_ids" value="{{ empleado.id }}" id="emp_{{ empleado.id }}">
+                    <label for="emp_{{ empleado.id }}">{{ empleado.nombre }}</label>
+                </div>
+            {% empty %}
+                <p>Todos los empleados ya tienen encargado asignado.</p>
+            {% endfor %}
+        </div>
+        
+        {% if empleados %}
+            <button type="submit" class="submit-btn">Guardar Asignaciones</button>
+        {% endif %}
+    </form>
+

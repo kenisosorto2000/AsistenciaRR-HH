@@ -1,0 +1,64 @@
+{% extends 'base.html'%}
+{% block content %}
+{% load static %}
+<link rel="stylesheet" href="{% static 'styles/menu.css' %}">
+<div class="container mt5">
+
+
+<h2>Solicitudes Pendientes</h2>
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table id="permisos-pendientes" class="table styled-table table-striped table-hover">
+                <thead>
+                    <th>Encargado</th>
+                    <th>Empleado</th>
+                    <th>Tipo Permiso</th>
+                    <th>Fecha inicio</th>
+                    <th>Fecha fin</th>
+                    <th>Descripcion</th>
+                    <th>Estado</th>
+                    <th>Comprobante</th>
+                    <th>Acciones</th>
+                </thead>
+            
+                <tbody>
+                    {%for p in permiso %}
+                    <tr>
+                        <td>{{p.permiso.encargado}}</td>
+                        <td>{{p.permiso.empleado}}</td>
+                        <td>{{p.permiso.tipo_permiso.tipo}}</td>
+                        <td>{{p.permiso.fecha_inicio}}</td>
+                        <td>{{p.permiso.fecha_final}}</td>
+                        <td>{{p.permiso.descripcion}}</td>
+                        <td>{{p.permiso.estado_solicitud}}</td>
+                        <td>
+                            {% if p.comprobante %}
+                            <a href="{{p.comprobante.url}}" target="_blank">Ver comprobante</a>
+                        </td>
+                        {% endif %}
+                        <td>
+                            <div class="actions d-flex align-items-center">
+                                <button class="btn btn-success btn-sm"><i class="bi bi-check-circle-fill"></i></button>
+                            <button class="btn btn-danger btn-sm"><i class="bi bi-x-square-fill"></i></button>
+                            </div>
+                            
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            
+            </table>
+        </div>
+    </div>
+</div>
+</div>
+<script>
+    let table = $('#permisos-pendientes').DataTable({
+    paging: false,
+    searching: false,
+    scrollY: 400
+  });
+</script>
+{%endblock%}
