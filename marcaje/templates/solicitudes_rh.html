@@ -6,7 +6,6 @@
 
 
 <h2>Solicitudes Pendientes</h2>
-
 <div class="card">
     <div class="card-body">
         <div class="table-responsive">
@@ -40,8 +39,13 @@
                         {% endif %}
                         <td>
                             <div class="actions d-flex align-items-center">
-                                <button class="btn btn-success btn-sm"><i class="bi bi-check-circle-fill"></i></button>
-                            <button class="btn btn-danger btn-sm"><i class="bi bi-x-square-fill"></i></button>
+                                <button 
+                                type="button" 
+                                class="btn btn-primary btn-sm" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#miModal">
+                                Opciones
+                                </button>
                             </div>
                             
                         </td>
@@ -54,6 +58,29 @@
     </div>
 </div>
 </div>
+
+<div class="modal fade" id="miModal" tabindex="-1" aria-labelledby="miModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="miModalLabel">Solicitud de {{p.permiso.empleado}}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <form action="post">
+            <label for="comentario">Comentario</label>
+            <textarea name="comentario" class="form-control" id=""></textarea>
+            
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Rechazar</button>
+        <button type="button" class="btn btn-success">Aprobar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
     let table = $('#permisos-pendientes').DataTable({
     paging: false,
