@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block content %}
+    <div class="container mt-5">
+        <form class="border p-4 rounded border-shadow-blue">
+           
+            <div class="d-flex align-items-center border border-dark p-3 rounded">
+                
+                <h2 class="mb-0 fw-bold poppins-bold">Solicitud de Permiso Laboral</h2>
+            </div>
+            
+            <div class="bg-blue  p-1  mb-4 rounded">
+                <h5 class=" text-center align-middle">Información sobre el permiso</h5>
+            </div> 
+           
+            <div class="">
+                <label for="departamento" class="form-label fw-bold">Departamento:</label>
+                <select name="id_departamento" id="departamento" required class="form-select">
+                    <option value="" class="">Seleccione un departamento</option>
+                </select>
+            </div>
+            <br>
+            <div class="mb-3">
+                <label for="nombreEmpleado" class="form-label fw-bold">Nombre Empleado:</label>
+                <input type="text" id="colaborador" name="colaborador" autocomplete="off" required
+                    class="form-control text-uppercase">
+                <ul id="sugerencias" class="sugerencias"></ul>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="" class="form-check-label fw-bold">Empresa:</label>
+                    <select name="id_empresa" id="empresa" class="form-select" required >
+                        <option value="">Seleccione una empresa</option>
+                    </select>
+                </div>
+                <br>
+                <div class="col-md-6">
+                    <label for="" class="form-check-label fw-bold">Sucursal:</label>
+                    <select name="id_sucursal" id="sucursal" class="form-select" required >
+                        <option value="">Seleccione una sucursal</option>
+                    </select>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold">Tipo de permiso solicitado:</label>
+                <div class="form-check">
+                    <input type="radio" class="form-check-input" name="id_tipo_permiso" id="tipo_permiso" value="1">
+                    <label class="form-check-label" for="enfermedad">Enfermedad</label>
+                </div>
+                <div class="form-check">
+                    <input type="radio" class="form-check-input" name="id_tipo_permiso" id="tipo_permiso" value="2">
+                    <label class="form-check-label" for="vacaciones">Vacaciones</label>
+                </div>
+                <div class="form-check">
+                    <input type="radio" class="form-check-input" name="id_tipo_permiso" id="tipo_permiso" value="3">
+                    <label class="form-check-label" for="defuncion">Defunción</label>
+                </div>
+                <div class="form-check">
+                    <input type="radio" class="form-check-input" name="id_tipo_permiso" id="tipo_permiso" value="4">
+                    <label class="form-check-label" for="maternidad">Lactancia</label>
+                </div>
+                <div class="form-check">
+                    <input type="radio" class="form-check-input" name="id_tipo_permiso" id="tipo_permiso" value="5">
+                    <label class="form-check-label" for="tiempoLibre">Tiempo libre no remunerado</label>
+                </div>
+                <div class="form-check">
+                    <input type="radio" class="form-check-input" name="id_tipo_permiso" id="tipo_permiso" value="6">
+                    <label class="form-check-label" for="otros">Otros</label>
+                </div>
+            </div>
+
+            <div>
+                <label for="permiso_de" class="fw-bold">Permiso de:</label>
+                <select name="permiso_de" id="permiso_de" class="form-select">
+                    <option value="Días">Días</option>
+                    <option value="Horas">Horas</option>
+                </select>
+            </div>
+            <br>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="desde" class="form-label fw-bold">Desde:</label>
+                    <input type="date" class="form-control" id="desde" name="fecha_inicio" required>
+                </div>
+                <div class="col-md-6">
+                    <label for="hasta" class="form-label fw-bold">Hasta:</label>
+                    <input type="date" class="form-control" id="hasta" name="fecha_fin" required>
+                </div>
+            </div>
+            <br>
+            <div class="mb-3">
+                <label for="motivo" class="form-label fw-bold ">Motivo del permiso laboral:</label>
+                <textarea class="form-control text-uppercase" id="motivo" name="motivo" rows="4"
+                    placeholder="Describa el motivo del permiso" required></textarea>
+            </div>
+            <div class="alert alert-warning" role="alert">
+                Las solicitudes de permiso laboral se deben presentar dos días antes del primer día de ausencia, a
+                excepción del permiso por enfermedad. RRHH es quien dará la aprobación final de los permisos.
+            </div>
+            <div>
+                <label for="" class="fw-bold">Comprobante:</label>
+                <input type="file" name="comprobante" id="" class="form-control">
+            </div>
+            <br>
+            <div class="text-center">
+                <button type="submit" class="btn-blue">Enviar Solicitud</button>
+            </div>
+        </form>
+    </div>
+
+{% endblock %}

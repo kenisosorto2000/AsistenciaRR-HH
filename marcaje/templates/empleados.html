@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% load static %}<!-- Reusa estilos del admin -->
+
+
+
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'styles/main.css' %}">
+
+
+
+    
+
+
+   
+<div class="card">
+    <div class="card-body">
+        <h1>Empleados Registrados PROMACO</h1>
+
+        
+    
+    <form method="get">
+        <div class="d-flex align-items-center mb-3">
+            <div class="select">
+                <select class="form-select form-select-sm" name="departamento" onchange="this.form.submit()">
+                    <option value="">Departamentos</option>
+                    {% for depto in departamentos %}
+                    <option value="{{ depto }}" {% if depto == departamento_seleccionado %}selected{% endif %}>
+                      {{ depto }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="actions mx-3">
+                <button class="btn btn-warning btn-sm" id="sync-btn">Sincronizar Empleados</button>
+                <span id="sync-status"></span>
+            </div>
+        </div>
+      
+           
+          
+          
+    
+        
+        
+    </form>
+  
+    <div class="table-responsive">
+        <table class="table styled-table table-striped table-hover" id="tabla-empleados">
+            <thead>
+                <tr>
+                    
+                    <th>Sucursal</th>
+                    <th>Codigo Empleado</th>
+                    <th>Empleado</th>
+                    <th>Departamento</th>
+                </tr>
+            </thead>
+            
+                {% for e in empleados %}
+                <tr>
+                  
+                    <td>{{e.sucursal.nombre}}</td>
+                    <td>{{e.codigo}}</td>
+                    <td>{{e.nombre}}</td>
+                    
+                    <td>{{e.departamento}}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+</div>
+</div>
+
+<script src="{% static 'scripts/script.js' %}"></script>
+
+{% endblock %}
