@@ -1,0 +1,59 @@
+<!-- templates/subir_comprobantes.html -->
+ {% extends 'base.html' %}
+
+ {% block content %}
+ <div class="card">
+  <div class="card-body">
+
+
+<h2>Solicitudes sin comprobante</h2>
+<div class="table-responsive">
+<table id="tabla-comprobantes" class="table">
+  <thead class="">
+    <tr>
+      
+      <th>Empleado</th>
+      <th>Fecha Incio</th>
+      <th>Fecha Fin</th>
+      <th>Motivo</th>
+      <th>Subir comprobante</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for s in solicitudes %}
+      <tr id="permiso-{{s.id}}">
+        
+        <td>{{ s.empleado }}</td>
+        <td>{{ s.fecha_inicio }}</td>
+        <td>{{s.fecha_final}}</td>
+        <td>{{ s.descripcion }}</td>
+      
+        <td>
+          <button class="btn btn-outline-primary btn-sm"
+          hx-get="{% url 'form_comprobante' s.id %}"
+          hx-target="#formulario-{{ s.id }}"
+          hx-swap="innerHTML">
+    Subir Comprobante
+          </button>
+          <div id="formulario-{{ s.id }}"></div>
+         
+        </td>
+      </tr>
+    {% empty %}
+      <tr>
+        <td colspan="4">No hay solicitudes pendientes de comprobante.</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+</div>
+</div>
+<script>
+  let table = $('#tabla-comprobantes').DataTable({
+    pageLength: 10,
+    lengthMenu: [10, 25, 50, 100],
+    scrollY: 400
+  });
+</script>
+{%endblock%}

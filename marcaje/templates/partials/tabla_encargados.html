@@ -1,0 +1,26 @@
+
+<table id="encargados" class="table table-hover">
+    <thead>
+        <th>Encargados</th>
+        <th>Accion</th>
+    </thead>
+
+    <tbody>
+        {% for encargado in encargados %}
+        <tr>
+            <td>{{ encargado.nombre }}</td>
+            <td>
+              <form method="POST"
+                    hx-post="{% url 'convertir_a_empleado' encargado.id %}"
+                    hx-target="#tablas"
+                    hx-swap="innerHTML">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-primary btn-sm">
+                  Convertir a encargado
+                </button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+    </tbody>
+</table>

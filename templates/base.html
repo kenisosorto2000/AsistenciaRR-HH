@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asistencia PROMACO</title>
+    <meta name="csrf-token" content="{{ csrf_token }}">
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&family=Poppins:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.6.0/css/fontawesome.min.css" integrity="sha384-NvKbDTEnL+A8F/AA5Tc5kmMLSJHUO868P+lDtTpJIeQdGYaUIuLr4lVGOEA1OcMy" crossorigin="anonymous">
+    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+    <!-- <script src="https://cdn.tailwindcss.com"></script> -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.3.0/css/dataTables.dataTables.css" />
+    <script src="https://cdn.datatables.net/2.3.0/js/dataTables.js"></script>
+
+{% load static %}
+<link rel="stylesheet" href="{% static 'styles/menu.css' %}">
+</head>
+  <body> 
+      <div class="container-fluid">
+          <div class="row min-vh-100">      
+            {% include 'menu2.html' %}
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+              <div class="d-flex justify-content-end py-4">
+                <button id="modo-oscuro-toggle">Alternar modo oscuro</button>
+              </div>
+                  {% block content %}
+                  {% endblock %}
+            </main>
+          </div>
+      </div>
+  <style>
+      /* styles.css */
+  body {
+    background: #fff;
+    color: #111;
+    transition: background 0.3s, color 0.3s;
+  }
+
+  body.dark-mode {
+    background: #181818;
+    color: #eee;
+  }
+
+  /* Ejemplo para otros elementos */
+  .navbar {
+    background: #f5f5f5;
+  }
+  body.dark-mode .navbar {
+    background: #242424;
+  }
+
+  </style>
+
+  <!-- templates/base.html -->
+
+
+    <script>
+        const toggleBtn = document.getElementById('modo-oscuro-toggle');
+        const body = document.body;
+      
+        // Cargar preferencia guardada
+        if (localStorage.getItem('dark-mode') === 'true') {
+          body.classList.add('dark-mode');
+        }
+      
+        toggleBtn.addEventListener('click', function() {
+          body.classList.toggle('dark-mode');
+          localStorage.setItem('dark-mode', body.classList.contains('dark-mode'));
+        });
+    </script>
+
+
+
+
+
+<!-- templates/base.html -->
+  
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  document.addEventListener("htmx:configRequest", (event) => {
+    const token = document.querySelector('meta[name="csrf-token"]').content;
+    event.detail.headers['X-CSRFToken'] = token;
+  });
+</script>
+
+</body>
+</html>
+
+

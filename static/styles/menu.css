@@ -1,0 +1,71 @@
+*{
+    font-family: "Poppins", serif;
+    font-weight: 100;
+    font-style: normal;
+}
+
+body{
+    font-size: 13px;
+}
+
+.table th{
+    background: #0F034E !important;
+    color: #fff !important;
+    position: sticky !important;
+}
+
+.table thead{
+    position: sticky !important;
+    top: 0;
+}
+
+.holas{
+    position: sticky;
+    top: 0;
+}
+
+
+.side-nav{
+    background: #0F034E;
+}
+
+li{
+    color: #fff;
+}
+
+.nav-option:hover{
+    background: #fff;
+    color: black;
+    width: 100%;
+}
+
+nav{
+    padding: 0 !important; 
+}
+
+.nav-link{
+    transition: none !important;
+    color: #eee;
+}
+
+
+.img-container{
+    background: #eee;
+}
+img{
+width: 100%;
+}
+
+div#tabla-empleados{
+    overflow: auto;
+    max-height: 400px;
+}
+
+div#asignar{
+    max-width: 600px;
+}
+
+.empleados-container{
+    overflow: auto;
+    max-height: 400px;
+}

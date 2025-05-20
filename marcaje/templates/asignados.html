@@ -1,0 +1,11 @@
+<h2>Empleados asignados a {{ encargado.nombre }}</h2>
+
+{% if empleados %}
+  <ul class="list-group">
+    {% for e in empleados %}
+      <li class="list-group-item">{{ e.nombre }}</li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p class="text-muted">Este encargado no tiene empleados asignados.</p>
+{% endif %}

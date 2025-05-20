@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    
+    <div class="container">
+
+      <form method="post" enctype="multipart/form-data" class="border p-4 rounded border-shadow-blue"">
+        {% csrf_token %}
+
+        <div class="d-flex align-items-center border border-dark p-3 rounded">       
+          <h1>Solicitar Permiso</h1>
+      </div>
+      <br>
+      <div class="mb-3">
+        <label for="encargado">Encargado:</label>
+        <select id="encargado" name="encargado" class="form-select" required>
+            <option value="">Seleccione un encargado</option>
+            {% for encargado in encargados %}
+                <option value="{{ encargado.id }}">{{ encargado.nombre }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <!-- Selector de Empleado (dinámico) -->
+    <div class="mb-3">
+        <label for="empleado">Empleado:</label>
+        <select id="empleado" name="empleado" class="form-select" required disabled>
+            <option value="">Primero seleccione un encargado</option>
+        </select>
+    </div>
+
+    <!-- Resto del formulario -->
+       
+        <div class="mb-3">
+          <label for="tipo_permiso" class="fw-bold">Tipo de Permiso:</label>
+          <select id="tipo_permiso" name="tipo_permiso" class="form-select" required>
+            <option value="">seleccione</option>
+            {% for tp in tipo_permisos %}
+            <option value="{{tp.id}}">{{tp.tipo}}</option>
+            {% endfor %}
+        </select>
+        </div>
+        
+        <div class="row mb-3">
+          <div class="col-md-6"> 
+            <label for="fecha_inicio" class="fw-bold">Fecha de inicio:</label>
+            <input type="date" name="fecha_inicio" id="fecha_inicio" class="form-control" required>
+          </div>
+          <div class="col-md-6">
+            <label for="fecha_final" class="fw-bold">Fecha final:</label>
+            <input type="date" name="fecha_final" id="fecha_final" class="form-control">
+          </div>
+          
+        </div>
+       
+       
+
+        <div class="mb-3">
+          <label for="descripcion" class="fw-bold">Descripción Motivo:</label>
+          <textarea name="descripcion" id="descripcion" rows="4" class="form-control" required></textarea>
+        </div>
+
+        <div class="alert alert-warning" role="alert">
+          Las solicitudes de permiso laboral se deben presentar dos días antes del primer día de ausencia, a
+          excepción del permiso por enfermedad. RRHH es quien dará la aprobación final de los permisos.
+      </div>
+
+  
+<br>
+        
+        <div class="text-center">
+          <button type="submit" class="btn btn-primary">Guardar</button>
+        </div>
+    </form>
+<br><br>
+    </div>
+
+    <script>
+      $(document).ready(function() {
+          // Cuando cambia el encargado
+          $('#encargado').change(function() {
+              var encargadoId = $(this).val();
+              if (encargadoId) {
+                  // Fetch empleados del encargado via AJAX
+                  $.ajax({
+                      url: '/marcaje/cargar_empleados/',
+                      data: { 'encargado_id': encargadoId },
+                      success: function(data) {
+                          $('#empleado').empty();
+                          if (data.empleados.length > 0) {
+                              $('#empleado').append('<option value="">Seleccione un empleado</option>');
+                              $.each(data.empleados, function(key, empleado) {
+                                  $('#empleado').append('<option value="' + empleado.id + '">' + empleado.nombre + '</option>');
+                              });
+                              $('#empleado').prop('disabled', false);
+                          } else {
+                              $('#empleado').append('<option value="">No hay empleados asignados</option>');
+                          }
+                      }
+                  });
+              } else {
+                  $('#empleado').empty().prop('disabled', true);
+              }
+          });
+      });
+  </script>
+
+{% endblock %}

@@ -1,0 +1,22 @@
+<h1>Seleccionar Empleado para Convertir en Encargado</h1>
+    
+<div class="empleados-list">
+    {% for empleado in empleados %}
+        <div class="empleado-card">
+            <h3>{{ empleado.nombre }}</h3>
+            <form method="post" action="{% url 'convertir_a_empleado' %}">
+                {% csrf_token %}
+                
+                
+                <input type="checkbox" name="empleado_id" value="{{empleado.id}}">
+                <button type="submit">Deshacer Encargado</button>
+            </form>
+        </div>
+    {% empty %}
+        <p>No hay empleados disponibles para convertir.</p>
+    {% endfor %}
+</div>
+
+<div>
+    
+</div>

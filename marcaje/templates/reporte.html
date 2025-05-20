@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% load static %}<!-- Reusa estilos del admin -->
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'styles/main.css' %}">
+
+
+<div class="card">
+    <div class="card-body">
+
+    <h2>Descargar Registros de Marcaje</h2>
+
+    <form method="get">
+        <div class="d-flex justify-content-center mb-3">
+            <div class="select">
+                <select class="form-select form-select-sm" name="departamento" onchange="this.form.submit()">
+                    <option value="">Departamentos</option>
+                    {% for depto in departamentos %}
+                    <option value="{{ depto }}" {% if depto == departamento_seleccionado %}selected{% endif %}>
+                      {{ depto }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="acciones mx-3">
+                <input class="form-control form-control-sm" type="date" id="fecha-sync" value="{{ hoy|date:'Y-m-d' }}" max="{{ hoy|date:'Y-m-d' }}">
+        </div>
+        <div class="boton">
+            <button class="btn btn-warning btn-sm" id="sync-btn">Sincronizar Marcajes</button>
+                <span id="sync-status"></span>
+        </div>
+        </div>
+      
+    </form>
+
+    <div class="table-responsive">
+        <table class="table styled-table table-striped table-hover" id="tabla-marcaje">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Sucursal</th>
+                    <th>Código Empleado</th>
+                    <th>Empleado</th>
+                 
+                    <th>Tipo de registro</th>
+                    <th>Departamento</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for registro in registros %}
+                <tr>
+                    <td>{{ registro.fecha_hora }}</td>
+                    <td>{{ registro.empleado.sucursal}}</td>
+                    <td>{{ registro.empleado.codigo }}</td>
+                    <td>{{ registro.empleado.nombre }}</td>
+                    
+                  
+                    <td>{{ registro.tipo_registro}}</td>
+                    <td>{{ registro.empleado.departamento}}</td>
+                </tr>
+                
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+</div>    
+
+<script src="{% static 'scripts/sync_marc.js' %}"></script>
+
+{% endblock %}

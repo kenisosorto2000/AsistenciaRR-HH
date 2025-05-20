@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{%block content%}
+
+<div class="d-flex justify-content-between">
+
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <th>Encargado</th>
+                <th>Acciones</th>
+            </thead>
+            <tbody>
+                {% for enc in encargados %}
+                <tr>
+                    <td>{{enc.nombre}}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary"
+                        hx-get="{% url 'asignar_empleados' enc.id %}"
+                        hx-target="#asignar"
+                        hx-swap="innerHTML">Asignar Empleados</button>
+
+                        <button class="btn btn-sm btn-outline-primary"
+                        hx-get="{% url 'mostrar_empleados' enc.id %}"
+                        hx-target="#asignar"
+                        hx-swap="innerHTML">Ver Empleados</button>
+                    </td>
+                </tr>
+                {%endfor%}
+            </tbody>
+        </table>
+    </div>
+
+    <div id="asignar">
+        
+    </div>
+</div>
+
+
+
+{%endblock%}
