@@ -61,6 +61,13 @@ div#tabla-empleados{
     max-height: 400px;
 }
 
+<<<<<<< HEAD
+div#tabla-encargados{
+    overflow: auto;
+    max-height: 400px;
+}
+=======
+>>>>>>> origin/devHector
 
 div#asignar{
     max-width: 600px;

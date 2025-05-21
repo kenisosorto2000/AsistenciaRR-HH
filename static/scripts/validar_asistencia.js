@@ -11,7 +11,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         btnValidar.disabled = true;
-        btnValidar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Validando...';
         
         // Configurar CSRF token
       
@@ -77,7 +76,6 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .finally(() => {
             btnValidar.disabled = false;
-            btnValidar.innerHTML = '<i class="fas fa-check-circle"></i> Validar';
         });
     });
 });
