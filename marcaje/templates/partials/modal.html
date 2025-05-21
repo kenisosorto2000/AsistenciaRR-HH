@@ -1,3 +1,33 @@
-<div class="modal-dialog modal-dialog-centered">
-  <p>Hola</p>
+<div class="modal fade show" id="modalComentario" tabindex="-1" style="display:block;" aria-modal="true" role="dialog">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form method="POST" action="{% url 'accion_solicitud' %}">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title">Acciones sobre la solicitud</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar" onclick="cerrarModalHTMX()"></button>
+        </div>
+        <div class="modal-body">
+          <p><strong>Empleado:</strong> {{ permiso_comprobante.permiso.empleado }}</p>
+          <input type="hidden" name="solicitud_id" value="{{ permiso_comprobante.permiso.id }}">
+          <label for="revisada_por">Revisado por:</label>
+          <input type="text" name="revisada_por" class="form-control">
+          <label for="comentarios">Comentario</label>
+          <textarea name="comentarios" class="form-control"></textarea>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" name="accion_realizada" value="A" class="btn btn-success">Aprobar</button>
+          <button type="submit" name="accion_realizada" value="R" class="btn btn-danger">Rechazar</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="cerrarModalHTMX()">Cerrar</button>
+        </div>
+      </form>
+    </div>
+  </div>
 </div>
+<!-- Fondo oscuro para modal, opcional -->
+<div class="modal-backdrop fade show"></div>
+<script>
+function cerrarModalHTMX() {
+    document.getElementById('modal').innerHTML = '';
+}
+</script>

@@ -31,7 +31,7 @@
                         <td>{{p.permiso.fecha_inicio}}</td>
                         <td>{{p.permiso.fecha_final}}</td>
                         <td>{{p.permiso.descripcion}}</td>
-                        <td>{{p.permiso.estado_solicitud}}</td>
+                        <td>{{p.permiso.estado_solicitud}}  {{p.id}}</td>
                         <td>
                             {% if p.comprobante %}
                             <a href="{{p.comprobante.url}}" target="_blank">Ver comprobante</a>
@@ -39,11 +39,14 @@
                         {% endif %}
                         <td>
                             <div class="actions d-flex align-items-center">
-                                <button 
-                                type="button" 
-                                class="btn btn-primary btn-sm" 
-                                data-bs-toggle="modal" 
-                                data-bs-target="#miModal">
+                                <button  class="btn btn-primary btn-sm"
+                                type="button"
+                                hx-get="{% url 'modal_solicitud' p.id %}"
+                                hx-target="#modal"
+                                hx-trigger="click"
+                                hx-swap="innerHTML"
+                                >
+                                
                                 Opciones
                                 </button>
                             </div>
@@ -59,27 +62,11 @@
 </div>
 </div>
 
-<div class="modal fade" id="miModal" tabindex="-1" aria-labelledby="miModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="miModalLabel">Solicitud de {{p.permiso.empleado}}</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-      </div>
-      <div class="modal-body">
-        <form action="post">
-            <label for="comentario">Comentario</label>
-            <textarea name="comentario" class="form-control" id=""></textarea>
-            
-        </form>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Rechazar</button>
-        <button type="button" class="btn btn-success">Aprobar</button>
-      </div>
-    </div>
-  </div>
-</div>
+<div id="modal"></div>
+
+<!--  
+                                data-bs-toggle="modal" 
+                                data-bs-target="#miModal"> -->
 
 <script>
     let table = $('#permisos-pendientes').DataTable({

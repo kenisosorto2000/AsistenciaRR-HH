@@ -61,6 +61,7 @@ div#tabla-empleados{
     max-height: 400px;
 }
 
+
 div#asignar{
     max-width: 600px;
 }
@@ -69,3 +70,4 @@ div#asignar{
     overflow: auto;
     max-height: 400px;
 }
+
