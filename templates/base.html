@@ -37,9 +37,13 @@
             <i class="bi bi-list toggle-sidebar-btn"></i>
         </button>
     </div>
-        <div class="d-flex justify-content-end py-4">
-            <button id="modo-oscuro-toggle">Alternar modo oscuro</button>
-        </div>
+    <div class="d-flex justify-content-end py-4">
+        <button id="modo-oscuro-toggle">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-brightness-high" viewBox="0 0 16 16">
+            <path d="M8 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6m0 1a4 4 0 1 0 0-8 4 4 0 0 0 0 8M8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0m0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13m8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5M3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8m10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0m-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0m9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707M4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708"/>
+          </svg>
+        </button>
+    </div>
 </header>
   
       <div class="container-fluid">
@@ -52,61 +56,50 @@
           </div>
       </div>
   <style>
-      /* styles.css */
-  body {
-    background: #fff;
-    color: #111;
-    transition: background 0.3s, color 0.3s;
-  }
+        /* styles.css */
+    body {
+      background: #fff;
+      color: #111;
+      transition: background 0.3s, color 0.3s;
+    }
 
-  body.dark-mode {
-    background: #181818;
-    color: #eee;
-  }
+    body.dark-mode {
+      background: #181818;
+      color: #eee;
+    }
 
-  /* Ejemplo para otros elementos */
-  .navbar {
-    background: #f5f5f5;
-  }
-  body.dark-mode .navbar {
-    background: #242424;
-  }
-
+    /* Ejemplo para otros elementos */
+    .navbar {
+      background: #f5f5f5;
+    }
+    body.dark-mode .navbar {
+      background: #242424;
+    }
   </style>
 
   <!-- templates/base.html -->
-
-
     <script>
         const toggleBtn = document.getElementById('modo-oscuro-toggle');
         const body = document.body;
-      
         // Cargar preferencia guardada
         if (localStorage.getItem('dark-mode') === 'true') {
           body.classList.add('dark-mode');
         }
-      
         toggleBtn.addEventListener('click', function() {
           body.classList.toggle('dark-mode');
           localStorage.setItem('dark-mode', body.classList.contains('dark-mode'));
         });
     </script>
 
-
-
-
-
 <!-- templates/base.html -->
-  
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-  document.addEventListener("htmx:configRequest", (event) => {
-    const token = document.querySelector('meta[name="csrf-token"]').content;
-    event.detail.headers['X-CSRFToken'] = token;
-  });
-</script>
-
-</body>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      document.addEventListener("htmx:configRequest", (event) => {
+        const token = document.querySelector('meta[name="csrf-token"]').content;
+        event.detail.headers['X-CSRFToken'] = token;
+      });
+    </script>
+  </body>
 </html>
 
 
