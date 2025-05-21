@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="container">
+    <h3>Historial de Solicitudes de Permiso</h3>
+    <div class="table">
+        <table class="tabla-historial table">
+            <thead>
+                <th>Empleado</th>
+                <th>Fecha solicitud</th>
+                <th>Tipo permiso</th>
+                <th>Revision</th>
+                <th>Comentarios</th>
+                <th>Accion</th>
+                <th>Fecha Revision</th>
+            </thead>
+            <tbody>
+                {% for s in solicitudes %}
+                <tr>
+                    <td>{{s.solicitud.empleado}}</td>
+                    <td>{{s.solicitud.fecha_solicitud}}</td>
+                    <td>{{s.solicitud.tipo_permiso}}</td>
+                    <td>{{s.revisada_por}}</td>
+                    <td>{{s.comentarios}}</td>
+                    <td>{{s.accion_realizada}}</td>
+                    <td>{{s.fecha}}</td>
+                </tr>
+                {%endfor%}
+            </tbody>
+        </table>
+    </div>
+</div>
+{%endblock%}

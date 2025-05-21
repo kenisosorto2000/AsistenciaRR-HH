@@ -1,62 +1,48 @@
-<!-- templates/subir_comprobantes.html -->
- {% extends 'base.html' %}
+{% extends 'base.html' %}
 
- {% block content %}
- <div class="card">
-  <div class="card-body">
+{% block content %}
+<div class="bg-white dark:bg-gray-800 shadow rounded p-6">
+  <h2 class="text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Solicitudes sin comprobante</h2>
 
-
-<h2>Solicitudes sin comprobante</h2>
-<div class="table-responsive">
-<table id="tabla-comprobantes" class="table">
-  <thead class="">
-    <tr>
-      
-      <th>Empleado</th>
-      <th>Fecha Incio</th>
-      <th>Fecha Fin</th>
-      <th>Motivo</th>
-      <th>Subir comprobante</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for s in solicitudes %}
-      <tr id="permiso-{{s.id}}">
-        
-        <td>{{ s.empleado }}</td>
-        <td>{{ s.fecha_inicio }}</td>
-        <td>{{s.fecha_final}}</td>
-        <td>{{ s.descripcion }}</td>
-      
-        <td>
-          <button class="btn btn-outline-primary btn-sm"
-          hx-get="{% url 'form_comprobante' s.id %}"
-          hx-target="#formulario-{{ s.id }}"
-          hx-swap="innerHTML">
-    Subir Comprobante
-          </button>
-          <div id="formulario-{{ s.id }}"></div>
-         
-        </td>
-      </tr>
-    {% empty %}
-      <tr>
-        <td colspan="4">No hay solicitudes pendientes de comprobante.</td>
-      </tr>
-    {% endfor %}
-  </tbody>
-</table>
+  <div class="overflow-x-auto">
+    <table id="tabla-comprobantes" class="min-w-full text-sm text-left border border-gray-300">
+      <thead class="bg-gray-100 dark:bg-gray-600 uppercase text-xs">
+        <tr>
+          <th class="px-4 py-2">Empleado</th>
+          <th class="px-4 py-2">Fecha Inicio</th>
+          <th class="px-4 py-2">Fecha Fin</th>
+          <th class="px-4 py-2">Motivo</th>
+          <th class="px-4 py-2">Subir comprobante</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in solicitudes %}
+        <tr id="permiso-{{s.id}}" class="border-t border-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700">
+          <td class="px-4 py-2">{{ s.empleado }}</td>
+          <td class="px-4 py-2">{{ s.fecha_inicio }}</td>
+          <td class="px-4 py-2">{{ s.fecha_final }}</td>
+          <td class="px-4 py-2">{{ s.descripcion }}</td>
+          <td class="px-4 py-2">
+            <button 
+              class="text-blue-600 border border-blue-600 px-3 py-1 rounded text-sm hover:bg-blue-600 hover:text-white transition"
+              hx-get="{% url 'form_comprobante' s.id %}"
+              hx-target="#formulario-{{ s.id }}"
+              hx-swap="innerHTML"
+            >
+              Subir Comprobante
+            </button>
+            <div id="formulario-{{ s.id }}" class="mt-2"></div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" class="text-center py-4 text-gray-500">No hay solicitudes pendientes de comprobante.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </div>
-</div>
-</div>
-
-
-<!-- Botón para abrir el modal -->
-
-
-<!-- Modal -->
-
-
 
 <script>
   let table = $('#tabla-comprobantes').DataTable({
@@ -65,4 +51,4 @@
     scrollY: 400
   });
 </script>
-{%endblock%}
+{% endblock %}

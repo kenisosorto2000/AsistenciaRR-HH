@@ -32,3 +32,5 @@ class AsignacionEmpleadoEncargadoAdmin(admin.ModelAdmin):
 
 admin.site.register(PermisoComprobante)
 
+admin.site.register(GestionPermisoDetalle)
+
