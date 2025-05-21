@@ -61,6 +61,11 @@ div#tabla-empleados{
     max-height: 400px;
 }
 
+div#tabla-encargados{
+    overflow: auto;
+    max-height: 400px;
+}
+
 div#asignar{
     max-width: 600px;
 }

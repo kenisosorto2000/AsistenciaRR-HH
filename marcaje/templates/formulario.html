@@ -1,8 +1,16 @@
 <form method="POST" enctype="multipart/form-data"
       hx-post="{% url 'form_comprobante' permiso.id %}"
       hx-target="#permiso-{{ permiso.id }}"
-      hx-swap="outerHTML">
+      hx-swap="outerHTML"
+      class="space-y-4 mt-4">
   {% csrf_token %}
-  {{ form.as_p }}
-  <button type="submit" class="btn btn-success btn-sm">Guardar</button>
+  
+  <div class="space-y-2">
+    {{ form.as_p }}
+  </div>
+
+  <button type="submit"
+          class="bg-green-600 text-white px-4 py-1.5 text-sm rounded hover:bg-green-700 transition">
+    Guardar
+  </button>
 </form>

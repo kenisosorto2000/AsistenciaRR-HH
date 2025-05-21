@@ -1,91 +1,90 @@
-{% extends 'base.html'%}
+{% extends 'base.html' %}
 {% block content %}
 {% load static %}
 <link rel="stylesheet" href="{% static 'styles/menu.css' %}">
-<div class="container mt5">
 
+<div class="container mx-auto px-4 mt-6">
 
-<h2>Solicitudes Pendientes</h2>
-<div class="card">
-    <div class="card-body">
-        <div class="table-responsive">
-            <table id="permisos-pendientes" class="table styled-table table-striped table-hover">
-                <thead>
-                    <th>Encargado</th>
-                    <th>Empleado</th>
-                    <th>Tipo Permiso</th>
-                    <th>Fecha inicio</th>
-                    <th>Fecha fin</th>
-                    <th>Descripcion</th>
-                    <th>Estado</th>
-                    <th>Comprobante</th>
-                    <th>Acciones</th>
-                </thead>
-            
-                <tbody>
-                    {%for p in permiso %}
-                    <tr>
-                        <td>{{p.permiso.encargado}}</td>
-                        <td>{{p.permiso.empleado}}</td>
-                        <td>{{p.permiso.tipo_permiso.tipo}}</td>
-                        <td>{{p.permiso.fecha_inicio}}</td>
-                        <td>{{p.permiso.fecha_final}}</td>
-                        <td>{{p.permiso.descripcion}}</td>
-                        <td>{{p.permiso.estado_solicitud}}</td>
-                        <td>
-                            {% if p.comprobante %}
-                            <a href="{{p.comprobante.url}}" target="_blank">Ver comprobante</a>
-                        </td>
-                        {% endif %}
-                        <td>
-                            <div class="actions d-flex align-items-center">
-                                <button 
-                                type="button" 
-                                class="btn btn-primary btn-sm" 
-                                data-bs-toggle="modal" 
-                                data-bs-target="#miModal">
-                                Opciones
-                                </button>
-                            </div>
-                            
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            
-            </table>
-        </div>
+  <h2 class="text-2xl font-bold mb-4">Solicitudes Pendientes</h2>
+
+  <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg overflow-hidden">
+    <div class="p-4 overflow-x-auto">
+      <table id="permisos-pendientes" class="min-w-full text-sm text-left text-gray-800 dark:text-gray-200 border border-gray-300">
+        <thead class="bg-gray-100 dark:bg-blue-700 font-bold text-gray-700 dark:text-white">
+          <tr>
+            <th class="p-2 border">Encargado</th>
+            <th class="p-2 border">Empleado</th>
+            <th class="p-2 border">Tipo Permiso</th>
+            <th class="p-2 border">Fecha inicio</th>
+            <th class="p-2 border">Fecha fin</th>
+            <th class="p-2 border">Descripción</th>
+            <th class="p-2 border">Estado</th>
+            <th class="p-2 border">Comprobante</th>
+            <th class="p-2 border">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in permiso %}
+          <tr class="hover:bg-gray-50 dark:hover:bg-gray-600 border-b">
+            <td class="p-2 border">{{ p.permiso.encargado }}</td>
+            <td class="p-2 border">{{ p.permiso.empleado }}</td>
+            <td class="p-2 border">{{ p.permiso.tipo_permiso.tipo }}</td>
+            <td class="p-2 border">{{ p.permiso.fecha_inicio }}</td>
+            <td class="p-2 border">{{ p.permiso.fecha_final }}</td>
+            <td class="p-2 border">{{ p.permiso.descripcion }}</td>
+            <td class="p-2 border">{{ p.permiso.estado_solicitud }}</td>
+            <td class="p-2 border">
+              {% if p.comprobante %}
+              <a href="{{ p.comprobante.url }}" target="_blank" class="text-blue-600 underline">
+                Ver comprobante
+              </a>
+              {% endif %}
+            </td>
+            <td class="p-2 border text-center">
+              <button 
+                type="button"
+                @click="open = true; selectedPermiso = '{{ p.permiso.empleado }}'"
+                class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-sm">
+                Opciones
+              </button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
-</div>
+  </div>
 </div>
 
-<div class="modal fade" id="miModal" tabindex="-1" aria-labelledby="miModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="miModalLabel">Solicitud de {{p.permiso.empleado}}</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+<!-- Modal usando Alpine.js para simplificar interacción -->
+<div x-data="{ open: false, selectedPermiso: '' }">
+  <div x-show="open" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+    <div class="bg-white w-full max-w-md p-6 rounded shadow-xl">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-lg font-semibold">Solicitud de <span x-text="selectedPermiso"></span></h2>
+        <button @click="open = false" class="text-gray-500 hover:text-gray-800">&times;</button>
       </div>
-      <div class="modal-body">
-        <form action="post">
-            <label for="comentario">Comentario</label>
-            <textarea name="comentario" class="form-control" id=""></textarea>
-            
-        </form>
+      <div class="mb-4">
+        <label for="comentario" class="block text-sm font-medium text-gray-700">Comentario</label>
+        <textarea id="comentario" name="comentario" rows="3" class="mt-1 w-full border border-gray-300 rounded p-2"></textarea>
       </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Rechazar</button>
-        <button type="button" class="btn btn-success">Aprobar</button>
+      <div class="flex justify-end space-x-2">
+        <button @click="open = false" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Rechazar</button>
+        <button @click="open = false" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Aprobar</button>
       </div>
     </div>
   </div>
 </div>
 
+<!-- DataTable -->
 <script>
-    let table = $('#permisos-pendientes').DataTable({
+  let table = $('#permisos-pendientes').DataTable({
     paging: false,
     searching: false,
     scrollY: 400
   });
 </script>
-{%endblock%}
+
+<!-- Alpine.js for modal (puedes agregarlo en base.html o aquí directamente) -->
+<script src="https://unpkg.com/alpinejs" defer></script>
+{% endblock %}
