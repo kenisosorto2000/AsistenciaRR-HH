@@ -110,7 +110,7 @@ class GestionPermisoDetalle(models.Model):
     fecha = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.fecha}"
+        return f"{self.fecha} - {self.solicitud}"
     
 class PermisoComprobante(models.Model):
     permiso = models.ForeignKey(Permisos, on_delete=models.CASCADE)

@@ -329,7 +329,8 @@ def asignar_empleados(request, encargado_id):
     # })
 
 def solicitud_rh(request):
-    permiso = PermisoComprobante.objects.all()
+    estado = 'P'
+    permiso = PermisoComprobante.objects.filter(permiso__estado_solicitud=estado)
 
     return render(request, 'solicitudes_rh.html', {'permiso': permiso},)
 
@@ -359,3 +360,52 @@ def formulario_comprobantes(request, permiso_id):
 
 def modo_oscuro(request):
     return render(request, 'modo_oscuro.html')
+
+def modal_solicitud(request, permiso_comprobante_id):
+    permiso_comprobante = get_object_or_404(PermisoComprobante, id=permiso_comprobante_id)
+    # permiso = get_object_or_404(Permisos, permisos_id=permiso_id )
+    return render(request, 'partials/modal.html', {'permiso_comprobante': permiso_comprobante,})
+
+def accion_solicitud(request):
+    
+    if request.method == 'POST':
+        solicitud_id = request.POST.get('solicitud_id')
+        accion = request.POST.get('accion_realizada')  # 'aprobar' o 'rechazar'
+        revisado_por = request.POST.get('revisada_por')
+        comentario = request.POST.get('comentarios', '')
+
+        # 1. Busca la solicitud
+        solicitud = get_object_or_404(Permisos, id=solicitud_id)
+
+        # 2. Define el nuevo estado
+        if accion == 'A':
+            nuevo_estado = 'A'
+        elif accion == 'R':
+            nuevo_estado = 'R'
+        else:
+            return HttpResponse("Acción no válida", status=400)
+
+        # 3. Guarda el detalle
+        GestionPermisoDetalle.objects.create(
+            solicitud=solicitud,
+            accion_realizada=nuevo_estado,
+            revisada_por=revisado_por,
+            comentarios=comentario
+        )
+
+        # 4. Actualiza el estado de la solicitud
+        solicitud.estado_solicitud = nuevo_estado
+        solicitud.save()
+
+        # 5. (Opcional) Retorna un mensaje, puedes actualizar la tabla con HTMX
+        return redirect('solicitud_rh')
+
+    return HttpResponse("Método no permitido", status=405)
+
+def ver_historial_solicitudes(request):
+    solicitudes = GestionPermisoDetalle.objects.all()
+
+    return render(request, 'historial_solicitudes.html', {'solicitudes': solicitudes})
+
+def ola(request):
+    return render(request, 'lista.html')

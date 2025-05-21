@@ -22,7 +22,11 @@ urlpatterns = [
     path('form-comprobantes/<int:permiso_id>/', views.formulario_comprobantes, name="form_comprobante"),
     path('empleados_y_encargados/', views.empleados_y_encargados, name='empleados_y_encargados'),
     path('ver_encargados', views.ver_encargados, name='ver_encargados'),
-    path('asignados/', views.asignar_empleados)
+    path('asignados/', views.asignar_empleados),
+    path('modal-permiso/<int:permiso_comprobante_id>/', views.modal_solicitud, name='modal_solicitud'),
+    path('accion-permiso/', views.accion_solicitud, name='accion_solicitud'),
+    path('historial-solicitudes/', views.ver_historial_solicitudes, name='historial_solicitudes'),
+    path('lista/', views.ola, name='lista'),
     # path('/validar/', views.validar_asistencias),
    
 ] 

@@ -5,6 +5,7 @@
 
 <div class="container mx-auto px-4 mt-6">
 
+<<<<<<< HEAD
   <h2 class="text-2xl font-bold mb-4">Solicitudes Pendientes</h2>
 
   <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg overflow-hidden">
@@ -52,10 +53,66 @@
           {% endfor %}
         </tbody>
       </table>
+=======
+<h2>Solicitudes Pendientes</h2>
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table id="permisos-pendientes" class="table styled-table table-striped table-hover">
+                <thead>
+                    <th>Encargado</th>
+                    <th>Empleado</th>
+                    <th>Tipo Permiso</th>
+                    <th>Fecha inicio</th>
+                    <th>Fecha fin</th>
+                    <th>Descripcion</th>
+                    <th>Estado</th>
+                    <th>Comprobante</th>
+                    <th>Acciones</th>
+                </thead>
+            
+                <tbody>
+                    {%for p in permiso %}
+                    <tr>
+                        <td>{{p.permiso.encargado}}</td>
+                        <td>{{p.permiso.empleado}}</td>
+                        <td>{{p.permiso.tipo_permiso.tipo}}</td>
+                        <td>{{p.permiso.fecha_inicio}}</td>
+                        <td>{{p.permiso.fecha_final}}</td>
+                        <td>{{p.permiso.descripcion}}</td>
+                        <td>{{p.permiso.estado_solicitud}}  {{p.id}}</td>
+                        <td>
+                            {% if p.comprobante %}
+                            <a href="{{p.comprobante.url}}" target="_blank">Ver comprobante</a>
+                        </td>
+                        {% endif %}
+                        <td>
+                            <div class="actions d-flex align-items-center">
+                                <button  class="btn btn-primary btn-sm"
+                                type="button"
+                                hx-get="{% url 'modal_solicitud' p.id %}"
+                                hx-target="#modal"
+                                hx-trigger="click"
+                                hx-swap="innerHTML"
+                                >
+                                
+                                Opciones
+                                </button>
+                            </div>
+                            
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            
+            </table>
+        </div>
+>>>>>>> origin/devHector
     </div>
   </div>
 </div>
 
+<<<<<<< HEAD
 <!-- Modal usando Alpine.js para simplificar interacción -->
 <div x-data="{ open: false, selectedPermiso: '' }">
   <div x-show="open" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
@@ -75,6 +132,13 @@
     </div>
   </div>
 </div>
+=======
+<div id="modal"></div>
+
+<!--  
+                                data-bs-toggle="modal" 
+                                data-bs-target="#miModal"> -->
+>>>>>>> origin/devHector
 
 <!-- DataTable -->
 <script>
