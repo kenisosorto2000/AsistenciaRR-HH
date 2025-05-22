@@ -44,15 +44,57 @@
 </head>
 <body class="bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-300">
     <div class="flex flex-col min-h-screen">
-        <!-- Header con logo y botón de tema -->
         <header class="flex justify-between items-center px-5 py-2 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 transition-colors duration-300">
-            <!-- Logo -->
-        <a href="#" class="me-3">
-            <!-- Imagen para modo claro -->
-            <img src="{% static 'img/imagen2.png' %}" alt="Logo claro" class="h-16 block dark:hidden">
-            <!-- Imagen para modo oscuro -->
-            <img src="{% static 'img/imagen1.png' %}" alt="Logo oscuro" class="h-16 hidden dark:block">
-
+            <div class="flex items-center space-x-2">
+                <!-- Botón para mostrar/ocultar el menú en pantallas pequeñas -->
+                <button id="menu-toggle" class="lg:hidden p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none transition-colors duration-300" aria-label="Mostrar menú">
+                    <i data-lucide="menu"></i>
+                </button>
+                <img src="{% static 'img/imagen2.png' %}" alt="Logo claro" class="h-16 block dark:hidden">
+                <img src="{% static 'img/imagen1.png' %}" alt="Logo oscuro" class="h-16 hidden dark:block">
+            </div>
+            <!-- Sidebar flotante para móviles -->
+            <style>
+                @media (max-width: 1023px) {
+                    aside.floating-sidebar {
+                        position: fixed !important;
+                        top: 80px; /* Altura del header (ajusta según tu header) */
+                        left: 0;
+                        width: 80vw;
+                        max-width: 320px;
+                        height: calc(100vh - 80px); /* Resta la altura del header */
+                        z-index: 50;
+                        background: 'bg-promaco-dark';
+                        box-shadow: 2px 0 8px rgba(0,0,0,0.15);
+                        transition: transform 0.3s;
+                    }
+                    aside.floating-sidebar.dark {
+                        background: #1f2937;
+                    }
+                }
+            </style>
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const menuToggle = document.getElementById('menu-toggle');
+                    const sidebar = document.querySelector('aside');
+                    if (sidebar) sidebar.classList.add('floating-sidebar');
+                    menuToggle.addEventListener('click', function() {
+                        if (sidebar) {
+                            sidebar.classList.toggle('hidden');
+                        }
+                    });
+                    // Ocultar el menú por defecto en pantallas pequeñas
+                    function handleResize() {
+                        if (window.innerWidth < 1024) { // lg breakpoint
+                            if (sidebar) sidebar.classList.add('hidden');
+                        } else {
+                            if (sidebar) sidebar.classList.remove('hidden');
+                        }
+                    }
+                    window.addEventListener('resize', handleResize);
+                    handleResize();
+                });
+            </script>
         </a>
             <button id="theme-toggle" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none transition-colors duration-300" aria-label="Cambiar tema">
                 <i data-lucide="sun" class="w-6 h-6 block dark:hidden"></i>
