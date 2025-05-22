@@ -61,26 +61,31 @@
 
 <!-- Modal usando Alpine.js para simplificar interacción -->
 <div x-show="open" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-    <div class="bg-white w-full max-w-md p-6 rounded shadow-xl">
+    <div class="bg-white dark:bg-gray-800 w-full max-w-md p-6 rounded shadow-xl">
       <form method="POST" action="{% url 'accion_solicitud' %}">
         {% csrf_token %}
       <div class="flex justify-between items-center mb-4">
         <h2 class="text-lg font-semibold">Solicitud de <span x-text="selectedPermiso"></span></h2>
-        <button @click="open = false" type="button" class="text-gray-500 hover:text-gray-800 w-2 h-2">&times;</button>
+        <button @click="open = false" type="button" class="text-reed-500 hover:text-red-800 w-4 h-4">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="inline w-9 h-9 align-middle mr-2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+          </svg>
+        </button>
       </div>
       <div class="mb-4">
         <input type="hidden" name="solicitud_id" :value="selectedId">
         
-        <label for="revisada_por" class="block text-sm font-medium text-gray-700">Revisada Por</label>
-        <input type="text" id="revisada_por" name="revisada_por" rows="3" class="mt-1 w-full border border-gray-300 rounded p-2">
+        <label for="revisada_por" class="block text-sm font-medium text-gray-700 dark:text-gray-100">Revisada Por</label>
+        <input type="text" id="revisada_por" name="revisada_por" required rows="3" class="mt-1 w-full border border-gray-300 dark:bg-gray-600 rounded p-2">
       </div>
       <div class="mb-4">
-        <label for="comentario" class="block text-sm font-medium text-gray-700">Comentario</label>
-        <textarea id="comentario" name="comentarios" rows="3" class="mt-1 w-full border border-gray-300 rounded p-2"></textarea>
+        <label for="comentario" class="block text-sm font-medium text-gray-700 dark:text-gray-100">Comentario</label>
+        <textarea id="comentario" name="comentarios" required rows="3" class="mt-1 w-full border border-gray-300 dark:bg-gray-600 rounded p-2"></textarea>
       </div>
       <div class="flex justify-end space-x-2">
-        <button @click="open = false" name="accion_realizada" value="R" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Rechazar</button>
-        <button @click="open = false" name="accion_realizada" value="A" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Aprobar</button>
+        <button name="accion_realizada" value="R" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Rechazar</button>
+        <button name="accion_realizada" value="A" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Aprobar</button>
+        <button @click="open = false" type="button" class="bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700">Cancelar</button>
       </div>
       </form>
     </div>
