@@ -72,3 +72,4 @@ let table = $('#tabla-marcaje').DataTable({
     scrollY: 400,
     ordering: false
   });
+
