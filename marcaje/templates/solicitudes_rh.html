@@ -2,19 +2,12 @@
 {% block content %}
 {% load static %}
 <link rel="stylesheet" href="{% static 'styles/menu.css' %}">
-<<<<<<< HEAD
 <script src="https://unpkg.com/alpinejs" defer></script>
 <div class="container mx-auto px-4 mt-6">
 
  <div x-data="{ open: false, selectedPermiso: '', selectedId: '' }" class="container mx-auto px-4 mt-6">
   <h2 class="text-2xl font-bold mb-4">Solicitudes Pendientes</h2>
   <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg overflow-hidden">
-=======
-
-<div class="container mx-autop-6">
-  <div class="bg-white dark:bg-gray-800 shadow rounded p-6">
-  <h2 class="text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Solicitudes Pendientes</h2>
->>>>>>> origin/devKenis
     <div class="p-4 overflow-x-auto">
       <table id="permisos-pendientes" class="min-w-full text-sm text-left text-gray-800 dark:text-gray-200 border border-gray-300">
         <thead class="bg-gray-100 dark:bg-gray-600 uppercase text-xs">
