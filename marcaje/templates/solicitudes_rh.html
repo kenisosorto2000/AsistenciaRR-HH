@@ -2,89 +2,108 @@
 {% block content %}
 {% load static %}
 <link rel="stylesheet" href="{% static 'styles/menu.css' %}">
+<script src="https://unpkg.com/alpinejs" defer></script>
 
-<div class="container mx-auto px-4 mt-6">
+<div class="w-full max-w-7xl mx-auto bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-300 mt-6">
+  <h2 class="text-2xl font-semibold mb-6 text-center text-gray-800 dark:text-gray-200">
+    Solicitudes Pendientes
+  </h2>
 
-  <h2 class="text-2xl font-bold mb-4">Solicitudes Pendientes</h2>
-
-  <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg overflow-hidden">
-    <div class="p-4 overflow-x-auto">
-      <table id="permisos-pendientes" class="min-w-full text-sm text-left text-gray-800 dark:text-gray-200 border border-gray-300">
-        <thead class="bg-gray-100 dark:bg-blue-700 font-bold text-gray-700 dark:text-white">
-          <tr>
-            <th class="p-2 border">Encargado</th>
-            <th class="p-2 border">Empleado</th>
-            <th class="p-2 border">Tipo Permiso</th>
-            <th class="p-2 border">Fecha inicio</th>
-            <th class="p-2 border">Fecha fin</th>
-            <th class="p-2 border">Descripción</th>
-            <th class="p-2 border">Estado</th>
-            <th class="p-2 border">Comprobante</th>
-            <th class="p-2 border">Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for p in permiso %}
-          <tr class="hover:bg-gray-50 dark:hover:bg-gray-600 border-b">
-            <td class="p-2 border">{{ p.permiso.encargado }}</td>
-            <td class="p-2 border">{{ p.permiso.empleado }}</td>
-            <td class="p-2 border">{{ p.permiso.tipo_permiso.tipo }}</td>
-            <td class="p-2 border">{{ p.permiso.fecha_inicio }}</td>
-            <td class="p-2 border">{{ p.permiso.fecha_final }}</td>
-            <td class="p-2 border">{{ p.permiso.descripcion }}</td>
-            <td class="p-2 border">{{ p.permiso.estado_solicitud }}</td>
-            <td class="p-2 border">
-              {% if p.comprobante %}
-              <a href="{{ p.comprobante.url }}" target="_blank" class="text-blue-600 underline">
-                Ver comprobante
-              </a>
-              {% endif %}
-            </td>
-            <td class="p-2 border text-center">
-              <button 
-                type="button"
-                @click="open = true; selectedPermiso = '{{ p.permiso.empleado }}'"
-                class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-sm">
-                Opciones
-              </button>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
+  <div class="overflow-x-auto max-h-[600px] overflow-y-auto border border-gray-200 dark:border-gray-700 rounded">
+    <table id="tabla-solicitudes" class="min-w-full text-sm text-left text-gray-700 dark:text-gray-200">
+      <thead class="bg-gray-100 dark:bg-gray-600 sticky top-[0px] z-10 uppercase text-xs">
+        <tr>
+          <th class="px-4 py-3">Encargado</th>
+          <th class="px-4 py-3">Empleado</th>
+          <th class="px-4 py-3">Tipo Permiso</th>
+          <th class="px-4 py-3">Fecha Inicio</th>
+          <th class="px-4 py-3">Fecha Fin</th>
+          <th class="px-4 py-3">Descripción</th>
+          <th class="px-4 py-3">Estado</th>
+          <th class="px-4 py-3">Comprobante</th>
+          <th class="px-4 py-3 text-center">Acciones</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+        {% for p in permiso %}
+        <tr class="hover:bg-gray-100 dark:hover:bg-gray-700">
+          <td class="px-4 py-2">{{ p.permiso.encargado }}</td>
+          <td class="px-4 py-2">{{ p.permiso.empleado }}</td>
+          <td class="px-4 py-2">{{ p.permiso.tipo_permiso.tipo }}</td>
+          <td class="px-4 py-2">{{ p.permiso.fecha_inicio }}</td>
+          <td class="px-4 py-2">{{ p.permiso.fecha_final }}</td>
+          <td class="px-4 py-2">{{ p.permiso.descripcion }}</td>
+          <td class="px-4 py-2">{{ p.permiso.estado_solicitud }}</td>
+          <td class="px-4 py-2">
+            {% if p.comprobante %}
+            <a href="{{ p.comprobante.url }}" target="_blank" class="text-blue-600 underline">
+              Ver comprobante
+            </a>
+            {% endif %}
+          </td>
+          <td class="px-4 py-2 text-center">
+            <button 
+              type="button"
+              @click="open = true; selectedPermiso = '{{ p.permiso.empleado }}'; selectedId = '{{ p.permiso.id }}';"
+              class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-sm">
+              Opciones
+            </button>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
 </div>
 
+<style>
+  [x-cloak] { display: none !important; }
+</style>
+
 <!-- Modal usando Alpine.js para simplificar interacción -->
-<div x-data="{ open: false, selectedPermiso: '' }">
-  <div x-show="open" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-    <div class="bg-white w-full max-w-md p-6 rounded shadow-xl">
+<div x-show="open" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+    <div class="bg-white dark:bg-gray-800 w-full max-w-md p-6 rounded shadow-xl">
+      <form method="POST" action="{% url 'accion_solicitud' %}">
+        {% csrf_token %}
       <div class="flex justify-between items-center mb-4">
         <h2 class="text-lg font-semibold">Solicitud de <span x-text="selectedPermiso"></span></h2>
-        <button @click="open = false" class="text-gray-500 hover:text-gray-800">&times;</button>
+        <button @click="open = false" type="button" class="text-reed-500 hover:text-red-800 w-4 h-4">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="inline w-9 h-9 align-middle mr-2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+          </svg>
+        </button>
       </div>
       <div class="mb-4">
-        <label for="comentario" class="block text-sm font-medium text-gray-700">Comentario</label>
-        <textarea id="comentario" name="comentario" rows="3" class="mt-1 w-full border border-gray-300 rounded p-2"></textarea>
+        <input type="hidden" name="solicitud_id" :value="selectedId">
+        
+        <label for="revisada_por" class="block text-sm font-medium text-gray-700 dark:text-gray-100">Revisada Por</label>
+        <input type="text" id="revisada_por" name="revisada_por" required rows="3" class="mt-1 w-full border border-gray-300 dark:bg-gray-600 rounded p-2">
+      </div>
+      <div class="mb-4">
+        <label for="comentario" class="block text-sm font-medium text-gray-700 dark:text-gray-100">Comentario</label>
+        <textarea id="comentario" name="comentarios" required rows="3" class="mt-1 w-full border border-gray-300 dark:bg-gray-600 rounded p-2"></textarea>
       </div>
       <div class="flex justify-end space-x-2">
-        <button @click="open = false" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Rechazar</button>
-        <button @click="open = false" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Aprobar</button>
+        <button name="accion_realizada" value="R" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Rechazar</button>
+        <button name="accion_realizada" value="A" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Aprobar</button>
+        <button @click="open = false" type="button" class="bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700">Cancelar</button>
       </div>
+      </form>
     </div>
   </div>
 </div>
 
 <!-- DataTable -->
 <script>
-  let table = $('#permisos-pendientes').DataTable({
-    paging: false,
-    searching: false,
-    scrollY: 400
+  let table = $('#tabla-solicitudes').DataTable({
+    pageLength: 10,
+    lengthMenu: [10, 25, 50, 100],
+    scrollY: 400,
+    ordering: false
   });
 </script>
 
 <!-- Alpine.js for modal (puedes agregarlo en base.html o aquí directamente) -->
-<script src="https://unpkg.com/alpinejs" defer></script>
+
 {% endblock %}
+

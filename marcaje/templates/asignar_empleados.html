@@ -1,23 +1,43 @@
+<h3 class="text-xl font-semibold text-gray-800 dark:text-white mb-4">
+    Asignar Empleados a {{ encargado.nombre }}
+</h3>
 
-    <h3>Asignar Empleados a {{ encargado.nombre }}</h3>
+<form method="post" 
+      hx-post="{% url 'asignar_empleados' encargado.id %}" 
+      hx-target="#asignar" 
+      hx-swap="innerHTML">
     
-    <form method="post"  hx-post="{% url 'asignar_empleados' encargado.id %}"
-    hx-target="#asignar"
-    hx-swap="innerHTML">
-        {% csrf_token %}
-        <div class="empleados-container">
-            {% for empleado in empleados %}
-                <div class="empleado-item">
-                    <input type="checkbox" name="empleados_ids" value="{{ empleado.id }}" id="emp_{{ empleado.id }}">
-                    <label for="emp_{{ empleado.id }}">{{ empleado.nombre }}</label>
-                </div>
-            {% empty %}
-                <p>Todos los empleados ya tienen encargado asignado.</p>
-            {% endfor %}
-        </div>
-        
-        {% if empleados %}
-            <button type="submit" class="submit-btn">Guardar Asignaciones</button>
-        {% endif %}
-    </form>
+    {% csrf_token %}
+
+<div class="max-h-96 overflow-y-auto border border-gray-300 rounded-md p-3 bg-white dark:bg-gray-800 space-y-2">
+        {% for empleado in empleados %}
+            <div class="flex items-center space-x-2">
+                <input 
+                    type="checkbox" 
+                    name="empleados_ids" 
+                    value="{{ empleado.id }}" 
+                    id="emp_{{ empleado.id }}" 
+                    class="text-blue-600 dark:text-blue-400 focus:ring-blue-500">
+                <label for="emp_{{ empleado.id }}" class="text-gray-800 dark:text-gray-200">
+                    {{ empleado.nombre }}
+                </label>
+            </div>
+        {% empty %}
+            <p class="text-gray-600 dark:text-gray-400">
+                Todos los empleados ya tienen encargado asignado.
+            </p>
+        {% endfor %}
+    </div>
+
+    {% if empleados %}
+        <button type="submit" class="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium shadow">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="inline w-5 h-5 align-middle mr-2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 8.25H7.5a2.25 2.25 0 0 0-2.25 2.25v9a2.25 2.25 0 0 0 2.25 2.25h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25H15m0-3-3-3m0 0-3 3m3-3V15" />
+            </svg>
+            Guardar Asignaciones
+        </button>
+    {% endif %}
+</form>
+
+
 
