@@ -58,16 +58,18 @@ width: 100%;
 
 div#tabla-empleados{
     overflow: auto;
-    max-height: 400px;
+    max-height: 550px;
 }
 
-<<<<<<< HEAD
 div#tabla-encargados{
     overflow: auto;
-    max-height: 400px;
+    max-height: 550px;
 }
-=======
->>>>>>> origin/devHector
+
+div#tabla-asignados{
+    overflow: auto;
+    max-height: 550px;
+}
 
 div#asignar{
     max-width: 600px;
@@ -76,5 +78,9 @@ div#asignar{
 .empleados-container{
     overflow: auto;
     max-height: 400px;
+}
+
+div#tablas{
+    margin-top: 0px;
 }
 

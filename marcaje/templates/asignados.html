@@ -1,11 +1,17 @@
-<h2>Empleados asignados a {{ encargado.nombre }}</h2>
+<h2 class="text-xl font-semibold text-gray-800 dark:text-white mb-4">
+    Empleados asignados a {{ encargado.nombre }}
+</h2>
 
 {% if empleados %}
-  <ul class="list-group">
+  <ul class="max-h-80 overflow-y-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-md divide-y divide-gray-200 dark:divide-gray-600">
     {% for e in empleados %}
-      <li class="list-group-item">{{ e.nombre }}</li>
+      <li class="px-4 py-2 text-gray-800 dark:text-gray-200">
+        {{ e.nombre }}
+      </li>
     {% endfor %}
   </ul>
 {% else %}
-  <p class="text-muted">Este encargado no tiene empleados asignados.</p>
+  <p class="text-gray-600 dark:text-gray-400">
+    Este encargado no tiene empleados asignados.
+  </p>
 {% endif %}
