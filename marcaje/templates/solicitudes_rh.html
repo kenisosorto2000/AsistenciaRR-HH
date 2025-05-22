@@ -2,10 +2,12 @@
 {% block content %}
 {% load static %}
 <link rel="stylesheet" href="{% static 'styles/menu.css' %}">
+<script src="https://unpkg.com/alpinejs" defer></script>
+<div class="container mx-auto px-4 mt-6">
 
-<div class="container mx-autop-6">
-  <div class="bg-white dark:bg-gray-800 shadow rounded p-6">
-  <h2 class="text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Solicitudes Pendientes</h2>
+ <div x-data="{ open: false, selectedPermiso: '', selectedId: '' }" class="container mx-auto px-4 mt-6">
+  <h2 class="text-2xl font-bold mb-4">Solicitudes Pendientes</h2>
+  <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg overflow-hidden">
     <div class="p-4 overflow-x-auto">
       <table id="permisos-pendientes" class="min-w-full text-sm text-left text-gray-800 dark:text-gray-200 border border-gray-300">
         <thead class="bg-gray-100 dark:bg-gray-600 uppercase text-xs">
@@ -41,7 +43,7 @@
             <td class="p-2 border text-center">
               <button 
                 type="button"
-                @click="open = true; selectedPermiso = '{{ p.permiso.empleado }}'"
+                @click="open = true; selectedPermiso = '{{ p.permiso.empleado }}'; selectedId = '{{p.permiso.id}}';"
                 class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-sm">
                 Opciones
               </button>
@@ -52,24 +54,35 @@
       </table>
     </div>
   </div>
-</div>
+
+<style>
+  [x-cloak] { display: none !important; }
+</style>
 
 <!-- Modal usando Alpine.js para simplificar interacción -->
-<div x-data="{ open: false, selectedPermiso: '' }">
-  <div x-show="open" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+<div x-show="open" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
     <div class="bg-white w-full max-w-md p-6 rounded shadow-xl">
+      <form method="POST" action="{% url 'accion_solicitud' %}">
+        {% csrf_token %}
       <div class="flex justify-between items-center mb-4">
         <h2 class="text-lg font-semibold">Solicitud de <span x-text="selectedPermiso"></span></h2>
-        <button @click="open = false" class="text-gray-500 hover:text-gray-800">&times;</button>
+        <button @click="open = false" type="button" class="text-gray-500 hover:text-gray-800 w-2 h-2">&times;</button>
+      </div>
+      <div class="mb-4">
+        <input type="hidden" name="solicitud_id" :value="selectedId">
+        
+        <label for="revisada_por" class="block text-sm font-medium text-gray-700">Revisada Por</label>
+        <input type="text" id="revisada_por" name="revisada_por" rows="3" class="mt-1 w-full border border-gray-300 rounded p-2">
       </div>
       <div class="mb-4">
         <label for="comentario" class="block text-sm font-medium text-gray-700">Comentario</label>
-        <textarea id="comentario" name="comentario" rows="3" class="mt-1 w-full border border-gray-300 rounded p-2"></textarea>
+        <textarea id="comentario" name="comentarios" rows="3" class="mt-1 w-full border border-gray-300 rounded p-2"></textarea>
       </div>
       <div class="flex justify-end space-x-2">
-        <button @click="open = false" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Rechazar</button>
-        <button @click="open = false" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Aprobar</button>
+        <button @click="open = false" name="accion_realizada" value="R" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Rechazar</button>
+        <button @click="open = false" name="accion_realizada" value="A" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Aprobar</button>
       </div>
+      </form>
     </div>
   </div>
 </div>
@@ -85,6 +98,6 @@
 </script>
 
 <!-- Alpine.js for modal (puedes agregarlo en base.html o aquí directamente) -->
-<script src="https://unpkg.com/alpinejs" defer></script>
+
 {% endblock %}
 
