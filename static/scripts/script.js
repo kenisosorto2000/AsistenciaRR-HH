@@ -81,7 +81,6 @@ function actualizarTabla(empleados) {
 }
 
 let table = $('#tabla-empleados').DataTable({
-
     pageLength: 10,
     lengthMenu: [10, 25, 50, 100],
   });
