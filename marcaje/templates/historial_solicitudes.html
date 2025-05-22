@@ -1,33 +1,38 @@
 {% extends 'base.html' %}
 {% block content %}
 
-<div class="container">
-    <h3>Historial de Solicitudes de Permiso</h3>
-    <div class="table">
-        <table class="tabla-historial table">
-            <thead>
-                <th>Empleado</th>
-                <th>Fecha solicitud</th>
-                <th>Tipo permiso</th>
-                <th>Revision</th>
-                <th>Comentarios</th>
-                <th>Accion</th>
-                <th>Fecha Revision</th>
-            </thead>
-            <tbody>
-                {% for s in solicitudes %}
+<div class="w-full max-w-6xl mx-auto bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 mt-6">
+    <h3 class="text-2xl font-semibold text-center text-gray-800 dark:text-white mb-6">
+        Historial de Solicitudes de Permiso
+    </h3>
+    <div class="overflow-x-auto max-h-[600px] overflow-y-auto border border-gray-200 dark:border-gray-700 rounded">
+        <table class="min-w-full text-sm text-left text-gray-700 dark:text-gray-200">
+            <thead class="bg-gray-100 dark:bg-gray-800 sticky top-0 z-10 text-xs uppercase text-gray-700 dark:text-gray-200">
                 <tr>
-                    <td>{{s.solicitud.empleado}}</td>
-                    <td>{{s.solicitud.fecha_solicitud}}</td>
-                    <td>{{s.solicitud.tipo_permiso}}</td>
-                    <td>{{s.revisada_por}}</td>
-                    <td>{{s.comentarios}}</td>
-                    <td>{{s.accion_realizada}}</td>
-                    <td>{{s.fecha}}</td>
+                    <th class="px-4 py-3">Empleado</th>
+                    <th class="px-4 py-3">Fecha Solicitud</th>
+                    <th class="px-4 py-3">Tipo Permiso</th>
+                    <th class="px-4 py-3">Revisión</th>
+                    <th class="px-4 py-3">Comentarios</th>
+                    <th class="px-4 py-3">Acción</th>
+                    <th class="px-4 py-3">Fecha Revisión</th>
                 </tr>
-                {%endfor%}
+            </thead>
+            <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                {% for s in solicitudes %}
+                <tr class="hover:bg-gray-100 dark:hover:bg-gray-700">
+                    <td class="px-4 py-2">{{ s.solicitud.empleado }}</td>
+                    <td class="px-4 py-2">{{ s.solicitud.fecha_solicitud }}</td>
+                    <td class="px-4 py-2">{{ s.solicitud.tipo_permiso }}</td>
+                    <td class="px-4 py-2">{{ s.revisada_por }}</td>
+                    <td class="px-4 py-2">{{ s.comentarios }}</td>
+                    <td class="px-4 py-2">{{ s.accion_realizada }}</td>
+                    <td class="px-4 py-2">{{ s.fecha }}</td>
+                </tr>
+                {% endfor %}
             </tbody>
         </table>
     </div>
 </div>
-{%endblock%}
+
+{% endblock %}

@@ -69,5 +69,6 @@ function getCookie(name) {
 let table = $('#tabla-marcaje').DataTable({
     pageLength: 10,
     lengthMenu: [10, 25, 50, 100],
-    scrollY: 400
+    scrollY: 400,
+    ordering: false
   });

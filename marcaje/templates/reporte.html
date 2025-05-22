@@ -1,72 +1,60 @@
 {% extends 'base.html' %}
-
-{% load static %}<!-- Reusa estilos del admin -->
+{% load static %}
 
 {% block content %}
 <link rel="stylesheet" href="{% static 'styles/main.css' %}">
 
+<div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 w-full max-w-6xl mx-auto">
+    <h2 class="text-2xl font-semibold text-center text-gray-800 dark:text-white mb-6">Descargar Registros de Marcaje</h2>
 
-<div class="card">
-    <div class="card-body">
+    <form method="get" class="flex flex-col md:flex-row items-center justify-center gap-4 mb-6">
+        <select name="departamento" onchange="this.form.submit()" 
+                class="block w-full md:w-auto px-3 py-2 text-sm border rounded-md text-gray-700 bg-white dark:bg-gray-800 dark:text-gray-200 border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="">Departamentos</option>
+            {% for depto in departamentos %}
+                <option value="{{ depto }}" {% if depto == departamento_seleccionado %}selected{% endif %}>
+                    {{ depto }}
+                </option>
+            {% endfor %}
+        </select>
 
-    <h2>Descargar Registros de Marcaje</h2>
+        <input type="date" id="fecha-sync" name="fecha" value="{{ hoy|date:'Y-m-d' }}" max="{{ hoy|date:'Y-m-d' }}"
+               class="block w-full md:w-auto px-3 py-2 text-sm border rounded-md text-gray-700 bg-white dark:bg-gray-800 dark:text-gray-200 border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500" />
 
-    <form method="get">
-        <div class="d-flex justify-content-center mb-3">
-            <div class="select">
-                <select class="form-select form-select-sm" name="departamento" onchange="this.form.submit()">
-                    <option value="">Departamentos</option>
-                    {% for depto in departamentos %}
-                    <option value="{{ depto }}" {% if depto == departamento_seleccionado %}selected{% endif %}>
-                      {{ depto }}
-                    </option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="acciones mx-3">
-                <input class="form-control form-control-sm" type="date" id="fecha-sync" value="{{ hoy|date:'Y-m-d' }}" max="{{ hoy|date:'Y-m-d' }}">
-        </div>
-        <div class="boton">
-            <button class="btn btn-warning btn-sm" id="sync-btn">Sincronizar Marcajes</button>
-                <span id="sync-status"></span>
-        </div>
-        </div>
-      
+        <button type="submit" id="sync-btn"
+                class="bg-yellow-500 hover:bg-yellow-600 text-white text-sm px-4 py-2 rounded transition">
+            Sincronizar Marcajes
+        </button>
+        <span id="sync-status" class="text-sm text-gray-500 dark:text-gray-400"></span>
     </form>
 
-    <div class="table-responsive">
-        <table class="table styled-table table-striped table-hover" id="tabla-marcaje">
-            <thead>
+    <div class="overflow-x-auto max-h-[600px] overflow-y-auto border border-gray-200 dark:border-gray-700 rounded">
+        <table id="tabla-marcaje" class="min-w-full text-sm text-left text-gray-700 dark:text-gray-200">
+            <thead class="bg-gray-100 dark:bg-gray-600 uppercase text-xs">
                 <tr>
-                    <th>Fecha</th>
-                    <th>Sucursal</th>
-                    <th>Código Empleado</th>
-                    <th>Empleado</th>
-                 
-                    <th>Tipo de registro</th>
-                    <th>Departamento</th>
+                    <th class="px-4 py-3">Fecha</th>
+                    <th class="px-4 py-3">Sucursal</th>
+                    <th class="px-4 py-3">Código Empleado</th>
+                    <th class="px-4 py-3">Empleado</th>
+                    <th class="px-4 py-3">Tipo de registro</th>
+                    <th class="px-4 py-3">Departamento</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody class="divide-y divide-gray-200 dark:divide-gray-600">
                 {% for registro in registros %}
-                <tr>
-                    <td>{{ registro.fecha_hora }}</td>
-                    <td>{{ registro.empleado.sucursal}}</td>
-                    <td>{{ registro.empleado.codigo }}</td>
-                    <td>{{ registro.empleado.nombre }}</td>
-                    
-                  
-                    <td>{{ registro.tipo_registro}}</td>
-                    <td>{{ registro.empleado.departamento}}</td>
+                <tr class="hover:bg-gray-100 dark:hover:bg-gray-700">
+                    <td class="px-4 py-2">{{ registro.fecha_hora }}</td>
+                    <td class="px-4 py-2">{{ registro.empleado.sucursal }}</td>
+                    <td class="px-4 py-2">{{ registro.empleado.codigo }}</td>
+                    <td class="px-4 py-2">{{ registro.empleado.nombre }}</td>
+                    <td class="px-4 py-2">{{ registro.tipo_registro }}</td>
+                    <td class="px-4 py-2">{{ registro.empleado.departamento }}</td>
                 </tr>
-                
                 {% endfor %}
             </tbody>
         </table>
     </div>
 </div>
-</div>    
 
 <script src="{% static 'scripts/sync_marc.js' %}"></script>
-
 {% endblock %}
