@@ -1,4 +1,7 @@
 from django.shortcuts import render, redirect
+from django.contrib.auth import logout
+from django.contrib.auth import authenticate, login
+from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404
 from .models import *
@@ -135,42 +138,42 @@ def lista_registros(request):
 # Create your views here.
 
 def validar_asistencias(request):
-    if request.method == 'GET':
-        sucursales = Sucursal.objects.all()
-        return render(request, 'validar_asistencia.html', {'sucursales': sucursales})
+    sucursales = Sucursal.objects.all()
+    resultados = []
     
-    # Para solicitudes AJAX
-    try:
-        data = request.POST
-        sucursal_id = data.get('sucursal')
-        fecha_str = data.get('fecha')
-        
-        fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
-        
-        empleados = Empleado.objects.filter(sucursal_id=sucursal_id)
-        resultados = []
-        
-        for empleado in empleados:
-            marcaje_depurado = MarcajeDepurado.objects.filter(
-                empleado=empleado,
-                fecha=fecha
-            ).first()
+    sucursal_id = request.GET.get('sucursal')
+    fecha_str = request.GET.get('fecha')
+    
+    if sucursal_id and fecha_str:
+        try:
+            fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
+            empleados = Empleado.objects.filter(sucursal_id=sucursal_id)
             
-            resultados.append({
-                'fecha': fecha,
-                'sucursal': empleado.sucursal.nombre,
-                'codigo': empleado.codigo,
-                'nombre': empleado.nombre,
-                'departamento': empleado.departamento,
-                'asistio': marcaje_depurado is not None,  # True si hay registro depurado
-                'entrada': marcaje_depurado.entrada.strftime('%H:%M') if marcaje_depurado and marcaje_depurado.entrada else '--',
-                'salida': marcaje_depurado.salida.strftime('%H:%M') if marcaje_depurado and marcaje_depurado.salida else '--',
-            })
-        
-        return JsonResponse({'data': resultados})
+            for empleado in empleados:
+                marcaje_depurado = MarcajeDepurado.objects.filter(
+                    empleado=empleado,
+                    fecha=fecha
+                ).first()
+                
+                resultados.append({
+                    'fecha': fecha,
+                    'sucursal': empleado.sucursal.nombre,
+                    'codigo': empleado.codigo,
+                    'nombre': empleado.nombre,
+                    'departamento': empleado.departamento,
+                    'asistio': marcaje_depurado is not None,
+                    'entrada': marcaje_depurado.entrada.strftime('%H:%M') if marcaje_depurado and marcaje_depurado.entrada else '--',
+                    'salida': marcaje_depurado.salida.strftime('%H:%M') if marcaje_depurado and marcaje_depurado.salida else '--',
+                })
+        except Exception as e:
+            resultados = []
     
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=400)
+    return render(request, 'validar_asistencia.html', {
+        'sucursales': sucursales,
+        'resultados': resultados,
+        'selected_sucursal': sucursal_id,
+        'selected_fecha': fecha_str,
+    })
     
 def vista_solicitud(request):
     return render(request, 'solicitud_permiso.html')
@@ -402,10 +405,29 @@ def accion_solicitud(request):
 
     return HttpResponse("Método no permitido", status=405)
 
+@login_required
 def ver_historial_solicitudes(request):
     solicitudes = GestionPermisoDetalle.objects.all()
 
     return render(request, 'historial_solicitudes.html', {'solicitudes': solicitudes})
 
+@login_required
 def ola(request):
     return render(request, 'lista.html')
+
+def cargar_login(request):
+    if request.method == 'POST':
+        username = request.POST['username']
+        password = request.POST['password']
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            return redirect('marcaje')  # Cambia 'home' por tu vista principal
+        else:
+            return render(request, 'login.html', {'error': 'Usuario o contraseña incorrectos'})
+    return render(request, 'login.html')
+
+
+def logout_view(request):
+    logout(request)
+    return redirect('login')
