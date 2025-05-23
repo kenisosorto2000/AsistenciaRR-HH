@@ -5,11 +5,10 @@
 <script src="https://unpkg.com/alpinejs" defer></script>
 
  <div x-data="{ open: false, selectedPermiso: '', selectedId: '' }" class="w-full max-w-7xl mx-auto bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-300 ">
-  <h2 class="text-2xl font-semibold mb-6 text-center text-gray-800 dark:text-gray-200">Solicitudes Pendientes</h2>
-  <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg overflow-hidden">
-    <div class="p-4 overflow-x-auto">
+  <h2 class="text-2xl font-semibold text-center text-gray-800 dark:text-gray-200">Solicitudes Pendientes</h2>
+  <div class="bg-white dark:bg-gray-800 max-h-[600px] shadow-md rounded-lg overflow-hidden">
       <table id="permisos-pendientes" class="min-w-full text-sm text-left text-gray-800 dark:text-gray-200 border border-gray-300">
-        <thead class="bg-gray-100 dark:bg-gray-600 uppercase text-xs">
+        <thead class="bg-gray-100 dark:bg-gray-600 sticky top-[0px] z-10 uppercase text-xs">
         <tr>
           <th class="px-4 py-3">Encargado</th>
           <th class="px-4 py-3">Empleado</th>
@@ -93,7 +92,7 @@
 
 <!-- DataTable -->
 <script>
-  let table = $('#tabla-solicitudes').DataTable({
+  let table = $('#permisos-pendientes').DataTable({
     pageLength: 10,
     lengthMenu: [10, 25, 50, 100],
     scrollY: 400,
