@@ -62,8 +62,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     <td>${empleado.departamento}</td>
                     <td>${empleado.entrada}</td>
                     <td>${empleado.salida}</td>
-                    <td class="text-center ${empleado.asistio ? 'bg-success' : 'bg-danger'} text-white">
-                        ${empleado.asistio ? 'I' : ''}
+                    <td class="text-center ${empleado.asistio ? 'bg-green-700' : 'bg-red-700'}">
+                        ${empleado.asistio ? '' : ''}
                     </td>
                 `;
                 
