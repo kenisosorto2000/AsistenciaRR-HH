@@ -27,6 +27,7 @@ urlpatterns = [
     path('accion-permiso/', views.accion_solicitud, name='accion_solicitud'),
     path('historial-solicitudes/', views.ver_historial_solicitudes, name='historial_solicitudes'),
     path('lista/', views.ola, name='lista'),
+    path('login', views.cargar_login, name='login'),
     # path('/validar/', views.validar_asistencias),
    
 ] 
