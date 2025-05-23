@@ -47,9 +47,12 @@
         <header class="flex justify-between items-center px-5 py-2 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 transition-colors duration-300">
             <div class="flex items-center space-x-2">
                 <!-- Botón para mostrar/ocultar el menú en pantallas pequeñas -->
+                 
+                    
                 <button id="menu-toggle" class="lg:hidden p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none transition-colors duration-300" aria-label="Mostrar menú">
                     <i data-lucide="menu"></i>
                 </button>
+                
                 <img src="{% static 'img/imagen2.png' %}" alt="Logo claro" class="h-16 block dark:hidden">
                 <img src="{% static 'img/imagen1.png' %}" alt="Logo oscuro" class="h-16 hidden dark:block">
             </div>
@@ -96,10 +99,21 @@
                 });
             </script>
         </a>
-            <button id="theme-toggle" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none transition-colors duration-300" aria-label="Cambiar tema">
-                <i data-lucide="sun" class="w-6 h-6 block dark:hidden"></i>
-                <i data-lucide="moon" class="w-6 h-6 hidden dark:block"></i>
-            </button>
+            <div>
+                <button id="theme-toggle" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none transition-colors duration-300" aria-label="Cambiar tema">
+                    <i data-lucide="sun" class="w-6 h-6 block dark:hidden"></i>
+                    <i data-lucide="moon" class="w-6 h-6 hidden dark:block"></i>
+                </button>
+                <button class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none transition-colors duration-300"> 
+                    <a href="{% url 'logout' %}">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 9V5.25A2.25 2.25 0 0 1 10.5 3h6a2.25 2.25 0 0 1 2.25 2.25v13.5A2.25 2.25 0 0 1 16.5 21h-6a2.25 2.25 0 0 1-2.25-2.25V15m-3 0-3-3m0 0 3-3m-3 3H15" />
+                        </svg>
+                    </a>
+                </button>
+            </div>
+            
+            
         </header>
         
         <div class="flex flex-1">

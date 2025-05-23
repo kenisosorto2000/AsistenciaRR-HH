@@ -1,9 +1,9 @@
 from django.urls import path
 from . import views
-
+from marcaje.views import logout_view
 
 urlpatterns = [
-    path('', views.lista_registros),
+    path('', views.lista_registros, name='marcaje'),
     path('sync-empleados/', views.sync_empleados_view, name='sync_empleados'),
     path('api/empleados/', views.empleados_proxy, name='empleados_proxy'),
     path('registrados', views.marcar),
@@ -27,7 +27,8 @@ urlpatterns = [
     path('accion-permiso/', views.accion_solicitud, name='accion_solicitud'),
     path('historial-solicitudes/', views.ver_historial_solicitudes, name='historial_solicitudes'),
     path('lista/', views.ola, name='lista'),
-    path('login', views.cargar_login, name='login'),
+    path('login/', views.cargar_login, name='login'),
+    path('logout/', logout_view, name='logout'),
     # path('/validar/', views.validar_asistencias),
    
 ] 
