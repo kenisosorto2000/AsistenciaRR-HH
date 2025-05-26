@@ -29,6 +29,8 @@ urlpatterns = [
     path('lista/', views.ola, name='lista'),
     path('login/', views.cargar_login, name='login'),
     path('logout/', logout_view, name='logout'),
+    path('modal/', views.modal_archivos, name='galeria_archivos'),
+    
     # path('/validar/', views.validar_asistencias),
    
 ] 
