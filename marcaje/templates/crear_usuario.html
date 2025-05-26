@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+
+<form method="POST" action="{% url 'crear_usuario' %}" class="max-w-md mx-auto bg-white p-6 rounded-lg shadow">
+  {% csrf_token %}
+  <h2 class="text-2xl font-bold text-center mb-4">Crear Usuario</h2>
+
+  <div class="mb-4">
+    <label for="username" class="block text-sm font-medium text-gray-700">Nombre de Usuario</label>
+    <input type="text" name="username" id="username" required
+      class="mt-1 block w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring focus:border-blue-300" />
+  </div>
+
+  <div class="mb-4">
+    <label for="nombre" class="block text-sm font-medium text-gray-700">Nombre Completo</label>
+    <input type="text" name="nombre" id="nombre" required
+      class="mt-1 block w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring focus:border-blue-300" />
+  </div>
+
+  <div class="mb-4">
+    <label class="block text-sm font-medium text-gray-700">Correo electrónico</label>
+    <div class="flex">
+      <input type="text" name="correo_parte" id="correo_parte" required placeholder="usuario"
+        class="w-full border border-gray-300 rounded-l-md p-2 focus:outline-none focus:ring focus:border-blue-300" />
+      <span class="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-100 text-gray-700">
+        @promaco.hn
+      </span>
+    </div>
+  </div>
+
+  <div class="mb-4">
+    <label for="password" class="block text-sm font-medium text-gray-700">Contraseña</label>
+    <input type="password" name="password" id="password" required
+      class="mt-1 block w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring focus:border-blue-300" />
+  </div>
+
+  <button type="submit"
+    class="w-full bg-blue-600 text-white font-semibold py-2 rounded hover:bg-blue-700 transition">Crear Usuario</button>
+</form>
+{% endblock %}

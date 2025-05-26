@@ -29,7 +29,7 @@ urlpatterns = [
     path('lista/', views.ola, name='lista'),
     path('login/', views.cargar_login, name='login'),
     path('logout/', logout_view, name='logout'),
-    path('modal/', views.modal_archivos, name='galeria_archivos'),
+    path('crear_usuario/', views.crear_usuario, name='crear_usuario'),
     
     # path('/validar/', views.validar_asistencias),
    

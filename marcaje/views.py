@@ -17,6 +17,10 @@ from datetime import datetime
 from django.utils import timezone
 from .depurar_marcajes import depurar_marcajes
 from .forms import *
+from django.contrib.auth.models import User
+from django.shortcuts import render, redirect
+from django.contrib import messages
+
 def empleados_proxy(request):
     target_url = "http://192.168.11.185:3003/planilla/webservice/empleados/"
     
@@ -361,9 +365,28 @@ def formulario_comprobantes(request, permiso_id):
     
     return render(request, "formulario.html", {"form": form, "permiso": permiso})
 
-def modal_archivos(request):
-    comprobante = PermisoComprobante.objects.all()
-    return render(request, 'modal.html', {'comprobante': comprobante})
+def crear_usuario(request):
+    if request.method == 'POST':
+        username = request.POST['username']
+        nombre = request.POST['nombre']
+        correo_parte = request.POST['correo_parte']
+        password = request.POST['password']
+        
+        email = f"{correo_parte}@promaco.hn"
+
+        if User.objects.filter(username=username).exists():
+            messages.error(request, 'El nombre de usuario ya existe.')
+        elif User.objects.filter(email=email).exists():
+            messages.error(request, 'El correo electrónico ya está en uso.')
+        else:
+            user = User.objects.create_user(username=username, email=email, password=password, first_name=nombre)
+            messages.success(request, 'Usuario creado correctamente.')
+            return redirect('crear_usuario')  # redirige a la misma vista o a otra
+
+    return render(request, 'crear_usuario.html')
+
+
+
 
 def modal_solicitud(request, permiso_comprobante_id):
     permiso_comprobante = get_object_or_404(PermisoComprobante, id=permiso_comprobante_id)
