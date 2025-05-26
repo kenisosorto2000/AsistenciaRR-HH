@@ -361,8 +361,9 @@ def formulario_comprobantes(request, permiso_id):
     
     return render(request, "formulario.html", {"form": form, "permiso": permiso})
 
-def modo_oscuro(request):
-    return render(request, 'modo_oscuro.html')
+def modal_archivos(request):
+    comprobante = PermisoComprobante.objects.all()
+    return render(request, 'modal.html', {'comprobante': comprobante})
 
 def modal_solicitud(request, permiso_comprobante_id):
     permiso_comprobante = get_object_or_404(PermisoComprobante, id=permiso_comprobante_id)
