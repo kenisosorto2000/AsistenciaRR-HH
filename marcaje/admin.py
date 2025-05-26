@@ -5,7 +5,7 @@ from .models import *
 class EmpleadoAdmin(admin.ModelAdmin):
     list_display = ('codigo', 'nombre', 'sucursal', 'departamento')
     search_fields = ('codigo', 'nombre', 'sucursal', 'departamento')
-    list_filter = ('codigo', 'nombre', 'sucursal', 'departamento')
+    list_filter = ('codigo', 'nombre', 'sucursal', 'departamento', 'es_encargado')
 
 @admin.register(Marcaje)
 class MarcajeAdmin(admin.ModelAdmin):
