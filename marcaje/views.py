@@ -168,6 +168,9 @@ def validar_asistencias(request):
         except Exception as e:
             resultados = []
     
+    if request.headers.get('HX-Request'):  # Si es una petición HTMX, renderiza SOLO la tabla
+        return render(request, 'partials/mostrar-asistencia.html', {'resultados': resultados})
+
     return render(request, 'validar_asistencia.html', {
         'sucursales': sucursales,
         'resultados': resultados,

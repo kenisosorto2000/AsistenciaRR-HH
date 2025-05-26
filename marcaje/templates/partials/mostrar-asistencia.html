@@ -1,0 +1,29 @@
+<table id="tabla-resultados" class="min-w-full divide-y divide-gray-200 dark:divide-gray-600">
+            <thead class="bg-gray-100 dark:bg-gray-600 sticky top-[0px] z-10 uppercase text-xs">
+                <tr>
+                    <th class="px-4 py-2">Fecha</th>
+                    <th class="px-4 py-2">Sucursal</th>
+                    <th class="px-4 py-2">Código</th>
+                    <th class="px-4 py-2">Nombre</th>
+                    <th class="px-4 py-2">Departamento</th>
+                    <th class="px-4 py-2">Marca Entrada</th>
+                    <th class="px-4 py-2">Marca Salida</th>
+                    <th class="px-4 py-2">Asistencia</th>
+                </tr>
+            </thead>
+                <tbody class="divide-y divide-gray-200 dark:divide-gray-700 text-gray-700 dark:text-gray-100">
+                     {% for r in resultados %}
+        <tr>
+            <td>{{ r.fecha }}</td>
+            <td>{{ r.sucursal }}</td>
+            <td>{{ r.codigo }}</td>
+            <td>{{ r.nombre }}</td>
+            <td>{{ r.departamento }}</td>
+            <td>{{ r.entrada }}</td>
+            <td>{{ r.salida }}</td>
+            <td class="{% if r.asistio %}bg-green-700{% else %}bg-red-700{% endif %}">{% if r.asistio %}{% else %}{% endif %}</td>
+            
+        </tr>
+        {% endfor %}<!-- Datos se cargarán por AJAX -->
+                </tbody>
+            </table>
