@@ -17,6 +17,12 @@ from datetime import datetime
 from django.utils import timezone
 from .depurar_marcajes import depurar_marcajes
 from .forms import *
+from django.contrib.auth.models import User
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+
 def empleados_proxy(request):
     target_url = "http://192.168.11.185:3003/planilla/webservice/empleados/"
     
@@ -168,6 +174,9 @@ def validar_asistencias(request):
         except Exception as e:
             resultados = []
     
+    if request.headers.get('HX-Request'):  # Si es una petición HTMX, renderiza SOLO la tabla
+        return render(request, 'partials/mostrar-asistencia.html', {'resultados': resultados})
+
     return render(request, 'validar_asistencia.html', {
         'sucursales': sucursales,
         'resultados': resultados,
@@ -361,9 +370,50 @@ def formulario_comprobantes(request, permiso_id):
     
     return render(request, "formulario.html", {"form": form, "permiso": permiso})
 
-def modal_archivos(request):
-    comprobante = PermisoComprobante.objects.all()
-    return render(request, 'modal.html', {'comprobante': comprobante})
+def crear_usuario(request):
+    encargados = Empleado.objects.filter(es_encargado=True)
+
+    if request.method == 'POST':
+        encargado_id = request.POST.get('encargado')
+        password = request.POST.get('password')
+        empleado = Empleado.objects.get(id=encargado_id)
+
+        if empleado.user:
+            messages.error(request, f"El encargado {empleado.nombre} ya tiene un usuario asignado.")
+            return redirect('crear_usuario')  # Redirige y borra el mensaje al refrescar
+        else:
+            nombres = empleado.nombre.strip().lower().split()
+
+            if len(nombres) >= 2:
+                username = f"{nombres[0]}{nombres[-1]}"
+                email = f"{nombres[0]}.{nombres[-1]}@promaco.hn"
+                first_name = nombres[0].capitalize()
+                last_name = nombres[-1].capitalize()
+            else:
+                username = nombres[0]
+                email = f"{nombres[0]}@promaco.hn"
+                first_name = nombres[0].capitalize()
+                last_name = ""
+
+            user = User.objects.create_user(username=username, email=email, password=password)
+            user.first_name = first_name
+            user.last_name = last_name
+            user.save()
+
+            empleado.user = user
+            empleado.save()
+
+            messages.success(request, f"Usuario creado exitosamente para {empleado.nombre}.")
+            return redirect('crear_usuario')
+
+    return render(request, 'crear_usuario.html', {'encargados': encargados})
+
+
+
+
+
+
+
 
 def modal_solicitud(request, permiso_comprobante_id):
     permiso_comprobante = get_object_or_404(PermisoComprobante, id=permiso_comprobante_id)
@@ -432,3 +482,6 @@ def cargar_login(request):
 def logout_view(request):
     logout(request)
     return redirect('login')
+
+def ver_a_cargo(request):
+    return render(request, 'ver.html')

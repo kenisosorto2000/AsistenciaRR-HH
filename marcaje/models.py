@@ -1,5 +1,5 @@
 from django.db import models
-
+from django.contrib.auth.models import User
 
 class Sucursal(models.Model):
     nombre = models.CharField(max_length=100)
@@ -7,6 +7,7 @@ class Sucursal(models.Model):
         return f"{self.nombre}"
 
 class Empleado(models.Model):
+    user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True, blank=True)
     id_externo = models.IntegerField(unique=True)
     codigo = models.CharField(max_length=20)
     nombre = models.CharField(max_length=100)
@@ -76,7 +77,7 @@ class Permisos(models.Model):
     tipo_permiso = models.ForeignKey(TipoPermisos, on_delete=models.PROTECT)
     fecha_inicio = models.DateField()
     fecha_final = models.DateField()
-    fecha_solicitud = models.DateTimeField(auto_now=True)
+    fecha_solicitud = models.DateTimeField(auto_now_add=True)
     descripcion = models.CharField(max_length=300)
     tiene_comprobante = models.BooleanField(default=False)
     estado_solicitud = models.CharField(choices=ESTADO_SOLICITUD, default='P')
@@ -94,10 +95,14 @@ class AsignacionEmpleadoEncargado(models.Model):
     empleado = models.ForeignKey(
         Empleado,
         on_delete=models.CASCADE,
-        unique=True,  # ¡Un empleado solo puede tener un encargado!
         related_name="encargado_asignado"
     )
     fecha_asignacion = models.DateField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['empleado'], name='unique_empleado_asignado')
+        ]
 
     def __str__(self):
         return f"{self.encargado.nombre} → {self.empleado.nombre}"
