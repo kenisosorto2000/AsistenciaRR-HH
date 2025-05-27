@@ -290,16 +290,40 @@ def convertir_a_encargado(request, empleado_id):
 
 def convertir_a_empleado(request, empleado_id):
     empleado = get_object_or_404(Empleado, id=empleado_id)
-    empleado.es_encargado = False
-    empleado.save()
+    empleados_asignados = Empleado.objects.filter(encargado_asignado__encargado=empleado)
+    
+    if request.method == "POST":
+        if empleados_asignados.exists() and not request.POST.get("reasignacion_completa"):
+            # Mostrar formulario de reasignación
+            encargados_disponibles = Empleado.objects.filter(es_encargado=True).exclude(id=empleado.id)
+            html = render_to_string('reasignar_encargado.html', {
+                'empleado': empleado,
+                'empleados_asignados': empleados_asignados,
+                'encargados_disponibles': encargados_disponibles
+            }, request=request)
+            return HttpResponse(html)
         
+        # Si ya vienen los nuevos encargados en el POST, procesamos la reasignación
+        for asignado in empleados_asignados:
+            nuevo_encargado_id = request.POST.get(f'encargado_{asignado.id}')
+            if nuevo_encargado_id:
+                nuevo_encargado = Empleado.objects.get(id=nuevo_encargado_id, es_encargado=True)
+                asignacion = AsignacionEmpleadoEncargado.objects.get(empleado=asignado)
+                asignacion.encargado = nuevo_encargado
+                asignacion.save()
+        
+        empleado.es_encargado = False
+        empleado.save()
+    
     empleados = Empleado.objects.filter(es_encargado=False)
     encargados = Empleado.objects.filter(es_encargado=True)
     html = render_to_string('empleados_y_encargados.html', {
         'empleados': empleados,
         'encargados': encargados
-    })
+    }, request=request)
     return HttpResponse(html)
+
+
 
 def ver_encargados(request):
     encargados = Empleado.objects.filter(es_encargado=True)
@@ -331,14 +355,6 @@ def asignar_empleados(request, encargado_id):
         'empleados': empleados_disponibles
     })
     return HttpResponse(html)
-    # return render(request, 'asignar:empleados.html', {
-    #     'encargado': encargado,
-    #     'empleados': empleados_disponibles
-    # } )# HttpResponse(html)
-    # return render(request, 'asignar_empleados.html', {
-    #     'encargado': encargado,
-    #     'empleados': empleados_disponibles
-    # })
 
 def solicitud_rh(request):
     estado = 'P'

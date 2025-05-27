@@ -1,0 +1,26 @@
+<div class="p-6 bg-white rounded shadow-md">
+    <h3 class="text-lg font-semibold mb-4">Reasignar empleados antes de quitar encargado</h3>
+    <form 
+        method="post"
+        hx-post="{% url 'convertir_a_empleado' empleado.id %}"
+        hx-target="#tablas"
+        hx-swap="innerHTML"
+    >
+        {% csrf_token %}
+        <input type="hidden" name="reasignacion_completa" value="1">
+        {% for asignado in empleados_asignados %}
+            <div class="mb-3">
+                <label class="block font-semibold">{{ asignado.nombre }}</label>
+                <select name="encargado_{{ asignado.id }}" required class="border rounded px-2 py-1">
+                    <option value="">Seleccione nuevo encargado</option>
+                    {% for encargado in encargados_disponibles %}
+                        <option value="{{ encargado.id }}">{{ encargado.nombre }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        {% endfor %}
+        <button type="submit" class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-400 transition text-sm">
+            Guardar reasignaciones y quitar encargado
+        </button>
+    </form>
+</div>
