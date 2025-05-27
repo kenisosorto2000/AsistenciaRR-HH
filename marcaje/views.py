@@ -20,6 +20,8 @@ from .forms import *
 from django.contrib.auth.models import User
 from django.shortcuts import render, redirect
 from django.contrib import messages
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 
 def empleados_proxy(request):
     target_url = "http://192.168.11.185:3003/planilla/webservice/empleados/"
@@ -369,24 +371,46 @@ def formulario_comprobantes(request, permiso_id):
     return render(request, "formulario.html", {"form": form, "permiso": permiso})
 
 def crear_usuario(request):
+    encargados = Empleado.objects.filter(es_encargado=True)
+
     if request.method == 'POST':
-        username = request.POST['username']
-        nombre = request.POST['nombre']
-        correo_parte = request.POST['correo_parte']
-        password = request.POST['password']
-        
-        email = f"{correo_parte}@promaco.hn"
+        encargado_id = request.POST.get('encargado')
+        password = request.POST.get('password')
+        empleado = Empleado.objects.get(id=encargado_id)
 
-        if User.objects.filter(username=username).exists():
-            messages.error(request, 'El nombre de usuario ya existe.')
-        elif User.objects.filter(email=email).exists():
-            messages.error(request, 'El correo electrónico ya está en uso.')
+        if empleado.user:
+            messages.error(request, f"El encargado {empleado.nombre} ya tiene un usuario asignado.")
+            return redirect('crear_usuario')  # Redirige y borra el mensaje al refrescar
         else:
-            user = User.objects.create_user(username=username, email=email, password=password, first_name=nombre)
-            messages.success(request, 'Usuario creado correctamente.')
-            return redirect('crear_usuario')  # redirige a la misma vista o a otra
+            nombres = empleado.nombre.strip().lower().split()
 
-    return render(request, 'crear_usuario.html')
+            if len(nombres) >= 2:
+                username = f"{nombres[0]}{nombres[-1]}"
+                email = f"{nombres[0]}.{nombres[-1]}@promaco.hn"
+                first_name = nombres[0].capitalize()
+                last_name = nombres[-1].capitalize()
+            else:
+                username = nombres[0]
+                email = f"{nombres[0]}@promaco.hn"
+                first_name = nombres[0].capitalize()
+                last_name = ""
+
+            user = User.objects.create_user(username=username, email=email, password=password)
+            user.first_name = first_name
+            user.last_name = last_name
+            user.save()
+
+            empleado.user = user
+            empleado.save()
+
+            messages.success(request, f"Usuario creado exitosamente para {empleado.nombre}.")
+            return redirect('crear_usuario')
+
+    return render(request, 'crear_usuario.html', {'encargados': encargados})
+
+
+
+
 
 
 
