@@ -458,3 +458,6 @@ def cargar_login(request):
 def logout_view(request):
     logout(request)
     return redirect('login')
+
+def ver_a_cargo(request):
+    return render(request, 'ver.html')

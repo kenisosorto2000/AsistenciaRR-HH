@@ -11,22 +11,32 @@
             <h1 class="text-xl font-bold text-gray-800 dark:text-gray-200">Solicitar Permiso</h1>
         </div>
 
-        <div class="mb-4">
-            <label for="encargado" class="block text-sm font-medium text-gray-700 dark:text-gray-100 mb-1">Encargado</label>
-            <select id="encargado" name="encargado" class="w-full text-gray-800 dark:text-gray-200 bg-blue-gray-800 dark:bg-gray-600 border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
-                <option value="" class="text-gray-400 dark:text-white">Seleccione un encargado</option>
-                {% for encargado in encargados %}
-                    <option value="{{ encargado.id }}" class="text-gray-800 dark:text-gray-100">{{ encargado.nombre }}</option>
-                {% endfor %}
-            </select>
-        </div>
+        
 
-        <div class="mb-4">
+        <!-- <div class="mb-4">
             <label for="empleado" class="block text-sm font-medium text-gray-700 dark:text-gray-100 mb-1">Empleado</label>
             <select id="empleado" name="empleado" class="w-full text-gray-800 dark:text-gray-200 bg-blue-gray-800 dark:bg-gray-600 border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required disabled>
                 <option value="">Primero seleccione un encargado</option>
             </select>
+        </div> -->
+
+         <div class="mb-4">
+            {% if empleados_a_cargo_global %}
+            <h4>{{encargado.nombre}}</h4>
+            <input type="hidden" name="encargado" value="{{encargado.id}}">
+            <label for="empleado" class="block text-sm font-medium text-gray-700 dark:text-gray-100 mb-1">Empleado</label>
+            <select id="empleado" name="empleado" class="w-full text-gray-800 dark:text-gray-200 bg-blue-gray-800 dark:bg-gray-600 border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
+               
+            
+               {% for emp in empleados_a_cargo_global %}
+            <option value="{{emp.id}}">{{ emp.nombre }}</option>
+                {% endfor %}
+                {% else %}
+    <option disabled value="">No tienes empleados a tu cargo.<option>
+            {% endif %}
+            </select>
         </div>
+
 
         <div class="mb-4">
             <label for="tipo_permiso" class="block text-sm font-medium text-gray-700 dark:text-gray-100 mb-1">Tipo de Permiso</label>
@@ -68,7 +78,7 @@
         </div>
     </form>
 </div>
-
+<!-- 
 <script>
     $(document).ready(function () {
         $('#encargado').change(function () {
@@ -95,5 +105,5 @@
             }
         });
     });
-</script>
+</script> -->
 {% endblock %}

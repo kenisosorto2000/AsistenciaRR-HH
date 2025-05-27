@@ -95,10 +95,14 @@ class AsignacionEmpleadoEncargado(models.Model):
     empleado = models.ForeignKey(
         Empleado,
         on_delete=models.CASCADE,
-        unique=True,  # ¡Un empleado solo puede tener un encargado!
         related_name="encargado_asignado"
     )
     fecha_asignacion = models.DateField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['empleado'], name='unique_empleado_asignado')
+        ]
 
     def __str__(self):
         return f"{self.encargado.nombre} → {self.empleado.nombre}"
