@@ -304,14 +304,16 @@ def convertir_a_empleado(request, empleado_id):
             return HttpResponse(html)
         
         # Si ya vienen los nuevos encargados en el POST, procesamos la reasignación
-        for asignado in empleados_asignados:
-            nuevo_encargado_id = request.POST.get(f'encargado_{asignado.id}')
-            if nuevo_encargado_id:
-                nuevo_encargado = Empleado.objects.get(id=nuevo_encargado_id, es_encargado=True)
+        nuevo_encargado_id = request.POST.get("nuevo_encargado")
+        if empleados_asignados.exists() and nuevo_encargado_id:
+            nuevo_encargado = Empleado.objects.get(id=nuevo_encargado_id, es_encargado=True)
+            # Actualiza todas las asignaciones
+            for asignado in empleados_asignados:
                 asignacion = AsignacionEmpleadoEncargado.objects.get(empleado=asignado)
                 asignacion.encargado = nuevo_encargado
                 asignacion.save()
-        
+
+        # Ahora sí, quita el rol
         empleado.es_encargado = False
         empleado.save()
     
