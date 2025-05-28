@@ -1,0 +1,79 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Ficha de Solicitud</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      @media print {
+        body {
+          margin: 0;
+        }
+        .page {
+          margin: 0;
+          box-shadow: none;
+        }
+      }
+    </style>
+  </head>
+  <body class="bg-gray-100 print:bg-white">
+
+    <div class="page w-[8.5in] h-[11in] bg-white mx-auto my-4 p-8 shadow-md print:shadow-none print:p-6 print:m-0 print:w-full print:h-full">
+      <div class="flex items-center justify-center space-x-2">
+                <i data-lucide=""></i>
+                <img src="{% static 'img/imagen2.png' %}" alt="Logo oscuro" class="h-16">
+      </div>
+      <h1 class="text-2xl font-bold mb-6 text-center">Solicitud de permiso laboral</h1>
+      <div class="flex justify-center items-center mb-6 bg-black p-4 rounded-lg">
+        <p class="text-sm text-white">Información sobre el permiso laboral</p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+      <div>
+        <label class="block font-semibold mb-1 flex items-center">
+          <span class="mr-2">ID Solicitud</span>
+          <input type="text" value="{{ solicitud.id }}" readonly class="border border-gray-300 p-2 rounded flex-1" />
+        </label>
+      </div>
+      <div>
+        <label class="block font-semibold mb-1 flex items-center">
+          <span class="mr-2">Nombre empleado</span>
+          <input type="text" value="{{ solicitud.empleado }}" readonly class="border border-gray-300 p-2 rounded flex-1" />
+        </label>
+      </div>
+      <div>
+        <label class="block font-semibold mb-1 flex items-center">
+          <span class="mr-2">Encargado</span>
+          <input type="text" value="{{ solicitud.empleado.departamento }}" readonly class="border border-gray-300 p-2 rounded flex-1" />
+        </label>
+      </div>
+      <div>
+        <label class="block font-semibold mb-1 flex items-center">
+          <span class="mr-2">Tipo de Permiso</span>
+          <input type="text" value="{{ solicitud.tipo_permiso }}" readonly class="border border-gray-300 p-2 rounded flex-1" />
+        </label>
+      </div>
+      <div>
+        <label class="block font-semibold mb-1 flex items-center">
+          <span class="mr-2">Días de Permiso: Desde</span>
+          <input type="text" value="{{ solicitud.fecha_inicio }}" readonly class="border border-gray-300 p-2 rounded flex-1" />
+        </label>
+      </div>
+      <div>
+        <label class="block font-semibold mb-1 flex items-center">
+          <span class="mr-2">Hasta: </span>
+          <input type="text" value="{{ solicitud.fecha_final }}" readonly class="border border-gray-300 p-2 rounded flex-1" />
+        </label>
+      </div>
+      <div class="md:col-span-2">
+        <label class="block font-semibold mb-1">Motivo del permiso laboral</label>
+        <textarea readonly class="w-full border border-gray-300 p-2 rounded" rows="3">{{ solicitud.descripcion }}</textarea>
+      </div>
+
+    </div>
+
+  </body>
+</html>
+
+

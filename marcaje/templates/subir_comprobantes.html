@@ -17,7 +17,7 @@
       </thead>
       <tbody>
         {% for s in solicitudes %}
-        <tr id="permiso-{{s.id}}" class="border-t border-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700">
+        <tr id="permiso-{{s.id}}" class="border-t border-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200">
           <td class="px-4 py-2">{{ s.empleado }}</td>
           <td class="px-4 py-2">{{ s.fecha_inicio }}</td>
           <td class="px-4 py-2">{{ s.fecha_final }}</td>
