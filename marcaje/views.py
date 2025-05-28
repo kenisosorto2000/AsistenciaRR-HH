@@ -228,6 +228,16 @@ def crear_permiso(request):
         'encargados': encargados,
     })
 
+def ficha_permiso(request, permiso_id):
+    permiso = get_object_or_404(Permisos, id=permiso_id)
+
+    return render(request, 'ficha.html', {
+        'solicitud': permiso,
+    })
+
+
+
+
 def obtener_empleados(request):
     sucursal_id = request.GET.get('sucursal_id')
     departamento = request.GET.get('departamento')
@@ -501,3 +511,6 @@ def logout_view(request):
 
 def ver_a_cargo(request):
     return render(request, 'ver.html')
+
+def ficha(request):
+    return render(request, 'ficha.html')

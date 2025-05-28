@@ -15,7 +15,7 @@
             </thead>
             <tbody>
                 {% for emp in empleados %}
-                <tr class="hover:bg-gray-50 dark:hover:bg-blue-600 border-b">
+                <tr class="hover:bg-gray-50 dark:hover:bg-blue-600 transition-colors duration-200 border-b">
                     <td class="px-4 py-2">{{ emp.nombre }}</td>
                     <td class="px-4 py-2">
                         <form method="POST"
@@ -54,7 +54,7 @@
             </thead>
             <tbody>
                 {% for encargado in encargados %}
-                <tr class="hover:bg-gray-50 dark:hover:bg-blue-600 border-b">
+                <tr class="hover:bg-gray-50 dark:hover:bg-blue-600 transition-colors duration-200 border-b ">
                     <td class="px-4 py-2">{{ encargado.nombre }}</td>
                     <td class="px-4 py-2">
                         <form method="POST"
