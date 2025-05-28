@@ -1,0 +1,106 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Ficha de Solicitud</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      @media print {
+        body {
+          margin: 0;
+        }
+        .page {
+          margin: 0;
+          box-shadow: none;
+        }
+      }
+    </style>
+  </head>
+  <body class="bg-gray-100 print:bg-white text-base font-sans">
+
+    <div class="page w-[8.5in] h-[11in] bg-white mx-auto my-4 p-4 shadow-md print:shadow-none print:p-2 print:m-0 print:w-full print:h-full flex flex-col">
+      <!-- Encabezado -->
+      <div>
+        <div class="flex items-center justify-center mb-2">
+          <img src="{% static 'img/imagen2.png' %}" alt="Logo oscuro" class="h-14">
+        </div>
+        <h1 class="text-xl font-bold mb-3 text-center">Solicitud de permiso laboral</h1>
+        <div class="flex justify-center items-center mb-3 bg-black p-2 rounded-lg">
+          <p class="text-xs text-white">Información sobre el permiso laboral</p>
+        </div>
+      </div>
+      <!-- Contenido principal -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mb-2 font-sans text-sm" style="font-size: smaller;">
+        <div>
+          <label class="block font-semibold mb-1 flex items-center">
+            <span class="mr-2">Nombre empleado</span>
+            <input type="text" value="{{ solicitud.empleado }}" readonly class="w-full border border-gray-300 p-1 rounded flex-1 text-xs" />
+          </label>
+        </div>
+        <br>
+        <div>
+          <label class="block font-semibold mb-1 flex items-center">
+            <span class="mr-2">Fecha</span>
+            <input type="text" value="{{ solicitud.fecha_solicitud }}" readonly class="w-full border border-gray-300 p-1 rounded flex-1 text-xs" />
+          </label>
+        </div>
+        <div>
+          <label class="block font-semibold mb-1 flex items-center">
+            <span class="mr-2">Departamento</span>
+            <input type="text" value="{{ solicitud.empleado.departamento }}" readonly class="w-full border border-gray-300 p-1 rounded flex-1 text-xs" />
+          </label>
+        </div>   
+        <div>
+          <label class="block font-semibold mb-1 flex items-center">
+            <span class="mr-2">Tipo de Permiso</span>
+            <input type="text" value="{{ solicitud.tipo_permiso }}" readonly class="w-full border border-gray-300 p-1 rounded flex-1 text-xs" />
+          </label>
+        </div>
+        <br>
+        <div>
+          <label class="block font-semibold mb-1 flex items-center">
+            <span class="mr-2">Días de Permiso: Desde</span>
+            <input type="text" value="{{ solicitud.fecha_inicio }}" readonly class="w-full border border-gray-300 p-1 rounded flex-1 text-xs" />
+          </label>
+        </div>
+        <div>
+          <label class="block font-semibold mb-1 flex items-center">
+            <span class="mr-2">Hasta: </span>
+            <input type="text" value="{{ solicitud.fecha_final }}" readonly class="w-full border border-gray-300 p-1 rounded flex-1 text-xs" />
+          </label>
+        </div>
+        <div class="md:col-span-2">
+          <label class="block font-semibold mb-1">Motivo del permiso laboral</label>
+          <textarea readonly class="w-full border border-gray-300 p-1 rounded text-xs" rows="2">{{ solicitud.descripcion }}</textarea>
+        </div>
+        <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-2 rounded mb-2 col-span-1 md:col-span-2 w-full text-xs" role="alert">
+          Las solicitudes de permiso laboral se deben presentar dos días antes del primer día de ausencia, a excepción del permiso por enfermedad. RRHH es quien dará la aprobación final de los permisos.
+        </div>
+        <!-- Firmas -->
+        <div class="flex flex-col items-center justify-center">
+          <div class="border border-gray-300 p-1 rounded h-10 w-40 mb-1"></div>
+          <label for="firma_empleado" class="block font-semibold mb-1 text-xs text-center">Firma del empleado</label>
+        </div>
+        <div class="flex flex-col items-center justify-center">
+          <div class="border border-gray-300 p-1 rounded h-10 w-40 mb-1"></div>
+          <label for="firma_supervisor" class="block font-semibold mb-1 text-xs text-center">Firma del supervisor</label>
+        </div>
+        <div class="flex justify-center items-center mb-2 col-span-1 md:col-span-2 w-full bg-black p-2 rounded-lg">
+          <p class="text-xs text-white">Aprobación RRHH</p>
+        </div>
+        <div>
+          <label class="block font-semibold mb-1 flex items-center">
+            <span class="mr-2">Estado</span>
+            <input type="text" value="{{ solicitud.estado_solicitud }}" readonly class="w-full border border-gray-300 p-1 rounded flex-1 text-xs" />
+          </label>
+        </div>
+        <div class="flex flex-col items-center justify-center col-span-1 md:col-span-2">
+          <div class="border border-gray-300 p-1 rounded h-10 w-40 mb-1"></div>
+          <label for="firma_rrhh" class="block font-semibold mb-1 text-xs text-center">Firma RRHH</label>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

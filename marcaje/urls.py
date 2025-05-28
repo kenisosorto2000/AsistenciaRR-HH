@@ -30,7 +30,8 @@ urlpatterns = [
     path('login/', views.cargar_login, name='login'),
     path('logout/', logout_view, name='logout'),
     path('crear_usuario/', views.crear_usuario, name='crear_usuario'),
-    path('ver', views.ver_a_cargo, name='ver')
+    path('ver', views.ver_a_cargo, name='ver'),
+    path('ficha/<int:permiso_id>/', views.ficha_permiso, name='ficha_permiso'),
     
     # path('/validar/', views.validar_asistencias),
    

@@ -1,5 +1,5 @@
-<div class="p-6 bg-white rounded shadow-md">
-    <h3 class="text-lg font-semibold mb-4">Reasignar empleados antes de quitar encargado</h3>
+<div class="bg-gray-100 dark:bg-gray-800 w-full max-w-xl p-6 rounded shadow-xl">
+    <h2 class="text-lg font-semibold mb-4">Reasignar empleados antes de quitar encargado</h2>
     <form 
         method="post"
         hx-post="{% url 'convertir_a_empleado' empleado.id %}"
@@ -7,20 +7,32 @@
         hx-swap="innerHTML"
     >
         {% csrf_token %}
-        <input type="hidden" name="reasignacion_completa" value="1">
-        {% for asignado in empleados_asignados %}
-            <div class="mb-3">
-                <label class="block font-semibold">{{ asignado.nombre }}</label>
-                <select name="encargado_{{ asignado.id }}" required class="border rounded px-2 py-1">
-                    <option value="">Seleccione nuevo encargado</option>
-                    {% for encargado in encargados_disponibles %}
-                        <option value="{{ encargado.id }}">{{ encargado.nombre }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-        {% endfor %}
+         <input type="hidden" name="reasignacion_completa" value="1">
+
+        <p class="mb-2 text-base">
+            Todos los empleados a cargo de <strong>{{ empleado.nombre }}</strong> serán reasignados a:
+        </p>
+        <select name="nuevo_encargado" required class="w-full text-gray-800 dark:text-gray-200 bg-blue-gray-800 dark:bg-gray-600 h-8 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 mb-3">
+            <option value="">Seleccione nuevo encargado</option>
+            {% for encargado in encargados_disponibles %}
+                <option value="{{ encargado.id }}">{{ encargado.nombre }}</option>
+            {% endfor %}
+        </select>
+
+        <ul class="mb-4 ">
+            {% for asignado in empleados_asignados %}
+                <li class="text-sm text-black dark:text-white">{{ asignado.nombre }}</li>
+            {% endfor %}
+        </ul>
+
         <button type="submit" class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-400 transition text-sm">
             Guardar reasignaciones y quitar encargado
         </button>
+
+        <button hx-get="{% url 'convertir_a_empleado' empleado.id %}"
+                hx-target="#tablas"
+                hx-swap="innerHTML"
+                class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 transition text-sm">Cancelar</button>
+
     </form>
 </div>

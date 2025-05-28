@@ -24,12 +24,14 @@
             {% if empleados_a_cargo_global %}
             <h4>{{encargado.nombre}}</h4>
             <input type="hidden" name="encargado" value="{{encargado.id}}">
+            <label for="departamento" class="block text-sm font-medium text-gray-700 dark:text-gray-100 mb-1">Departamento</label>
+            <input type="text" value="{{encargado.departamento}}" readonly class="border border-gray-300 p-2 rounded flex-1" />
             <label for="empleado" class="block text-sm font-medium text-gray-700 dark:text-gray-100 mb-1">Empleado</label>
             <select id="empleado" name="empleado" class="w-full text-gray-800 dark:text-gray-200 bg-blue-gray-800 dark:bg-gray-600 border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
                
             
                {% for emp in empleados_a_cargo_global %}
-            <option value="{{emp.id}}">{{ emp.nombre }}</option>
+            <option value="{{emp.id}}">{{ emp.nombre }} - {{ emp.departamento }}</option>
                 {% endfor %}
                 {% else %}
     <option disabled value="">No tienes empleados a tu cargo.<option>
