@@ -70,6 +70,7 @@ class Permisos(models.Model):
     ESTADO_SOLICITUD = [
         ('P', 'Pendiente'),
         ('A', 'Aprobada'),
+        ('SB', 'SUBSANADO'),
         ('R', 'Rechazada'),
     ]
     encargado = models.ForeignKey(Empleado, related_name="solicitudes_enviadas", on_delete=models.PROTECT)
@@ -77,7 +78,7 @@ class Permisos(models.Model):
     tipo_permiso = models.ForeignKey(TipoPermisos, on_delete=models.PROTECT)
     fecha_inicio = models.DateField()
     fecha_final = models.DateField()
-    fecha_solicitud = models.DateTimeField(auto_now_add=True)
+    fecha_solicitud = models.DateField(auto_now=True)
     descripcion = models.CharField(max_length=300)
     tiene_comprobante = models.BooleanField(default=False)
     estado_solicitud = models.CharField(choices=ESTADO_SOLICITUD, default='P')
@@ -112,7 +113,7 @@ class GestionPermisoDetalle(models.Model):
     accion_realizada = models.CharField(max_length=100)
     revisada_por = models.CharField(max_length=100)
     comentarios = models.CharField(max_length=300)
-    fecha = models.DateTimeField(auto_now_add=True)
+    fecha = models.DateField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.fecha} - {self.solicitud}"
