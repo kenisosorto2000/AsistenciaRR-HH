@@ -415,44 +415,60 @@ def formulario_comprobantes(request, permiso_id):
     
     return render(request, "formulario.html", {"form": form, "permiso": permiso})
 
+
 def crear_usuario(request):
     encargados = Empleado.objects.filter(es_encargado=True)
 
     if request.method == 'POST':
         encargado_id = request.POST.get('encargado')
         password = request.POST.get('password')
-        empleado = Empleado.objects.get(id=encargado_id)
+        email = request.POST.get('email')
+
+        try:
+            empleado = Empleado.objects.get(id=encargado_id)
+        except Empleado.DoesNotExist:
+            messages.error(request, "Encargado no válido.")
+            return redirect('crear_usuario')
 
         if empleado.user:
             messages.error(request, f"El encargado {empleado.nombre} ya tiene un usuario asignado.")
-            return redirect('crear_usuario')  # Redirige y borra el mensaje al refrescar
-        else:
-            nombres = empleado.nombre.strip().lower().split()
-
-            if len(nombres) >= 2:
-                username = f"{nombres[0]}{nombres[-1]}"
-                email = f"{nombres[0]}.{nombres[-1]}@promaco.hn"
-                first_name = nombres[0].capitalize()
-                last_name = nombres[-1].capitalize()
-            else:
-                username = nombres[0]
-                email = f"{nombres[0]}@promaco.hn"
-                first_name = nombres[0].capitalize()
-                last_name = ""
-
-            user = User.objects.create_user(username=username, email=email, password=password)
-            user.first_name = first_name
-            user.last_name = last_name
-            user.save()
-
-            empleado.user = user
-            empleado.save()
-
-            messages.success(request, f"Usuario creado exitosamente para {empleado.nombre}.")
             return redirect('crear_usuario')
+
+        nombres = empleado.nombre.strip().lower().split()
+
+        if len(nombres) >= 2:
+            username = f"{nombres[0]}{nombres[-1]}"
+            first_name = nombres[0].capitalize()
+            last_name = nombres[-1].capitalize()
+        else:
+            username = nombres[0]
+            first_name = nombres[0].capitalize()
+            last_name = ""
+
+        user = User.objects.create_user(username=username, email=email, password=password)
+        user.first_name = first_name
+        user.last_name = last_name
+        user.save()
+
+        empleado.user = user
+        empleado.save()
+
+        messages.success(request, f"Usuario creado exitosamente para {empleado.nombre}.")
+        return redirect('crear_usuario')
 
     return render(request, 'crear_usuario.html', {'encargados': encargados})
 
+<<<<<<< HEAD
+
+
+
+
+
+
+
+
+=======
+>>>>>>> origin/devHector
 def modal_solicitud(request, permiso_comprobante_id):
     permiso_comprobante = get_object_or_404(PermisoComprobante, id=permiso_comprobante_id)
     # permiso = get_object_or_404(Permisos, permisos_id=permiso_id )
