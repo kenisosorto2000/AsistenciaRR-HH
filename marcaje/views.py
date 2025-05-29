@@ -22,6 +22,7 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.db.models import Q
 
 def empleados_proxy(request):
     target_url = "http://192.168.11.185:3003/planilla/webservice/empleados/"
@@ -370,12 +371,28 @@ def asignar_empleados(request, encargado_id):
 
 def solicitud_rh(request):
     estado = 'P'
-    permiso = PermisoComprobante.objects.filter(permiso__estado_solicitud=estado)
+    permisos = Permisos.objects.filter(estado_solicitud=estado) #filter(permiso__estado_solicitud=estado)
 
-    return render(request, 'solicitudes_rh.html', {'permiso': permiso},)
+    context = []
+    for permiso in permisos:
+        comprobante = PermisoComprobante.objects.filter(permiso=permiso).first()
+        context.append({
+            'permiso': permiso,
+            'comprobante': comprobante.comprobante.url if comprobante else None,
+        })
+
+    return render(request, 'solicitudes_rh.html', {'permisos': context},)
+
+@login_required
+def vista_solicitudes_encargado(request):
+    encargado = Empleado.objects.get(user=request.user)
+
+    empleados_cargo = Empleado.objects.filter(encargado_asignado__encargado=encargado)
+    solicitudes = PermisoComprobante.objects.filter(permiso__empleado__in=empleados_cargo)
+    return render(request, 'solicitudes_encargado.html', {'solicitudes': solicitudes})
 
 def subir_comprobante(request):
-    solicitudes = Permisos.objects.filter(tiene_comprobante=False)
+    solicitudes = Permisos.objects.filter(Q(tiene_comprobante=False) | Q(estado_solicitud='SB'))
     return render(request, 'subir_comprobantes.html', {
         'solicitudes': solicitudes,
     })
@@ -398,44 +415,50 @@ def formulario_comprobantes(request, permiso_id):
     
     return render(request, "formulario.html", {"form": form, "permiso": permiso})
 
+
 def crear_usuario(request):
     encargados = Empleado.objects.filter(es_encargado=True)
 
     if request.method == 'POST':
         encargado_id = request.POST.get('encargado')
         password = request.POST.get('password')
-        empleado = Empleado.objects.get(id=encargado_id)
+        email = request.POST.get('email')
+
+        try:
+            empleado = Empleado.objects.get(id=encargado_id)
+        except Empleado.DoesNotExist:
+            messages.error(request, "Encargado no válido.")
+            return redirect('crear_usuario')
 
         if empleado.user:
             messages.error(request, f"El encargado {empleado.nombre} ya tiene un usuario asignado.")
-            return redirect('crear_usuario')  # Redirige y borra el mensaje al refrescar
-        else:
-            nombres = empleado.nombre.strip().lower().split()
-
-            if len(nombres) >= 2:
-                username = f"{nombres[0]}{nombres[-1]}"
-                email = f"{nombres[0]}.{nombres[-1]}@promaco.hn"
-                first_name = nombres[0].capitalize()
-                last_name = nombres[-1].capitalize()
-            else:
-                username = nombres[0]
-                email = f"{nombres[0]}@promaco.hn"
-                first_name = nombres[0].capitalize()
-                last_name = ""
-
-            user = User.objects.create_user(username=username, email=email, password=password)
-            user.first_name = first_name
-            user.last_name = last_name
-            user.save()
-
-            empleado.user = user
-            empleado.save()
-
-            messages.success(request, f"Usuario creado exitosamente para {empleado.nombre}.")
             return redirect('crear_usuario')
+
+        nombres = empleado.nombre.strip().lower().split()
+
+        if len(nombres) >= 2:
+            username = f"{nombres[0]}{nombres[-1]}"
+            first_name = nombres[0].capitalize()
+            last_name = nombres[-1].capitalize()
+        else:
+            username = nombres[0]
+            first_name = nombres[0].capitalize()
+            last_name = ""
+
+        user = User.objects.create_user(username=username, email=email, password=password)
+        user.first_name = first_name
+        user.last_name = last_name
+        user.save()
+
+        empleado.user = user
+        empleado.save()
+
+        messages.success(request, f"Usuario creado exitosamente para {empleado.nombre}.")
+        return redirect('crear_usuario')
 
     return render(request, 'crear_usuario.html', {'encargados': encargados})
 
+<<<<<<< HEAD
 
 
 
@@ -443,6 +466,9 @@ def crear_usuario(request):
 
 
 
+
+=======
+>>>>>>> origin/devHector
 def modal_solicitud(request, permiso_comprobante_id):
     permiso_comprobante = get_object_or_404(PermisoComprobante, id=permiso_comprobante_id)
     # permiso = get_object_or_404(Permisos, permisos_id=permiso_id )
@@ -464,6 +490,8 @@ def accion_solicitud(request):
             nuevo_estado = 'A'
         elif accion == 'R':
             nuevo_estado = 'R'
+        elif accion == 'SB':
+            nuevo_estado = 'SB'
         else:
             return HttpResponse("Acción no válida", status=400)
 
