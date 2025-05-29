@@ -18,6 +18,7 @@ urlpatterns = [
     path('encargados/<int:encargado_id>/', views.get_empleados_por_encargado, name='mostrar_empleados'),
     path('cargar_empleados/', views.cargar_empleados_por_encargado, name='cargar_empleados'),
     path('solicitud-rh/', views.solicitud_rh, name='solicitud_rh'),
+    path('solicitudes-encargado', views.vista_solicitudes_encargado, name='solicitudes_encargado'),
     path('subir_comprobantes/', views.subir_comprobante, name='subir_comprobantes'),
     path('form-comprobantes/<int:permiso_id>/', views.formulario_comprobantes, name="form_comprobante"),
     path('empleados_y_encargados/', views.empleados_y_encargados, name='empleados_y_encargados'),
