@@ -5,58 +5,57 @@
 <div class="flex justify-center items-center min-h-full bg-white dark:bg-gray-800 border border-gray-300 rounded">
   <div class="max-w-md w-full p-6 rounded-lg shadow-md border-t-4 border border-gray-300 border-indigo-900 bg-gray-100 dark:bg-gray-800 -mt-20">
     <h2 class="text-xl font-bold text-center text-gray-800 dark:text-gray-200 mb-4">Crear Usuario a Encargados</h2>
-<form method="POST" class="space-y-4">
-  {% csrf_token %}
-  <!-- Select de encargado -->
-  <div class="mb-4">
-    <label for="encargado" class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-200">Selecciona un encargado</label>
-    <select name="encargado" id="encargado" class="text-gray-700 dark:text-gray-200 bg-gray-200 dark:bg-gray-600 block w-full border border-gray-300 p-2 rounded" required>
-      <option value="">-- Selecciona --</option>
-      {% for encargado in encargados %}
-        <option value="{{ encargado.id }}" data-nombre="{{ encargado.nombre|lower }}">{{ encargado.nombre }}</option>
-      {% endfor %}
-    </select>
-  </div>
+    <form method="POST" class="space-y-4">
+      {% csrf_token %}
+      <!-- Select de encargado -->
+      <div class="mb-4">
+        <label for="encargado" class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-200">Selecciona un encargado</label>
+        <select name="encargado" id="encargado" class="text-gray-700 dark:text-gray-200 bg-gray-200 dark:bg-gray-600 block w-full border border-gray-300 p-2 rounded" required>
+          <option value="">-- Selecciona --</option>
+            {% for encargado in encargados %}
+            <option value="{{ encargado.id }}" data-nombre="{{ encargado.nombre|lower }}">{{ encargado.nombre }}</option>
+            {% endfor %}
+        </select>
+      </div>
 
-  <!-- Vista previa del usuario -->
-  <div class="mb-4">
-    <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">Usuario generado</label>
-    <input type="text" id="preview_usuario" readonly class="w-full border p-2 rounded bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-200" />
-  </div>
-  
-  <!-- Vista previa del correo -->
-  <div class="mb-4">
-    <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">Correo generado</label>
-    <input type="text" id="preview_correo" readonly class="w-full border p-2 rounded bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-200" />
-  </div>
+      <!-- Vista previa del usuario -->
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">Usuario</label>
+        <input type="text" id="preview_usuario" readonly class="w-full border p-2 rounded bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-200" />
+      </div>
+      
+      <!-- Vista previa del correo -->
+      <div class="mb-4">
+        <label for="correo" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Correo</label>
+        <input type="email" name="email" id="correo" class="w-full border p-2 rounded bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-200" placeholder="ejemplo@dominio.com" />
+      </div>
 
-  <!-- Campo para contraseña -->
-  <div class="mb-4">
-    <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Contraseña</label>
-    <input type="password" name="password" id="password" required class="w-full border p-2 rounded bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-200" placeholder="Ingresa la contraseña" />
+      <!-- Campo para contraseña -->
+      <div class="mb-4">
+        <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Contraseña</label>
+        <input type="password" name="password" id="password" required class="w-full border p-2 rounded bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-200" placeholder="Ingresa la contraseña" />
+      </div>
+      <!-- Campo para confirmar contraseña -->
+      <div class="text-center">
+        <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg shadow hover:bg-blue-700 transition duration-200">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="inline w-5 h-5 align-middle mr-2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 8.25H7.5a2.25 2.25 0 0 0-2.25 2.25v9a2.25 2.25 0 0 0 2.25 2.25h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25H15m0-3-3-3m0 0-3 3m3-3V15" />
+          </svg>
+          Crear Usuario
+        </button>
+      </div>
+    </form>
+    {% if messages %}
+      <br>
+      <ul class="text-center">
+        {% for message in messages %}
+          <li class="{% if message.tags == 'error' %}text-red-600{% else %}text-green-600{% endif %} font-bold">
+            {{ message }}
+          </li>
+        {% endfor %}
+      </ul>
+    {% endif %}
   </div>
-  <!-- Campo para confirmar contraseña -->
-   <div class="text-center">
-    <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg shadow hover:bg-blue-700 transition duration-200">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="inline w-5 h-5 align-middle mr-2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M9 8.25H7.5a2.25 2.25 0 0 0-2.25 2.25v9a2.25 2.25 0 0 0 2.25 2.25h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25H15m0-3-3-3m0 0-3 3m3-3V15" />
-      </svg>
-      Crear Usuario
-    </button>
-  </div>
-</form>
-
-{% if messages %}
-  <br>
-  <ul class="text-center">
-    {% for message in messages %}
-      <li class="{% if message.tags == 'error' %}text-red-600{% else %}text-green-600{% endif %} font-bold">
-        {{ message }}
-      </li>
-    {% endfor %}
-  </ul>
-{% endif %}
-
 </div>
 <script>
   document.getElementById('encargado').addEventListener('change', function () {
@@ -66,16 +65,12 @@
     if (nombreCompleto) {
       const partes = nombreCompleto.trim().split(' ');
       const nombre = partes[0];
-      const apellido = partes[partes.length - 1];
+      const apellido = partes[partes.length - 2];
 
       const usuario = `${nombre}${apellido}`;
-      const correo = `${nombre}.${apellido}@promaco.hn`;
-
       document.getElementById('preview_usuario').value = usuario;
-      document.getElementById('preview_correo').value = correo;
     } else {
       document.getElementById('preview_usuario').value = '';
-      document.getElementById('preview_correo').value = '';
     }
   });
 </script>
