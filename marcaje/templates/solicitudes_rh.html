@@ -50,7 +50,7 @@
             {% endif %}
           </td>
           <td class="px-4 py-2 text-center">
-            {% if p.comprobante %}
+            {% if p.comprobante and p.permiso.pendiente_subsanar == False %}
             <button
               type="button"
               @click="open = true; selectedPermiso = '{{ p.permiso.empleado }}'; selectedId = '{{ p.permiso.id }}';"
@@ -58,7 +58,12 @@
               Opciones
             </button>
             {% else %}
-            <span>Se necesita comprobante</span>
+              {% if p.permiso.pendiente_subsanar == False %}
+              <span>Se necesita comprobante</span>
+              {% else %}
+            
+            <span>Pendiente de resubir</span>
+            {% endif %}
             {% endif %}
           </td>
         </tr>
@@ -91,9 +96,13 @@
         <label for="revisada_por" class="block text-sm font-medium text-gray-700 dark:text-gray-100">Revisada Por</label>
         <input type="text" id="revisada_por" name="revisada_por" required rows="3" class="mt-1 w-full border border-gray-300 dark:bg-gray-600 rounded p-2">
       </div>
-      <div class="mb-4">
+      <div class="mb-1">
         <label for="comentario" class="block text-sm font-medium text-gray-700 dark:text-gray-100">Comentario</label>
         <textarea id="comentario" name="comentarios" required rows="3" class="mt-1 w-full border border-gray-300 dark:bg-gray-600 rounded p-2"></textarea>
+      </div>
+      <div class="mb-2">
+        <input type="checkbox" name="aprobacion_gerencial" value="True">
+        <label for="aprobacion_gerencial">Aprobacion gerencial</label>
       </div>
       <div class="flex justify-end space-x-2">
         <button name="accion_realizada" value="R" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
