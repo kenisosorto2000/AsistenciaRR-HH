@@ -1,11 +1,12 @@
-{% load static %}
+{% load static %} 
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
   <title>Ficha de Solicitud</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
   <style>
     .no-print {
@@ -41,37 +42,39 @@
 
     <!-- Contenido principal -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mb-2 font-sans text-sm" style="font-size: smaller;">
-      <div class="md:col-span-2">
+      <div>
         <label class="block font-semibold mb-1 flex items-center">
           <span class="mr-2">Nombre empleado</span>
           <input type="text" value="{{ solicitud.empleado }}" readonly class="w-full border border-gray-300 p-1 rounded flex-1 text-xs" />
         </label>
       </div>
-      <div class="col-span-1 md:col-span-1">
+      <br>
+      <div>
         <label class="block font-semibold mb-1 flex items-center">
           <span class="mr-2">Fecha</span>
           <input type="text" value="{{ solicitud.fecha_solicitud }}" readonly class="w-full border border-gray-300 p-1 rounded flex-1 text-xs" />
         </label>
       </div>
-      <div class="col-span-1 md:col-span-1">
+      <div>
         <label class="block font-semibold mb-1 flex items-center">
           <span class="mr-2">Departamento</span>
           <input type="text" value="{{ solicitud.empleado.departamento }}" readonly class="w-full border border-gray-300 p-1 rounded flex-1 text-xs" />
         </label>
       </div>   
-      <div class="col-span-1 md:col-span-2">
+      <div>
         <label class="block font-semibold mb-1 flex items-center">
           <span class="mr-2">Tipo de Permiso</span>
           <input type="text" value="{{ solicitud.tipo_permiso }}" readonly class="w-full border border-gray-300 p-1 rounded flex-1 text-xs" />
         </label>
       </div>
-      <div class="col-span-1 md:col-span-1">
+      <br>
+      <div>
         <label class="block font-semibold mb-1 flex items-center">
           <span class="mr-2">Días de Permiso: Desde</span>
           <input type="text" value="{{ solicitud.fecha_inicio }}" readonly class="w-full border border-gray-300 p-1 rounded flex-1 text-xs" />
         </label>
       </div>
-      <div class="col-span-1 md:col-span-1">
+      <div>
         <label class="block font-semibold mb-1 flex items-center">
           <span class="mr-2">Hasta: </span>
           <input type="text" value="{{ solicitud.fecha_final }}" readonly class="w-full border border-gray-300 p-1 rounded flex-1 text-xs" />
@@ -112,46 +115,72 @@
   </div>
 
   <script>
-  function descargarPDF() {
-    const boton = document.getElementById('btn-descargar');
+  async function descargarPDF() {
+    const { jsPDF } = window.jspdf;
     const element = document.getElementById('formulario');
-
-    // Oculta el botón
+    const boton = document.getElementById('btn-descargar');
     boton.style.display = 'none';
 
-    // Desplaza ligeramente el contenido a la izquierda solo para el PDF
-    element.style.transform = 'translate(-32px, -390px)';
+    // Reemplazar inputs y textareas por spans con su valor y clases centradas
+    const inputs = element.querySelectorAll('input[readonly], input[type="text"], textarea[readonly], textarea');
+    const originales = [];
+    inputs.forEach(input => {
+      const span = document.createElement('span');
+      // Copia clases de Tailwind tal cual, sin agregar text-center
+      span.className = input.className;
+      // Copia estilos inline, pero quita el padding y agrega uno nuevo
+      let css = input.style.cssText;
+      css = css.replace(/padding[^;]*;?/gi, '');
+      span.style.cssText = css;
+      // Centrado extra por si acaso
+      span.style.display = 'inline-block';
+      span.style.width = input.offsetWidth + 'px';
+      span.style.minHeight = input.offsetHeight + 'px';
 
-    // Obtiene el nombre del empleado desde el input (ajusta el selector si cambias el orden)
-    const nombreInput = document.querySelector('input[value="{{ solicitud.empleado }}"]');
-    let nombre = nombreInput ? nombreInput.value.trim() : 'documento';
+      // Ajustes para alinear mejor el texto verticalmente
+      span.style.paddingTop = '0px';        // Subir texto
+      span.style.marginTop = '10px';
+      span.style.marginTop = '6px';         // Menos separación superior (ajustable)
+      span.style.verticalAlign = 'middle';  // Intenta centrar vertical (si aplica)
 
-    // Formatea el nombre del archivo (quita acentos, espacios, etc.)
-    nombre = nombre
-      .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // quitar acentos
-      .replace(/\s+/g, '_')                             // espacios por guion bajo
-      .replace(/[^a-zA-Z0-9_]/g, '')                    // quitar caracteres raros
-      .toLowerCase();
+      
+      // Copia el valor
+      span.textContent = input.value || input.textContent;
+      originales.push({input, span});
+      input.parentNode.replaceChild(span, input);
+    });
 
-    const opciones = {
-      margin: 0.25,
-      filename: `permiso_${nombre}.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: {
-        scale: 2.1,
-        useCORS: true
+
+    const nombre = document.getElementById('nombre-empleado')?.value
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '').toLowerCase();
+
+    const doc = new jsPDF({
+      unit: 'pt',
+      format: 'letter',
+      orientation: 'portrait'
+    });
+
+    await doc.html(element, {
+      callback: function (doc) {
+        // Restaurar los inputs originales
+        originales.forEach(({input, span}) => {
+          span.parentNode.replaceChild(input, span);
+        });
+        doc.save(`permiso_${nombre || 'documento'}.pdf`);
+        boton.style.display = 'inline-block';
       },
-      jsPDF: {
-        unit: 'in',
-        format: 'letter',
-        orientation: 'portrait'
+      margin: [20, 10, 20, 50],
+      autoPaging: 'text',
+      width: 500,
+      windowWidth: 800,
+      html2canvas: { 
+        scale: 0.6,
+        useCORS: true,
+        letterRendering: true,
+        allowTaint: false,
+        dpi: 72
       }
-    };
-
-    html2pdf().set(opciones).from(element).save().then(() => {
-      // Restaura la posición original
-      element.style.transform = 'none';
-      boton.style.display = 'block';
     });
   }
 </script>

@@ -216,7 +216,7 @@ def crear_permiso(request):
                 
             )
 
-            return redirect('crear_permiso')  # O a una página de éxito
+            return redirect('subir_comprobantes')  # O a una página de éxito
 
         except Empleado.DoesNotExist:
             return HttpResponseBadRequest("Empleado no válido")
