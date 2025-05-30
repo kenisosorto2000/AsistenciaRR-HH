@@ -216,7 +216,7 @@ def crear_permiso(request):
                 
             )
 
-            return redirect('crear_permiso')  # O a una página de éxito
+            return redirect('subir_comprobantes')  # O a una página de éxito
 
         except Empleado.DoesNotExist:
             return HttpResponseBadRequest("Empleado no válido")
@@ -460,6 +460,17 @@ def crear_usuario(request):
 
     return render(request, 'crear_usuario.html', {'encargados': encargados})
 
+<<<<<<< HEAD
+
+
+
+
+
+
+
+
+=======
+>>>>>>> origin/devHector
 def modal_solicitud(request, permiso_comprobante_id):
     permiso_comprobante = get_object_or_404(PermisoComprobante, id=permiso_comprobante_id)
     # permiso = get_object_or_404(Permisos, permisos_id=permiso_id )

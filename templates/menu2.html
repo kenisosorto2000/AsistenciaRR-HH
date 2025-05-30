@@ -23,33 +23,60 @@
             </a>
         </li>
         <li class="mb-1">
-            <a href="/marcaje/solicitud" class="flex items-center px-5 py-3 hover:bg-opacity-10 hover:bg-white transition-colors duration-200">
-                <i data-lucide="list" class="w-5 h-5 mr-3"></i> Solicitudes Pendientes
-            </a>
+            <details class="group">
+                <summary class="flex items-center px-5 py-3 cursor-pointer hover:bg-opacity-10 hover:bg-white transition-colors duration-200 outline-none">
+                    <i data-lucide="list" class="w-5 h-5 mr-3"></i>
+                    Solicitudes
+                    <svg class="ml-auto w-4 h-4 transition-transform duration-200 group-open:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </summary>
+                <ul class="px-10 py-2 space-y-1">
+                    <li>
+                        <a href="/marcaje/subir_comprobantes" class="flex items-center py-2 hover:bg-opacity-10 hover:bg-white transition-colors duration-200 rounded">
+                            <i data-lucide="upload" class="w-4 h-4 mr-2"></i> Subir comprobantes
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/marcaje/solicitud" class="flex items-center py-2 hover:bg-opacity-10 hover:bg-white transition-colors duration-200 rounded">
+                            <i data-lucide="list" class="w-4 h-4 mr-2"></i> Solicitudes Pendientes
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/marcaje/historial-solicitudes" class="flex items-center py-2 hover:bg-opacity-10 hover:bg-white transition-colors duration-200 rounded">
+                            <i data-lucide="list" class="w-4 h-4 mr-2"></i> Historial de solicitudes
+                        </a>
+                    </li>
+                </ul>
+            </details>
         </li>
         <li class="mb-1">
-            <a href="/marcaje/subir_comprobantes" class="flex items-center px-5 py-3 hover:bg-opacity-10 hover:bg-white transition-colors duration-200">
-                <i data-lucide="upload" class="w-5 h-5 mr-3"></i> Subir comprobantes
-            </a>
+            <details class="group">
+                <summary class="flex items-center px-5 py-3 cursor-pointer hover:bg-opacity-10 hover:bg-white transition-colors duration-200 outline-none">
+                    <i data-lucide="users" class="w-5 h-5 mr-3"></i>
+                    Encargados
+                    <svg class="ml-auto w-4 h-4 transition-transform duration-200 group-open:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </summary>
+                <ul class="px-10 py-2 space-y-1">
+                    <li>
+                        <a href="/marcaje/ver_encargados" class="flex items-center py-2 hover:bg-opacity-10 hover:bg-white transition-colors duration-200 rounded">
+                            <i data-lucide="user-plus" class="w-4 h-4 mr-2"></i> Asignar Empleados
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/marcaje/empleados_y_encargados" class="flex items-center py-2 hover:bg-opacity-10 hover:bg-white transition-colors duration-200 rounded">
+                            <i data-lucide="users" class="w-4 h-4 mr-2"></i> Empleados y Encargados
+                        </a>
+                    </li>
+                </ul>
+            </details>
         </li>
-        <li class="mb-1">
-            <a href="/marcaje/ver_encargados" class="flex items-center px-5 py-3 hover:bg-opacity-10 hover:bg-white transition-colors duration-200">
-                <i data-lucide="user-plus" class="w-5 h-5 mr-3"></i> Asignar Empleados
-            </a>
-        </li>
-        <li class="mb-1">
-            <a href="/marcaje/empleados_y_encargados" class="flex items-center px-5 py-3 hover:bg-opacity-10 hover:bg-white transition-colors duration-200">
-                <i data-lucide="users" class="w-5 h-5 mr-3"></i> Empleados y Encargados
-            </a>
-        </li>
-        <li class="mb-1">
-            <a href="/marcaje/historial-solicitudes" class="flex items-center px-5 py-3 hover:bg-opacity-10 hover:bg-white transition-colors duration-200">
-                <i data-lucide="users" class="w-5 h-5 mr-3"></i> Historial de solicitudes
-            </a>
-        </li>
+        
         <li class="mb-1">
             <a href="/marcaje/crear_usuario" class="flex items-center px-5 py-3 hover:bg-opacity-10 hover:bg-white transition-colors duration-200">
-                <i data-lucide="users" class="w-5 h-5 mr-3"></i> Crear Usuario
+                <i data-lucide="user-plus" class="w-5 h-5 mr-3"></i> Crear Usuario
             </a>
         </li>
     </ul>
