@@ -82,6 +82,8 @@ class Permisos(models.Model):
     descripcion = models.CharField(max_length=300)
     tiene_comprobante = models.BooleanField(default=False)
     estado_solicitud = models.CharField(choices=ESTADO_SOLICITUD, default='P')
+    pendiente_subsanar = models.BooleanField(default=False)
+    aprobacion_gerencial = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.empleado.codigo} - {self.tipo_permiso}"
@@ -124,3 +126,11 @@ class PermisoComprobante(models.Model):
 
     def __str__(self):
         return f"{self.permiso} - {self.comprobante}"
+
+
+class GestionFechaCorte(models.Model):
+    anio = models.DateField(unique_for_year=True)
+    mes = models.DateField(unique_for_month=True)
+    fecha_inicio = models.DateField()
+    fecha_final = models.DateField()
+    fecha_corte = models.DateField()
