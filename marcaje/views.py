@@ -216,7 +216,7 @@ def crear_permiso(request):
                 
             )
 
-            return redirect('crear_permiso')  # O a una página de éxito
+            return redirect('subir_comprobantes')  # O a una página de éxito
 
         except Empleado.DoesNotExist:
             return HttpResponseBadRequest("Empleado no válido")
@@ -371,7 +371,7 @@ def asignar_empleados(request, encargado_id):
 
 def solicitud_rh(request):
     estado = 'P'
-    permisos = Permisos.objects.filter(estado_solicitud=estado) #filter(permiso__estado_solicitud=estado)
+    permisos = Permisos.objects.filter(Q(estado_solicitud=estado) | Q(estado_solicitud='SB')) #filter(permiso__estado_solicitud=estado)
 
     context = []
     for permiso in permisos:
@@ -392,26 +392,28 @@ def vista_solicitudes_encargado(request):
     return render(request, 'solicitudes_encargado.html', {'solicitudes': solicitudes})
 
 def subir_comprobante(request):
-    solicitudes = Permisos.objects.filter(Q(tiene_comprobante=False) | Q(estado_solicitud='SB'))
+    solicitudes = Permisos.objects.filter(Q(tiene_comprobante=False) | Q(estado_solicitud='SB', pendiente_subsanar=True))
     return render(request, 'subir_comprobantes.html', {
         'solicitudes': solicitudes,
     })
 
 def formulario_comprobantes(request, permiso_id):
     permiso = get_object_or_404(Permisos, id=permiso_id)
+    comprobante_qs = PermisoComprobante.objects.filter(permiso=permiso)
     if request.method == 'POST':
-        form = SubirComprobanteForm(request.POST, request.FILES)
+        form = SubirComprobanteForm(request.POST, request.FILES, instance=comprobante_qs.first() if comprobante_qs.exists() else None)
 
         if form.is_valid():
             comprobante = form.save(commit=False)
             comprobante.permiso = permiso
             comprobante.save()
             permiso.tiene_comprobante = True
+            permiso.pendiente_subsanar = False
             permiso.save()
             html = render_to_string('act_fila_comp.html', {"permiso": permiso})
             return HttpResponse(html)
     else:
-        form = SubirComprobanteForm()
+        form = SubirComprobanteForm(instance=comprobante_qs.first() if comprobante_qs.exists() else None)
     
     return render(request, "formulario.html", {"form": form, "permiso": permiso})
 
@@ -481,17 +483,21 @@ def accion_solicitud(request):
         accion = request.POST.get('accion_realizada')  # 'aprobar' o 'rechazar'
         revisado_por = request.POST.get('revisada_por')
         comentario = request.POST.get('comentarios', '')
+        aprobacion_gerencial = request.POST.get('aprobacion_gerencial')
 
         # 1. Busca la solicitud
         solicitud = get_object_or_404(Permisos, id=solicitud_id)
-
+        
         # 2. Define el nuevo estado
         if accion == 'A':
             nuevo_estado = 'A'
+            if aprobacion_gerencial:
+                solicitud.aprobacion_gerencial = True
         elif accion == 'R':
             nuevo_estado = 'R'
         elif accion == 'SB':
             nuevo_estado = 'SB'
+            solicitud.pendiente_subsanar = True
         else:
             return HttpResponse("Acción no válida", status=400)
 
