@@ -33,6 +33,7 @@ urlpatterns = [
     path('crear_usuario/', views.crear_usuario, name='crear_usuario'),
     path('ver', views.ver_a_cargo, name='ver'),
     path('ficha/<int:permiso_id>/', views.ficha_permiso, name='ficha_permiso'),
+    path('ausencias', views.ausencias_encargado, name='ausencias_encargado'),
     
     # path('/validar/', views.validar_asistencias),
    
