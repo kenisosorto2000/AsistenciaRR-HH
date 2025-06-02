@@ -33,7 +33,11 @@ urlpatterns = [
     path('crear_usuario/', views.crear_usuario, name='crear_usuario'),
     path('ver', views.ver_a_cargo, name='ver'),
     path('ficha/<int:permiso_id>/', views.ficha_permiso, name='ficha_permiso'),
+<<<<<<< HEAD
     path('ficha2/<int:permiso_id>/', views.ficha_permiso2, name='ficha_permiso2'),
+=======
+    path('ausencias', views.ausencias_encargado, name='ausencias_encargado'),
+>>>>>>> origin/devHector
     
     # path('/validar/', views.validar_asistencias),
    

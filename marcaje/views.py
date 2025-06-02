@@ -23,6 +23,7 @@ from django.contrib import messages
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Q
+from datetime import date, datetime
 
 def empleados_proxy(request):
     target_url = "http://192.168.11.185:3003/planilla/webservice/empleados/"
@@ -537,9 +538,46 @@ def logout_view(request):
 def ver_a_cargo(request):
     return render(request, 'ver.html')
 
+<<<<<<< HEAD
 def ficha_permiso2(request, permiso_id):
     permiso = get_object_or_404(Permisos, id=permiso_id)
 
     return render(request, 'ficha2.html', {
         'solicitud': permiso,
+=======
+def ficha(request):
+    return render(request, 'ficha.html')
+
+def ausencias_encargado(request):
+    
+ 
+    encargado = Empleado.objects.filter(es_encargado=True)
+    enc_id = request.GET.get('encargado')
+   
+
+    fecha_str = request.GET.get('fecha')
+    if fecha_str:
+        try:
+            fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
+        except ValueError:
+            fecha = date.today()
+    else:
+        fecha = date.today()
+    
+    # Empleados asignados a este encargado
+    asignaciones = AsignacionEmpleadoEncargado.objects.filter(encargado=enc_id)
+    empleados = [a.empleado for a in asignaciones]
+    
+    # Ausentes: aquellos que no tienen marcaje para la fecha
+    ausentes = []
+    for empleado in empleados:
+        tiene_marcaje = MarcajeDepurado.objects.filter(empleado=empleado, fecha=fecha).exists()
+        if not tiene_marcaje:
+            ausentes.append(empleado)
+    
+    return render(request, 'ausencias_encargado.html', {
+        'fecha': fecha,
+        'ausentes': ausentes,
+        'encargado': encargado,
+>>>>>>> origin/devHector
     })
