@@ -538,13 +538,6 @@ def logout_view(request):
 def ver_a_cargo(request):
     return render(request, 'ver.html')
 
-<<<<<<< HEAD
-def ficha_permiso2(request, permiso_id):
-    permiso = get_object_or_404(Permisos, id=permiso_id)
-
-    return render(request, 'ficha2.html', {
-        'solicitud': permiso,
-=======
 def ficha(request):
     return render(request, 'ficha.html')
 
@@ -579,5 +572,4 @@ def ausencias_encargado(request):
         'fecha': fecha,
         'ausentes': ausentes,
         'encargado': encargado,
->>>>>>> origin/devHector
     })
