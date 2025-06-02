@@ -440,9 +440,9 @@ def crear_usuario(request):
         nombres = empleado.nombre.strip().lower().split()
 
         if len(nombres) >= 2:
-            username = f"{nombres[0]}{nombres[-1]}"
+            username = f"{nombres[0]}{nombres[-2]}"
             first_name = nombres[0].capitalize()
-            last_name = nombres[-1].capitalize()
+            last_name = nombres[-2].capitalize()
         else:
             username = nombres[0]
             first_name = nombres[0].capitalize()
@@ -525,7 +525,7 @@ def cargar_login(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            return redirect('marcaje')  # Cambia 'home' por tu vista principal
+            return redirect('home')  # Cambia 'home' por tu vista principal
         else:
             return render(request, 'login.html', {'error': 'Usuario o contraseña incorrectos'})
     return render(request, 'login.html')

@@ -4,13 +4,15 @@
       hx-swap="outerHTML"
       class="space-y-4 mt-4">
   {% csrf_token %}
-  
   <div class="space-y-2">
     {{ form.as_p }}
   </div>
-
-  <button type="submit"
-          class="bg-green-600 text-white px-4 py-1.5 text-sm rounded hover:bg-green-700 transition">
+  <button type="submit" class="bg-green-600 text-white px-4 py-1.5 text-sm rounded hover:bg-green-700 transition">
     Guardar
+  </button>
+  <!--botón de cancelar para cerrar-->
+  <button type="button" class="bg-gray-300 text-gray-800 px-4 py-1.5 text-sm rounded hover:bg-gray-400 transition"
+          onclick="this.closest('form').style.display='none'">
+    Cancelar
   </button>
 </form>
