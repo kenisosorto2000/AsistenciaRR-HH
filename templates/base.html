@@ -44,17 +44,14 @@
 </head>
 <body class="bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-300">
     <div class="flex flex-col min-h-screen">
-        <header class="flex justify-between items-center px-5 py-2 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 transition-colors duration-300">
-            <div class="flex items-center space-x-2">
+        <header class="flex justify-between items-center px-2 py-1 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 transition-colors duration-300">
+            <div class="flex items-center space-x-2 -mt-4">
                 <!-- Botón para mostrar/ocultar el menú en pantallas pequeñas -->
-                 
-                    
                 <button id="menu-toggle" class="lg:hidden p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none transition-colors duration-300" aria-label="Mostrar menú">
                     <i data-lucide="menu"></i>
                 </button>
-                
-                <img src="{% static 'img/imagen2.png' %}" alt="Logo claro" class="h-16 block dark:hidden">
-                <img src="{% static 'img/imagen1.png' %}" alt="Logo oscuro" class="h-16 hidden dark:block">
+                <img src="{% static 'img/logo_new2.png' %}" alt="Logo claro" class="h-24 block dark:hidden ">
+                <img src="{% static 'img/logo_new.png' %}" alt="Logo oscuro" class="h-24 hidden dark:block">
             </div>
             <!-- Sidebar flotante para móviles -->
             <style>
@@ -98,7 +95,6 @@
                     handleResize();
                 });
             </script>
-        </a>
             <div>
                 <button id="theme-toggle" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none transition-colors duration-300" aria-label="Cambiar tema">
                     <i data-lucide="sun" class="w-6 h-6 block dark:hidden"></i>
@@ -112,8 +108,6 @@
                     </a>
                 </button>
             </div>
-            
-            
         </header>
         
         <div class="flex flex-1">
