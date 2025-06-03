@@ -129,8 +129,11 @@ class PermisoComprobante(models.Model):
 
 
 class GestionFechaCorte(models.Model):
-    anio = models.DateField(unique_for_year=True)
-    mes = models.DateField(unique_for_month=True)
+    anio = models.PositiveIntegerField()
+    mes = models.PositiveSmallIntegerField()
     fecha_inicio = models.DateField()
     fecha_final = models.DateField()
     fecha_corte = models.DateField()
+
+    class Meta:
+        unique_together = ('anio', 'mes')

@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% block title %}Validar Asistencia{% endblock %}
 
 {% block content %}
 <link rel="stylesheet" href="{% static 'styles/main.css' %}">
@@ -38,9 +39,9 @@
                 </div>
             </form>   
         </div>
-    </div>
-    <div id="cargar-asis" class="bg-white dark:bg-gray-800 max-h-[600px] shadow-md rounded-lg overflow-y-auto mt-4" style="height: 57vh;">
-        {% include 'partials/mostrar-asistencia.html' %}
+        <div id="cargar-asis" class="bg-white dark:bg-gray-800 max-h-[600px] shadow-md rounded-lg overflow-y-auto mt-4" style="height: 57vh;">
+            {% include 'partials/mostrar-asistencia.html' %}
+        </div>
     </div>
 </div>
 
