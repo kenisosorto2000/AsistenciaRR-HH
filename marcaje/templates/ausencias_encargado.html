@@ -8,7 +8,7 @@
         <div class="p-4 border border-gray-300 shadow-md rounded-lg">
             <form method="get" class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-200" for="encargado">Fecha:</label>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-200" for="fecha">Fecha:</label>
                     <input class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm" type="date" name="fecha" value="{{ fecha }}">    
                 </div>
     
@@ -43,7 +43,12 @@
                 </thead>
                 <tbody class="divide-y divide-gray-200 dark:divide-gray-700 text-gray-700 dark:text-gray-100">
                     {% for e in ausentes %}
+<<<<<<< HEAD
+                    
+                    <tr>
+=======
                     <tr class="hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200">
+>>>>>>> origin/devKenis
                         <td class="px-2 py-2">{{ e.codigo }}</td>
                         <td class="px-4 py-2">{{ e.nombre }}</td>
                         <td class="px-4 py-2">{{ e.departamento }}</td>
@@ -57,7 +62,14 @@
                 <p>No hay ausencias para esta fecha.</p>
             {% endif %}
         </div>
+        <form method="post" action="{% url 'enviar_ausencias' %}">
+    {% csrf_token %}
+    <input type="hidden" name="fecha" value="{{ fecha|date:'Y-m-d' }}">
+    <input type="hidden" name="encargado_id" value="{{ enc_id }}">
+    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded text-sm flex items-center justify-center">Enviar por correo</button>
+</form>
     </div>
+
 </div>
 
 <!-- <script>

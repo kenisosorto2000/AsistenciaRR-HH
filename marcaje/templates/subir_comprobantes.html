@@ -21,8 +21,10 @@
           <th class="px-4 py-2">Fecha Inicio</th>
           <th class="px-4 py-2">Fecha Fin</th>
           <th class="px-4 py-2">Motivo</th>
+          <th class="px-4 py-2">Estado</th>
           <th class="px-4 py-2">Subir comprobante</th>
           <th class="px-4 py-2">Ver Solicitud</th>
+          
         </tr>
       </thead>
       <tbody>
@@ -33,6 +35,7 @@
           <td class="px-4 py-2">{{ s.fecha_inicio }}</td>
           <td class="px-4 py-2">{{ s.fecha_final }}</td>
           <td class="px-4 py-2">{{ s.descripcion }}</td>
+          <td class="px-4 py-2">{{ s.estado_solicitud }}</td>
           <td class="px-4 py-2">
             <button 
               class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-sm hover:text-white transition"

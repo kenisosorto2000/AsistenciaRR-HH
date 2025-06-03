@@ -24,6 +24,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Q
 from datetime import date, datetime
+from django.core.mail import send_mail
 
 def empleados_proxy(request):
     target_url = "http://192.168.11.185:3003/planilla/webservice/empleados/"
@@ -393,7 +394,9 @@ def vista_solicitudes_encargado(request):
     return render(request, 'solicitudes_encargado.html', {'solicitudes': solicitudes})
 
 def subir_comprobante(request):
-    solicitudes = Permisos.objects.filter(Q(tiene_comprobante=False) | Q(estado_solicitud='SB', pendiente_subsanar=True))
+    encargado = Empleado.objects.get(user=request.user)
+    empleados_cargo = Empleado.objects.filter(encargado_asignado__encargado=encargado)
+    solicitudes = Permisos.objects.filter(Q(empleado__in=empleados_cargo, tiene_comprobante=False) | Q(empleado__in=empleados_cargo, estado_solicitud='SB', pendiente_subsanar=True))
     return render(request, 'subir_comprobantes.html', {
         'solicitudes': solicitudes,
     })
@@ -575,6 +578,48 @@ def ausencias_encargado(request):
     
     return render(request, 'ausencias_encargado.html', {
         'fecha': fecha,
+        'enc_id': enc_id,
         'ausentes': ausentes,
         'encargado': encargado,
     })
+
+def enviar_ausencias(request):
+    if request.method == "POST":
+        fecha_str = request.POST.get('fecha')
+        encargado_id = request.POST.get('encargado_id')
+        fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
+        encargado = get_object_or_404(Empleado, id=encargado_id)
+
+        # Obtiene empleados asignados
+        asignaciones = AsignacionEmpleadoEncargado.objects.filter(encargado=encargado)
+        empleados = [a.empleado for a in asignaciones]
+        ausentes = []
+        for empleado in empleados:
+            if not MarcajeDepurado.objects.filter(empleado=empleado, fecha=fecha).exists():
+                ausentes.append(empleado)
+        
+        # Armado del cuerpo del correo
+        lista_ausentes = "\n".join([f"{e.codigo} - {e.nombre} ({e.departamento})" for e in ausentes]) or "No hubo ausentes."
+        subject = f"Reporte de Ausencias {fecha.strftime('%d/%m/%Y')}"
+        mensaje = f"""Hola {encargado.nombre},
+
+Estos son los empleados con ausencia el {fecha.strftime('%d/%m/%Y')}:
+
+{lista_ausentes}
+
+Este es un mensaje automático.
+"""
+        destinatario = encargado.user.email if encargado.user and encargado.user.email else None
+        if destinatario:
+            send_mail(
+                subject,
+                mensaje,
+                'hello@demomailtrap.co',  # Cambia esto por tu correo configurado
+                [destinatario],
+                fail_silently=False,
+            )
+        # Puedes agregar mensajes de éxito/fallo con Django messages si gustas
+        return redirect('ausencias_encargado')  # O a donde quieras regresar
+
+    # Si entran por GET
+    return redirect('ausencias_encargado')
