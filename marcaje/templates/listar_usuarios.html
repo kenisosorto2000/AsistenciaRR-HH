@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Lista de Usuarios{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-7xl mx-auto bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-300">
+    <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-200">Lista de Usuarios</h2>
+    <div class="flex justify-end mb-4">
+        <a href="{% url 'crear_usuario' %}" class="bg-blue-600 text-white px-6 py-2 rounded-lg shadow hover:bg-blue-700 transition duration-200 flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Crear Usuario
+        </a>
+    </div>
+    <div class="bg-white dark:bg-gray-800 max-h-[450px] rounded-lg mb-6 mt-4" style="height: 75vh;">
+        <div class="p-4 border border-gray-300 shadow-md rounded-lg">
+            <table class="min-w-full text-sm text-left text-gray-700 dark:text-gray-200">
+                <thead class="bg-gray-100 dark:bg-gray-600 uppercase text-xs">
+                    <tr>
+                        <th class="px-4 py-2">Nombre</th>
+                        <th class="px-4 py-2">Apellido</th>
+                        <th class="px-4 py-2">Email</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                    {% for usuario in usuarios %}
+                    <tr class="hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200">
+                        <td class="px-4 py-2">{{ usuario.first_name }}</td>
+                        <td class="px-4 py-2">{{ usuario.last_name }}</td>
+                        <td class="px-4 py-2">{{ usuario.email }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

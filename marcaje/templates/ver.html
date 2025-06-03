@@ -1,15 +1,16 @@
 {% extends 'base.html' %}
+{% block title %}Empleados Vacaciones{% endblock %}
 
 {% block content %}
 {% if empleados_a_cargo_global %}
 <div class="flex justify-center min-h-full bg-white dark:bg-gray-800 border border-gray-300 rounded">
-    
-    <div class="overflow-x-auto max-h-[600px] overflow-y-auto">
-          <div class=" w-full p-6 rounded-lg shadow-md overflow-y-auto bg-gray-100 dark:bg-gray-800">    
-
-        <h3 class="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">Empleados a tu cargo {{encargado.nombre}}:</h3>
+    <div class="overflow-x-auto">
+        <div class="w-full p-6 rounded-lg shadow-md bg-gray-100 dark:bg-gray-800">
+            <h3 class="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">Empleados a tu cargo {{encargado.nombre}}:</h3>
+        </div> 
+        <div class="max-h-[500px] shadow-md overflow-x-auto bg-gray-100 dark:bg-gray-800 -mt-6">       
         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-600 border border-gray-300 rounded">
-            <thead class="bg-gray-100 dark:bg-gray-600 sticky top-[0px] z-10 uppercase text-xs">
+            <thead class="bg-gray-100 dark:bg-gray-600 sticky top-0 z-2 text-xs">
                 <tr>
                     <th class="px-4 py-2">Empleado</th>
                     <th class="px-4 py-2">Vacaciones</th>

@@ -464,6 +464,11 @@ def crear_usuario(request):
 
     return render(request, 'crear_usuario.html', {'encargados': encargados})
 
+
+def ver_usuarios(request):
+    usuarios = User.objects.all()
+    return render(request, 'listar_usuarios.html', {'usuarios': usuarios})
+
 def modal_solicitud(request, permiso_comprobante_id):
     permiso_comprobante = get_object_or_404(PermisoComprobante, id=permiso_comprobante_id)
     # permiso = get_object_or_404(Permisos, permisos_id=permiso_id )
