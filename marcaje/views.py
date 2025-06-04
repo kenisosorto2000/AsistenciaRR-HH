@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import logout
 from django.contrib.auth import authenticate, login
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404
 from .models import *
@@ -385,14 +385,23 @@ def solicitud_rh(request):
 
     return render(request, 'solicitudes_rh.html', {'permisos': context},)
 
-@login_required
+# @login_required
+# @permission_required('marcaje.view_permisocomprobante')
 def vista_solicitudes_encargado(request):
     encargado = Empleado.objects.get(user=request.user)
 
-    empleados_cargo = Empleado.objects.filter(encargado_asignado__encargado=encargado)
-    solicitudes = PermisoComprobante.objects.filter(permiso__empleado__in=empleados_cargo)
-    return render(request, 'solicitudes_encargado.html', {'solicitudes': solicitudes})
+    permisos = Permisos.objects.filter(encargado=encargado.id)
 
+    context = []
+    for permiso in permisos:
+        comprobante = PermisoComprobante.objects.filter(permiso=permiso).first()
+        context.append({
+            'permiso': permiso,
+            'comprobante': comprobante.comprobante.url if comprobante else None,
+        })
+    return render(request, 'solicitudes_encargado.html', {'solicitudes': context})
+
+@permission_required('marcaje.view_permisocomprobante')
 def subir_comprobante(request):
     encargado = Empleado.objects.get(user=request.user)
     empleados_cargo = Empleado.objects.filter(encargado_asignado__encargado=encargado)
@@ -550,13 +559,10 @@ def ficha(request):
     return render(request, 'ficha.html')
 
 def ausencias_encargado(request):
-    
- 
     encargado = Empleado.objects.filter(es_encargado=True)
     enc_id = request.GET.get('encargado')
-   
-
     fecha_str = request.GET.get('fecha')
+
     if fecha_str:
         try:
             fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
@@ -564,23 +570,31 @@ def ausencias_encargado(request):
             fecha = date.today()
     else:
         fecha = date.today()
-    
-    # Empleados asignados a este encargado
-    asignaciones = AsignacionEmpleadoEncargado.objects.filter(encargado=enc_id)
-    empleados = [a.empleado for a in asignaciones]
-    
-    # Ausentes: aquellos que no tienen marcaje para la fecha
-    ausentes = []
-    for empleado in empleados:
-        tiene_marcaje = MarcajeDepurado.objects.filter(empleado=empleado, fecha=fecha).exists()
-        if not tiene_marcaje:
-            ausentes.append(empleado)
-    
+
+    empleados = []
+    encargado_seleccionado = None
+
+    if enc_id:
+        encargado_seleccionado = get_object_or_404(Empleado, id=enc_id)
+        asignaciones = AsignacionEmpleadoEncargado.objects.filter(encargado=enc_id)
+        empleados_asignados = [a.empleado for a in asignaciones]
+
+        for empleado in empleados_asignados:
+            tiene_marcaje = MarcajeDepurado.objects.filter(empleado=empleado, fecha=fecha).exists()
+            empleados.append({
+                'codigo': empleado.codigo,
+                'nombre': empleado.nombre,
+                'departamento': empleado.departamento,
+                'sucursal': empleado.sucursal.nombre,
+                'asistio': tiene_marcaje
+            })
+
     return render(request, 'ausencias_encargado.html', {
         'fecha': fecha,
-        'enc_id': enc_id,
-        'ausentes': ausentes,
         'encargado': encargado,
+        'empleados': empleados,
+        'encargado_seleccionado': encargado_seleccionado,
+        'enc_id': enc_id,
     })
 
 def enviar_ausencias(request):
@@ -623,3 +637,22 @@ Este es un mensaje automático.
 
     # Si entran por GET
     return redirect('ausencias_encargado')
+
+def fecha_corte(request):
+    if request.method == 'POST':
+        anio = request.POST.get('anio')
+        mes = request.POST.get('mes')
+        fecha_inicio = request.POST.get('fecha_inicio')
+        fecha_final = request.POST.get('fecha_final')
+        fecha_corte = request.POST.get('fecha_corte')
+
+        GestionFechaCorte.objects.create(
+            anio=anio,
+            mes=mes,
+            fecha_inicio=fecha_inicio,
+            fecha_final=fecha_final,
+            fecha_corte=fecha_corte,
+        )
+
+        return redirect('home')
+    return render(request, 'gestion_fecha_corte.html')
