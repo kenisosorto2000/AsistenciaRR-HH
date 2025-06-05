@@ -137,3 +137,6 @@ class GestionFechaCorte(models.Model):
 
     class Meta:
         unique_together = ('anio', 'mes')
+
+    def __str__(self):
+        return f"{self.anio} - {self.mes}"

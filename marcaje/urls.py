@@ -34,8 +34,10 @@ urlpatterns = [
     path('ver', views.ver_a_cargo, name='ver'),
     path('ficha/<int:permiso_id>/', views.ficha_permiso, name='ficha_permiso'),
     path('ausencias', views.ausencias_encargado, name='ausencias_encargado'),
+    path('asistencias', views.asistencias_encargado, name='asistencias_encargado'),
     path('send-ausencias', views.enviar_ausencias, name='enviar_ausencias'),
     path('listar-usuarios/', views.ver_usuarios, name='listar_usuarios'),
+    path('fecha-corte', views.fecha_corte, name='fecha_corte')
     # path('/validar/', views.validar_asistencias),
    
 ] 
