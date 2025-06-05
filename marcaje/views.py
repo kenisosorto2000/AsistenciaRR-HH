@@ -597,6 +597,42 @@ def ausencias_encargado(request):
         'enc_id': enc_id,
     })
 
+def asistencias_encargado(request):
+    user = request.user
+    try:
+        encargado = Empleado.objects.get(user=user, es_encargado=True)
+    except Empleado.DoesNotExist:
+        return render(request, '404.html', {'mensaje': 'No tiene permisos para ver esta página.'})
+   
+    fecha_str = request.GET.get('fecha')
+    if fecha_str:
+        try:
+            fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
+        except ValueError:
+            fecha = date.today()
+    else:
+        fecha = date.today()
+
+    empleados = []
+    asignaciones = AsignacionEmpleadoEncargado.objects.filter(encargado=encargado)
+    empleados_asignados = [a.empleado for a in asignaciones]
+
+    for empleado in empleados_asignados:
+        tiene_marcaje = MarcajeDepurado.objects.filter(empleado=empleado, fecha=fecha).exists()
+        empleados.append({
+            'codigo': empleado.codigo,
+            'nombre': empleado.nombre,
+            'departamento': empleado.departamento,
+            'sucursal': empleado.sucursal.nombre,
+            'asistio': tiene_marcaje
+        })
+
+    return render(request, 'asistencias_encargado.html', {
+        'fecha': fecha,
+        'encargado': encargado,
+        'empleados': empleados,
+    })
+
 def enviar_ausencias(request):
     if request.method == "POST":
         fecha_str = request.POST.get('fecha')
@@ -638,11 +674,19 @@ Este es un mensaje automático.
     # Si entran por GET
     return redirect('ausencias_encargado')
 
+<<<<<<< HEAD
 def error_404(request, exception):
     return render(request, '404.html', status=404)
 
 def error_500(request):
     return render(request, '500.html', status=500)
+=======
+# def error_404(request, exception):
+#     return render(request, '404.html', status=404)
+
+# def error_500(request):
+#     return render(request, '500.html', status=500)
+>>>>>>> origin/devHector
 def fecha_corte(request):
     if request.method == 'POST':
         anio = request.POST.get('anio')
