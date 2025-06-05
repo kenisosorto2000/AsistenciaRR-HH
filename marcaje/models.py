@@ -61,9 +61,10 @@ class MarcajeDepurado(models.Model):
 
 class TipoPermisos(models.Model):
     tipo = models.CharField(max_length=100)
-
+    simbolo = models.CharField(max_length=5, null=True, blank=True)
+    cod_color = models.CharField(max_length=10, null=True, blank=True)
     def __str__(self):
-        return self.tipo
+        return f"{self.tipo} - {self.simbolo} -{self.cod_color}"
 
 class Permisos(models.Model):
 
@@ -78,7 +79,7 @@ class Permisos(models.Model):
     tipo_permiso = models.ForeignKey(TipoPermisos, on_delete=models.PROTECT)
     fecha_inicio = models.DateField()
     fecha_final = models.DateField()
-    fecha_solicitud = models.DateField(auto_now=True)
+    fecha_solicitud = models.DateField(auto_now_add=True)
     descripcion = models.CharField(max_length=300)
     tiene_comprobante = models.BooleanField(default=False)
     estado_solicitud = models.CharField(choices=ESTADO_SOLICITUD, default='P')
