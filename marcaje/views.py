@@ -679,6 +679,7 @@ Este es un mensaje automático.
 
 # def error_500(request):
 #     return render(request, '500.html', status=500)
+
 def fecha_corte(request):
     if request.method == 'POST':
         anio = request.POST.get('anio')
