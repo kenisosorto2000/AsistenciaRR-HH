@@ -21,7 +21,16 @@
             <td>{{ r.departamento }}</td>
             <td>{{ r.entrada }}</td>
             <td>{{ r.salida }}</td>
-            <td class="{% if r.asistio %}bg-green-700{% else %}bg-red-700{% endif %}">{% if r.asistio %}{% else %}{% endif %}</td>
+            <td class="px-2 py-2" 
+            style="background: {% if r.estado == 'ASISTIÓ' %}#38c172{% elif r.estado == 'JUSTIFICADO' %}{{r.color}}{% else %}#e3342f{%endif%};">
+            {% if r.estado == 'ASISTIÓ' %}
+            <p></p>
+            {% elif r.estado == 'JUSTIFICADO' %}
+             {{ r.simbolo_permiso }}
+            {%else%}
+            <p></p>
+            {%endif%}
+            </td>
         </tr>
         {% endfor %} <!-- Datos se cargarán por AJAX -->
     </tbody>

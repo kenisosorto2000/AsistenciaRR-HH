@@ -163,7 +163,30 @@ def validar_asistencias(request):
                     empleado=empleado,
                     fecha=fecha
                 ).first()
+
+                permiso_justificado = Permisos.objects.filter(
+                empleado=empleado, 
+                estado_solicitud__in=['A', 'SB'],
+                fecha_inicio__lte=fecha,
+                fecha_final__gte=fecha
+            ).select_related('tipo_permiso').first()
                 
+                if marcaje_depurado:
+                    estado = 'ASISTIÓ'
+                    simbolo_permiso = None
+                    color = None
+                    estado_rh = None
+                elif permiso_justificado:
+                    estado = 'JUSTIFICADO'
+                    simbolo_permiso = permiso_justificado.tipo_permiso.simbolo
+                    color = permiso_justificado.tipo_permiso.cod_color
+                    estado_rh = permiso_justificado.estado_solicitud
+                else:
+                    estado = 'FALTÓ'
+                    simbolo_permiso = None
+                    color = None
+                    estado_rh = None
+
                 resultados.append({
                     'fecha': fecha,
                     'sucursal': empleado.sucursal.nombre,
@@ -173,6 +196,10 @@ def validar_asistencias(request):
                     'asistio': marcaje_depurado is not None,
                     'entrada': marcaje_depurado.entrada.strftime('%H:%M') if marcaje_depurado and marcaje_depurado.entrada else '--',
                     'salida': marcaje_depurado.salida.strftime('%H:%M') if marcaje_depurado and marcaje_depurado.salida else '--',
+                    'estado': estado,
+                    'simbolo_permiso': simbolo_permiso,
+                    'color': color,
+                    'estado_rh': estado_rh,
                 })
         except Exception as e:
             resultados = []
@@ -631,14 +658,17 @@ def asistencias_encargado(request):
             estado = 'ASISTIÓ'
             simbolo_permiso = None
             color = None
+            estado_rh = None
         elif permiso_justificado:
             estado = 'JUSTIFICADO'
             simbolo_permiso = permiso_justificado.tipo_permiso.simbolo
             color = permiso_justificado.tipo_permiso.cod_color
+            estado_rh = permiso_justificado.estado_solicitud
         else:
             estado = 'FALTÓ'
             simbolo_permiso = None
             color = None
+            estado_rh = None
         
         empleados.append({
             'codigo': empleado.codigo,
@@ -648,6 +678,7 @@ def asistencias_encargado(request):
             'estado': estado,
             'simbolo_permiso': simbolo_permiso,
             'color': color,
+            'estado_rh': estado_rh,
         })
 
     return render(request, 'asistencias_encargado.html', {

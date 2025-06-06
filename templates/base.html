@@ -23,14 +23,25 @@
 
 <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
+   <script>
+        // 1. Verificar tema al cargar
+        const storedTheme = localStorage.getItem('theme') || 
+            (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        
+        if (storedTheme === 'dark') {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+        
+        // 2. Configuración de Tailwind
         tailwind.config = {
             darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
                         promaco: {
-                            dark: '#0c0057', // Color azul oscuro original del sidebar
+                            dark: '#0c0057',
                             darker: '#080038',
                             light: '#ffffff'
                         }
