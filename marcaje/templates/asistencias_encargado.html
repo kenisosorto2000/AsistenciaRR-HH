@@ -28,6 +28,7 @@
             <th class="px-4 py-2">Departamento</th>
             <th class="px-4 py-2">Sucursal</th>
             <th class="px-4 py-2">Asistencia</th>
+            <th class="px-4 py-2">Estado en RRHH</th>
         </tr>
         </thead>
         <tbody class="divide-y divide-gray-200 dark:divide-gray-700 text-gray-700 dark:text-gray-100"></tbody>
@@ -43,6 +44,15 @@
             <p></p>
             {% elif e.estado == 'JUSTIFICADO' %}
              {{ e.simbolo_permiso }}
+            {%else%}
+            <p></p>
+            {%endif%}
+            </td>
+            <td class="px-2 py-2">
+            {% if e.estado == 'ASISTIÓ' %}
+            <p></p>
+            {% elif e.estado == 'JUSTIFICADO' %}
+             {{ e.estado_rh }}
             {%else%}
             <p></p>
             {%endif%}
