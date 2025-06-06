@@ -619,12 +619,35 @@ def asistencias_encargado(request):
 
     for empleado in empleados_asignados:
         tiene_marcaje = MarcajeDepurado.objects.filter(empleado=empleado, fecha=fecha).exists()
+        
+        permiso_justificado = Permisos.objects.filter(
+                empleado=empleado, 
+                fecha_inicio__lte=fecha,
+                fecha_final__gte=fecha
+            ).select_related('tipo_permiso').first()
+        
+        
+        if tiene_marcaje:
+            estado = 'ASISTIÓ'
+            simbolo_permiso = None
+            color = None
+        elif permiso_justificado:
+            estado = 'JUSTIFICADO'
+            simbolo_permiso = permiso_justificado.tipo_permiso.simbolo
+            color = permiso_justificado.tipo_permiso.cod_color
+        else:
+            estado = 'FALTÓ'
+            simbolo_permiso = None
+            color = None
+        
         empleados.append({
             'codigo': empleado.codigo,
             'nombre': empleado.nombre,
             'departamento': empleado.departamento,
             'sucursal': empleado.sucursal.nombre,
-            'asistio': tiene_marcaje
+            'estado': estado,
+            'simbolo_permiso': simbolo_permiso,
+            'color': color,
         })
 
     return render(request, 'asistencias_encargado.html', {
