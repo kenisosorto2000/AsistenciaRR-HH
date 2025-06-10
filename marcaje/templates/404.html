@@ -9,13 +9,23 @@
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&family=Poppins:wght@300;400;500;600;700&display=swap"
     rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Anton&family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'styles/menu.css' %}">
 
-{% load static %}
-<link rel="stylesheet" href="{% static 'styles/menu.css' %}">
-
-<!-- Tailwind CSS -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
+        // 1. Verificar tema al cargar
+        const storedTheme = localStorage.getItem('theme') || 
+            (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        
+        if (storedTheme === 'dark') {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+        
+        // 2. Configuración de Tailwind
         tailwind.config = {
             darkMode: 'class',
             theme: {
@@ -39,8 +49,8 @@
 </head>
 <body class="bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-300">
     <div class="flex flex-col min-h-screen">
-        <header class="flex justify-between items-center px-3 py-1 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 transition-colors duration-300">
-            <div class="flex items-center space-x-2 -mt-6">
+        <header class="flex justify-between items-center px-2 py-1 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 transition-colors duration-300">
+            <div class="flex items-center space-x-2 -mt-4">
                 <i data-lucide=""></i>
                 <img src="{% static 'img/logo_new2.png' %}" alt="Logo claro" class="h-24 block dark:hidden ">
                 <img src="{% static 'img/logo_new.png' %}" alt="Logo oscuro" class="h-24 hidden dark:block">
@@ -51,7 +61,6 @@
                 <i data-lucide="moon" class="w-6 h-6 hidden dark:block"></i>
             </button>
         </header>
-
         <main class="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12">
             <div class="max-w-4xl mx-auto text-center">
                 <div class="grid md:grid-cols-2 gap-8 items-center">
@@ -150,48 +159,48 @@
         </script>
 
         <script>
-        // Inicializar los iconos de Lucide
-        lucide.createIcons();
-        
-        // Función para manejar el cambio de tema
-        document.addEventListener('DOMContentLoaded', function() {
-            const themeToggle = document.getElementById('theme-toggle');
+            // Inicializar los iconos de Lucide
+            lucide.createIcons();
             
-            // Verificar si hay una preferencia guardada
-            const savedTheme = localStorage.getItem('theme');
-            
-            // Aplicar el tema guardado o usar el tema del sistema
-            if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                document.documentElement.classList.add('dark');
-                document.documentElement.classList.remove('light');
-            }
-            
-            // Manejar el clic en el botón de cambio de tema
-            themeToggle.addEventListener('click', function() {
-                document.documentElement.classList.toggle('dark');
-                document.documentElement.classList.toggle('light');
+            // Función para manejar el cambio de tema
+            document.addEventListener('DOMContentLoaded', function() {
+                const themeToggle = document.getElementById('theme-toggle');
                 
-                // Guardar la preferencia
-                if (document.documentElement.classList.contains('dark')) {
-                    localStorage.setItem('theme', 'dark');
-                } else {
-                    localStorage.setItem('theme', 'light');
+                // Verificar si hay una preferencia guardada
+                const savedTheme = localStorage.getItem('theme');
+                
+                // Aplicar el tema guardado o usar el tema del sistema
+                if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                    document.documentElement.classList.add('dark');
+                    document.documentElement.classList.remove('light');
                 }
-            });
-            
-            // Escuchar cambios en la preferencia del sistema
-            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
-                if (!localStorage.getItem('theme')) {
-                    if (e.matches) {
-                        document.documentElement.classList.add('dark');
-                        document.documentElement.classList.remove('light');
+                
+                // Manejar el clic en el botón de cambio de tema
+                themeToggle.addEventListener('click', function() {
+                    document.documentElement.classList.toggle('dark');
+                    document.documentElement.classList.toggle('light');
+                    
+                    // Guardar la preferencia
+                    if (document.documentElement.classList.contains('dark')) {
+                        localStorage.setItem('theme', 'dark');
                     } else {
-                        document.documentElement.classList.remove('dark');
-                        document.documentElement.classList.add('light');
+                        localStorage.setItem('theme', 'light');
                     }
-                }
+                });
+                
+                // Escuchar cambios en la preferencia del sistema
+                window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+                    if (!localStorage.getItem('theme')) {
+                        if (e.matches) {
+                            document.documentElement.classList.add('dark');
+                            document.documentElement.classList.remove('light');
+                        } else {
+                            document.documentElement.classList.remove('dark');
+                            document.documentElement.classList.add('light');
+                        }
+                    }
+                });
             });
-        });
-    </script>
-    </body>
+        </script>
+</body>
 </html>
