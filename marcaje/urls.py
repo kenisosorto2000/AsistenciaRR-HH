@@ -37,7 +37,7 @@ urlpatterns = [
     path('asistencias', views.asistencias_encargado, name='asistencias_encargado'),
     path('send-ausencias', views.enviar_ausencias, name='enviar_ausencias'),
     path('listar-usuarios/', views.ver_usuarios, name='listar_usuarios'),
-    path('fecha-corte', views.fecha_corte, name='fecha_corte')
+    path('fecha-corte', views.fecha_corte, name='fecha_corte'),
+    path('listar-fecha-corte/', views.listar_fechas_corte, name='listar_fecha_corte'),
     # path('/validar/', views.validar_asistencias),
-   
 ] 

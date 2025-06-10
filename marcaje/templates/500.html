@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}RRHH - Login{% endblock %}</title>
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&family=Poppins:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'styles/menu.css' %}">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // 1. Verificar tema al cargar
+        const storedTheme = localStorage.getItem('theme') || 
+            (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        
+        if (storedTheme === 'dark') {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+        
+        // 2. Configuración de Tailwind
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        promaco: {
+                            dark: '#0c0057', // Color azul oscuro original del sidebar
+                            darker: '#080038',
+                            light: '#ffffff',
+                            red: '#E53E3E',
+                            navy: '#1A202C',
+                            blue: '#63B3ED'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Iconos de Lucide -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-300">
+    <div class="flex flex-col min-h-screen">
+        <header class="flex justify-between items-center px-2 py-1 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 transition-colors duration-300">
+            <div class="flex items-center space-x-2 -mt-4">
+                <i data-lucide=""></i>
+                <img src="{% static 'img/logo_new2.png' %}" alt="Logo claro" class="h-24 block dark:hidden ">
+                <img src="{% static 'img/logo_new.png' %}" alt="Logo oscuro" class="h-24 hidden dark:block">
+            </div>
+
+            <button id="theme-toggle" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none transition-colors duration-300" aria-label="Cambiar tema">
+                <i data-lucide="sun" class="w-6 h-6 block dark:hidden"></i>
+                <i data-lucide="moon" class="w-6 h-6 hidden dark:block"></i>
+            </button>
+        </header>
+        <main class="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12">
+            <div class="max-w-4xl mx-auto text-center">
+                <div class="grid md:grid-cols-2 gap-8 items-center">
+                    <!-- Left Column - Character -->
+                    <div class="order-2 md:order-1">
+                        <div class="relative">
+                            <div class="absolute inset-0 bg-promaco-red dark:bg-white rounded-full opacity-10 transform scale-110"></div>
+                            <img 
+                                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Pro.jpg-450uKutSfHryesz8hsG0rAUJBQuT8H.jpeg" 
+                                alt="PROMACO Mascot" 
+                                class="relative z-10 w-full max-w-sm mx-auto rounded-2xl shadow-2xl"
+                            >
+                        </div>
+                    </div>
+
+                    <!-- Right Column - Error Message -->
+                    <div class="order-1 md:order-2 space-y-6">
+                        <div class="space-y-4">
+                            <h1 class="text-8xl md:text-9xl font-bold text-yellow-500">500</h1>
+                            <h2 class="text-3xl md:text-4xl font-bold text-gray-600 dark:text-gray-200">
+                                ¡Estamos trabajando en ello!
+                            </h2>
+                            <p class="text-lg text-gray-600 dark:text-gray-200 max-w-md mx-auto">
+                                Nuestro servidor está experimentando algunos problemas técnicos. 
+                                El equipo de PROMACO ya está trabajando para solucionarlo lo antes posible.
+                            </p>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                            <button 
+                                onclick="window.history.back()" 
+                                class="w-full sm:w-auto px-8 py-3 bg-promaco-red text-white font-semibold rounded-lg hover:bg-red-600 transition-colors duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+                            >
+                                ← Volver atrás
+                            </button>
+                            <a 
+                                href="{% url 'home' %}" 
+                                class="w-full sm:w-auto px-8 py-3 bg-white text-promaco-navy font-semibold rounded-lg border-2 border-promaco-navy hover:bg-promaco-navy hover:text-white transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+                            >
+                                🏠 Ir al inicio
+                            </a>
+                        </div>
+
+                        <!-- Contact Info -->
+                        <div class="mt-8 p-6 bg-white rounded-xl shadow-lg border-l-4 border-promaco-red" style="max-width: 800px;">
+                            <h3 class="text-lg font-semibold text-promaco-navy mb-2">
+                                ¿Necesitas ayuda?
+                            </h3>
+                            <p class="text-gray-600 text-sm">
+                                Nuestro equipo de soporte está listo para asistirte con cualquier consulta sobre nuestros servicios de construcción y remodelación.
+                            </p>
+                            <div class="mt-4 flex flex-wrap gap-4 text-sm">
+                                <a href="tel:+1234567890" class="flex items-center text-promaco-red hover:text-red-600 transition-colors">
+                                    <span class="mr-2">📞</span>
+                                    Llamar ahora
+                                </a>
+                                <a href="mailto:info@promaco.com" class="flex items-center text-promaco-red hover:text-red-600 transition-colors">
+                                    <span class="mr-2">✉️</span>
+                                    Enviar email
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <script>
+            // Add some interactive animations
+            document.addEventListener('DOMContentLoaded', function() {
+                // Animate the 404 number on load
+                const errorNumber = document.querySelector('h1');
+                errorNumber.style.opacity = '0';
+                errorNumber.style.transform = 'scale(0.5)';
+                
+                setTimeout(() => {
+                    errorNumber.style.transition = 'all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                    errorNumber.style.opacity = '1';
+                    errorNumber.style.transform = 'scale(1)';
+                }, 300);
+
+                // Add floating animation to the character
+                const character = document.querySelector('img[alt="PROMACO Mascot"]');
+                character.style.animation = 'float 3s ease-in-out infinite';
+                
+                // Add CSS for floating animation
+                const style = document.createElement('style');
+                style.textContent = `
+                    @keyframes float {
+                        0%, 100% { transform: translateY(0px); }
+                        50% { transform: translateY(-10px); }
+                    }
+                `;
+                document.head.appendChild(style);
+            });
+        </script>
+
+        <script>
+            // Inicializar los iconos de Lucide
+            lucide.createIcons();
+            
+            // Función para manejar el cambio de tema
+            document.addEventListener('DOMContentLoaded', function() {
+                const themeToggle = document.getElementById('theme-toggle');
+                
+                // Verificar si hay una preferencia guardada
+                const savedTheme = localStorage.getItem('theme');
+                
+                // Aplicar el tema guardado o usar el tema del sistema
+                if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                    document.documentElement.classList.add('dark');
+                    document.documentElement.classList.remove('light');
+                }
+                
+                // Manejar el clic en el botón de cambio de tema
+                themeToggle.addEventListener('click', function() {
+                    document.documentElement.classList.toggle('dark');
+                    document.documentElement.classList.toggle('light');
+                    
+                    // Guardar la preferencia
+                    if (document.documentElement.classList.contains('dark')) {
+                        localStorage.setItem('theme', 'dark');
+                    } else {
+                        localStorage.setItem('theme', 'light');
+                    }
+                });
+                
+                // Escuchar cambios en la preferencia del sistema
+                window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+                    if (!localStorage.getItem('theme')) {
+                        if (e.matches) {
+                            document.documentElement.classList.add('dark');
+                            document.documentElement.classList.remove('light');
+                        } else {
+                            document.documentElement.classList.remove('dark');
+                            document.documentElement.classList.add('light');
+                        }
+                    }
+                });
+            });
+        </script>
+</body>
+</html>
