@@ -2,8 +2,10 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.template import loader
+from django.contrib.auth.decorators import login_required
 
 
+@login_required
 def index(request):
     salida = [1, 2, 3, 4, 5]
     return render(request, 'index.html', {'salida': salida})

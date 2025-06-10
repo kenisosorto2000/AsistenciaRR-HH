@@ -18,12 +18,14 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from marcaje import views as marcaje_views
 
 # handler404 = 'marcaje.views.error_404'
 # handler500 = 'marcaje.views.error_500'
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('inicio.urls')),
+    path('login/', marcaje_views.cargar_login, name='login'),
+    path('dashboard/', include('inicio.urls')),
     path('marcaje/', include('marcaje.urls'))
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

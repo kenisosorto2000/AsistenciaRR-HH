@@ -4,7 +4,7 @@
     <nav class="py-5">
         <ul>
             <li class="mb-1">
-                <a href="/" class="flex items-center px-5 py-3 hover:bg-opacity-10 hover:bg-white transition-colors duration-200">
+                <a href="{% url 'home' %}" class="flex items-center px-5 py-3 hover:bg-opacity-10 hover:bg-white transition-colors duration-200">     
                     <i data-lucide="home" class="w-5 h-5 mr-3"></i> Inicio
                 </a>
             </li>
@@ -100,6 +100,13 @@
                         </li>
                     </ul>
                 </details>
+            </li>
+            {%endif%}
+            {% if request.user|has_group:"rrhh" %}
+            <li class="mb-1">
+                <a href="/marcaje/fecha-corte" class="flex items-center px-5 py-3 hover:bg-opacity-10 hover:bg-white transition-colors duration-200">
+                    <i data-lucide="calendar-arrow-up" class="w-5 h-5 mr-3"></i> Fecha de Corte
+                </a>
             </li>
             {%endif%}
             {% if request.user|has_group:"rrhh" %}
