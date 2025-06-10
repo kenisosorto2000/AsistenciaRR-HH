@@ -69,11 +69,13 @@
                             </a>
                         </li>
                         {%endif%}
+                        {% if request.user|has_group:"rrhh" %}
                         <li>
                             <a href="/marcaje/historial-solicitudes" class="flex items-center py-2 hover:bg-opacity-10 hover:bg-white transition-colors duration-200 rounded">
                                 <i data-lucide="list" class="w-4 h-4 mr-2"></i> Historial de solicitudes
                             </a>
                         </li>
+                        {%endif%}
                     </ul>
                 </details>
             </li>
