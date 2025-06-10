@@ -1,14 +1,14 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import logout
 from django.contrib.auth import authenticate, login
-from django.contrib.auth.decorators import login_required, permission_required
+from django.contrib.auth.decorators import login_required, permission_required, user_passes_test
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404
 from .models import *
 from django.db.models import Q
 from django.template.loader import render_to_string
 import requests
-from django.http import JsonResponse
+from django.http import JsonResponse, Http404
 from .sync import sincronizar_empleados
 from .sync_marcaje import sincronizar_marcajes
 from django.core import serializers
@@ -26,6 +26,19 @@ from django.db.models import Q
 from datetime import date, datetime
 from django.core.mail import send_mail
 
+def grupo_requerido(nombre_grupo):
+    def check(user):
+        return user.groups.filter(name=nombre_grupo).exists()
+    def decorator(view_func):
+        def _wrapped_view(request, *args, **kwargs):
+            if not request.user.is_authenticated or not check(request.user):
+                raise Http404("Página no encontrada")
+            return view_func(request, *args, **kwargs)
+        return _wrapped_view
+    return decorator
+
+@login_required
+@grupo_requerido('rrhh')
 def empleados_proxy(request):
     target_url = "http://192.168.11.185:3003/planilla/webservice/empleados/"
     
@@ -49,7 +62,10 @@ def empleados_proxy(request):
             {'error': str(e)},
             status=500
         )
-# @csrf_exempt    
+# @csrf_exempt  
+
+@login_required
+@grupo_requerido('rrhh')
 def sync_empleados_view(request):
     if request.method == 'POST':
         resultado = sincronizar_empleados()
@@ -61,7 +77,8 @@ def sync_empleados_view(request):
         return JsonResponse(resultado)
     return JsonResponse({'error': 'Método no permitido'}, status=405)
 
-
+@login_required
+@grupo_requerido('rrhh')
 @require_POST
 def sync_marcaje_view(request):
     try:
@@ -99,7 +116,8 @@ def sync_marcaje_view(request):
             'marcajes': []
         }, status=500)
 
-
+@login_required
+@grupo_requerido('rrhh')
 def marcar(request):
     departamento = request.GET.get('departamento')
     empleados = Empleado.objects.all()
@@ -119,9 +137,8 @@ def marcar(request):
     }
     return render(request, 'empleados.html', context)
 
-def probando(request):
-    return render(request, 'validar_asistencia.html')
-
+@login_required
+@grupo_requerido('rrhh')
 def lista_registros(request):
     registros = Marcaje.objects.all()
     departamento = request.GET.get('departamento')
@@ -145,7 +162,8 @@ def lista_registros(request):
 
     return render(request, 'reporte.html', context)
 # Create your views here.
-
+@login_required
+@grupo_requerido('rrhh')
 def validar_asistencias(request):
     sucursales = Sucursal.objects.all()
     resultados = []
@@ -213,10 +231,9 @@ def validar_asistencias(request):
         'selected_sucursal': sucursal_id,
         'selected_fecha': fecha_str,
     })
-    
-def vista_solicitud(request):
-    return render(request, 'solicitud_permiso.html')
 
+@login_required
+@grupo_requerido('encargado')
 def crear_permiso(request):
     
     tipo_permisos = TipoPermisos.objects.all()
@@ -258,6 +275,8 @@ def crear_permiso(request):
         'encargados': encargados,
     })
 
+@login_required
+@grupo_requerido('encargado')
 def ficha_permiso(request, permiso_id):
     permiso = get_object_or_404(Permisos, id=permiso_id)
 
@@ -265,9 +284,7 @@ def ficha_permiso(request, permiso_id):
         'solicitud': permiso,
     })
 
-
-
-
+@login_required
 def obtener_empleados(request):
     sucursal_id = request.GET.get('sucursal_id')
     departamento = request.GET.get('departamento')
@@ -279,6 +296,8 @@ def obtener_empleados(request):
 
     return JsonResponse(list(empleados), safe=False)
 
+@login_required
+@grupo_requerido('encargado')
 def cargar_empleados_por_encargado(request):
     encargado_id = request.GET.get('encargado_id')
     if encargado_id:
@@ -288,6 +307,7 @@ def cargar_empleados_por_encargado(request):
         return JsonResponse({'empleados': list(empleados)})
     return JsonResponse({'empleados': []})
 
+@login_required
 def get_empleados_por_encargado(request, encargado_id):
     encargado = get_object_or_404(Empleado, id=encargado_id, es_encargado=True)
     asignaciones = AsignacionEmpleadoEncargado.objects.select_related('empleado', 'encargado')
@@ -300,6 +320,7 @@ def get_empleados_por_encargado(request, encargado_id):
         'empleados': empleados
     })
 
+@login_required
 def ver_empleados_asignados(request, encargado_id):
     encargado_id = request.GET.get('encargado_id')
     if encargado_id:
@@ -308,13 +329,15 @@ def ver_empleados_asignados(request, encargado_id):
         ).values('id', 'nombre')
         
     
-
+@login_required
 def empleados_y_encargados(request):
     empleados = Empleado.objects.filter(es_encargado=False)
     encargados = Empleado.objects.filter(es_encargado=True)
 
     return render(request, 'emp_enc.html', {'empleados': empleados, 'encargados': encargados})
 
+@login_required
+@grupo_requerido('rrhh')
 def convertir_a_encargado(request, empleado_id):
     empleado = get_object_or_404(Empleado, id=empleado_id)
     empleado.es_encargado = True
@@ -328,6 +351,8 @@ def convertir_a_encargado(request, empleado_id):
     })
     return HttpResponse(html)
 
+@login_required
+@grupo_requerido('rrhh')
 def convertir_a_empleado(request, empleado_id):
     empleado = get_object_or_404(Empleado, id=empleado_id)
     empleados_asignados = Empleado.objects.filter(encargado_asignado__encargado=empleado)
@@ -366,14 +391,16 @@ def convertir_a_empleado(request, empleado_id):
     return HttpResponse(html)
 
 
-
+@login_required
+@grupo_requerido('rrhh')
 def ver_encargados(request):
     encargados = Empleado.objects.filter(es_encargado=True)
 
     return render(request, 'ver_encargados.html', {'encargados': encargados})
 
 
-
+@login_required
+@grupo_requerido('rrhh')
 def asignar_empleados(request, encargado_id):
     encargado = get_object_or_404(Empleado, id=encargado_id, es_encargado=True)
     
@@ -398,6 +425,8 @@ def asignar_empleados(request, encargado_id):
     })
     return HttpResponse(html)
 
+@login_required
+@grupo_requerido('rrhh')
 def solicitud_rh(request):
     estado = 'P'
     permisos = Permisos.objects.filter(Q(estado_solicitud=estado) | Q(estado_solicitud='SB')) #filter(permiso__estado_solicitud=estado)
@@ -412,12 +441,12 @@ def solicitud_rh(request):
 
     return render(request, 'solicitudes_rh.html', {'permisos': context},)
 
-# @login_required
-# @permission_required('marcaje.view_permisocomprobante')
+@login_required
+@grupo_requerido('encargado')
 def vista_solicitudes_encargado(request):
     encargado = Empleado.objects.get(user=request.user)
 
-    permisos = Permisos.objects.filter(encargado=encargado.id)
+    permisos = Permisos.objects.filter(encargado=encargado.id).order_by('-fecha_solicitud')
 
     context = []
     for permiso in permisos:
@@ -428,7 +457,8 @@ def vista_solicitudes_encargado(request):
         })
     return render(request, 'solicitudes_encargado.html', {'solicitudes': context})
 
-@permission_required('marcaje.view_permisocomprobante')
+@login_required
+@grupo_requerido('encargado')
 def subir_comprobante(request):
     encargado = Empleado.objects.get(user=request.user)
     empleados_cargo = Empleado.objects.filter(encargado_asignado__encargado=encargado)
@@ -437,6 +467,8 @@ def subir_comprobante(request):
         'solicitudes': solicitudes,
     })
 
+@login_required
+@grupo_requerido('encargado')
 def formulario_comprobantes(request, permiso_id):
     permiso = get_object_or_404(Permisos, id=permiso_id)
     comprobante_qs = PermisoComprobante.objects.filter(permiso=permiso)
@@ -457,7 +489,8 @@ def formulario_comprobantes(request, permiso_id):
     
     return render(request, "formulario.html", {"form": form, "permiso": permiso})
 
-
+@login_required
+@grupo_requerido('rrhh')
 def crear_usuario(request):
     encargados = Empleado.objects.filter(es_encargado=True)
 
@@ -500,16 +533,21 @@ def crear_usuario(request):
 
     return render(request, 'crear_usuario.html', {'encargados': encargados})
 
-
+@login_required
+@grupo_requerido('rrhh')
 def ver_usuarios(request):
     usuarios = User.objects.all()
     return render(request, 'listar_usuarios.html', {'usuarios': usuarios})
 
+@login_required
+@grupo_requerido('rrhh')
 def modal_solicitud(request, permiso_comprobante_id):
     permiso_comprobante = get_object_or_404(PermisoComprobante, id=permiso_comprobante_id)
     # permiso = get_object_or_404(Permisos, permisos_id=permiso_id )
     return render(request, 'partials/modal.html', {'permiso_comprobante': permiso_comprobante,})
 
+@login_required
+@grupo_requerido('rrhh')
 def accion_solicitud(request):
     
     if request.method == 'POST':
@@ -553,14 +591,11 @@ def accion_solicitud(request):
     return HttpResponse("Método no permitido", status=405)
 
 @login_required
+@grupo_requerido('rrhh')
 def ver_historial_solicitudes(request):
     solicitudes = GestionPermisoDetalle.objects.all()
 
     return render(request, 'historial_solicitudes.html', {'solicitudes': solicitudes})
-
-@login_required
-def ola(request):
-    return render(request, 'lista.html')
 
 def cargar_login(request):
     if request.method == 'POST':
@@ -579,12 +614,13 @@ def logout_view(request):
     logout(request)
     return redirect('login')
 
+@login_required
+@grupo_requerido('encargado')
 def ver_a_cargo(request):
     return render(request, 'ver.html')
 
-def ficha(request):
-    return render(request, 'ficha.html')
-
+@login_required
+@grupo_requerido('rrhh')
 def ausencias_encargado(request):
     encargado = Empleado.objects.filter(es_encargado=True)
     enc_id = request.GET.get('encargado')
@@ -624,6 +660,8 @@ def ausencias_encargado(request):
         'enc_id': enc_id,
     })
 
+@login_required
+@grupo_requerido('encargado')
 def asistencias_encargado(request):
     user = request.user
     try:
@@ -687,6 +725,8 @@ def asistencias_encargado(request):
         'empleados': empleados,
     })
 
+@login_required
+@grupo_requerido('rrhh')
 def enviar_ausencias(request):
     if request.method == "POST":
         fecha_str = request.POST.get('fecha')
@@ -734,6 +774,8 @@ def error_404(request, exception):
 def error_500(request):
     return render(request, '500.html', status=500)
 
+@login_required
+@grupo_requerido('rrhh')
 def fecha_corte(request):
     if request.method == 'POST':
         anio = request.POST.get('anio')
