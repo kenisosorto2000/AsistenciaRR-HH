@@ -1,116 +1,123 @@
 {% load static %}
 {% load auth_extras %}
 <aside class="w-64 bg-promaco-dark dark:bg-gray-800 text-white transition-colors duration-300">
-<nav class="py-5">
-    <ul>
-        
-        <li class="mb-1">
-            <a href="/" class="flex items-center px-5 py-3 hover:bg-opacity-10 hover:bg-white transition-colors duration-200">
-                <i data-lucide="home" class="w-5 h-5 mr-3"></i> Inicio
-            </a>
-        </li>
-
-        {% if request.user|has_group:"encargado" %}
-        <li class="mb-1">
-            <a href="{% url 'ver' %}" class="flex items-center px-5 py-3 hover:bg-opacity-10 hover:bg-white transition-colors duration-200">
-                <i data-lucide="user" class="w-5 h-5 mr-3"></i> Mis empleados
-            </a>
-        </li>
-        <li class="mb-1">
-            <a href="{% url 'asistencias_encargado' %}" class="flex items-center px-5 py-3 hover:bg-opacity-10 hover:bg-white transition-colors duration-200">
-                <i data-lucide="user" class="w-5 h-5 mr-3"></i> Ver asistencia
-            </a>
-        </li>
-       {%endif%}
-
-        {% if request.user|has_group:"rrhh" %}
-        <li class="mb-1">
-            <a href="/marcaje" class="flex items-center px-5 py-3 hover:bg-opacity-10 hover:bg-white transition-colors duration-200">
-                <i data-lucide="download" class="w-5 h-5 mr-3"></i> Descarga de Marcajes
-            </a>
-        </li>
-        <li class="mb-1">
-            <a href="/marcaje/registrados" class="flex items-center px-5 py-3 hover:bg-opacity-10 hover:bg-white transition-colors duration-200">
-                <i data-lucide="users" class="w-5 h-5 mr-3"></i> Empleados Registrados
-            </a>
-        </li>
-        <li class="mb-1">
-            <a href="/marcaje/validar-asistencia" class="flex items-center px-5 py-3 hover:bg-opacity-10 hover:bg-white transition-colors duration-200">
-                <i data-lucide="check-square" class="w-5 h-5 mr-3"></i> Validación de asistencia
-            </a>
-        </li>
-        {% endif %}
-        <li class="mb-1">
-            <details class="group">
-                <summary class="flex items-center px-5 py-3 cursor-pointer hover:bg-opacity-10 hover:bg-white transition-colors duration-200 outline-none">
-                    <i data-lucide="list" class="w-5 h-5 mr-3"></i>
-                    Solicitudes
-                    <svg class="ml-auto w-4 h-4 transition-transform duration-200 group-open:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                    </svg>
-                </summary>
-                <ul class="px-10 py-2 space-y-1">
-                    {% if request.user|has_group:"encargado" %}
-                    <li>
-                        <a href="/marcaje/subir_comprobantes" class="flex items-center py-2 hover:bg-opacity-10 hover:bg-white transition-colors duration-200 rounded">
-                            <i data-lucide="upload" class="w-4 h-4 mr-2"></i> Subir comprobantes
-                        </a>
-                    </li>
-                    {% endif %}
-                    {% if request.user|has_group:"encargado" %}
-                    <li>
-                        <a href="{% url 'solicitudes_encargado' %}" class="flex items-center py-2 hover:bg-opacity-10 hover:bg-white transition-colors duration-200 rounded">
-                            <i data-lucide="list" class="w-4 h-4 mr-2"></i> Mis Solicitudes
-                        </a>
-                    </li>
-                    {% endif %}
-                    {% if request.user|has_group:"rrhh" %}
-                    <li>
-                        <a href="/marcaje/solicitud" class="flex items-center py-2 hover:bg-opacity-10 hover:bg-white transition-colors duration-200 rounded">
-                            <i data-lucide="list" class="w-4 h-4 mr-2"></i> Solicitudes Pendientes
-                        </a>
-                    </li>
-                    {%endif%}
-                    <li>
-                        <a href="/marcaje/historial-solicitudes" class="flex items-center py-2 hover:bg-opacity-10 hover:bg-white transition-colors duration-200 rounded">
-                            <i data-lucide="list" class="w-4 h-4 mr-2"></i> Historial de solicitudes
-                        </a>
-                    </li>
-                </ul>
-            </details>
-        </li>
-        {% if request.user|has_group:"rrhh" %}
-        <li class="mb-1">
-            <details class="group">
-                <summary class="flex items-center px-5 py-3 cursor-pointer hover:bg-opacity-10 hover:bg-white transition-colors duration-200 outline-none">
-                    <i data-lucide="users" class="w-5 h-5 mr-3"></i>
-                    Encargados
-                    <svg class="ml-auto w-4 h-4 transition-transform duration-200 group-open:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                    </svg>
-                </summary>
-                <ul class="px-10 py-2 space-y-1">
-                    <li>
-                        <a href="/marcaje/ver_encargados" class="flex items-center py-2 hover:bg-opacity-10 hover:bg-white transition-colors duration-200 rounded">
-                            <i data-lucide="user-plus" class="w-4 h-4 mr-2"></i> Asignar Empleados
-                        </a>
-                    </li>
-                    <li>
-                        <a href="/marcaje/empleados_y_encargados" class="flex items-center py-2 hover:bg-opacity-10 hover:bg-white transition-colors duration-200 rounded">
-                            <i data-lucide="users" class="w-4 h-4 mr-2"></i> Empleados y Encargados
-                        </a>
-                    </li>
-                </ul>
-            </details>
-        </li>
-        {%endif%}
-        {% if request.user|has_group:"rrhh" %}
-        <li class="mb-1">
-            <a href="/marcaje/listar-usuarios" class="flex items-center px-5 py-3 hover:bg-opacity-10 hover:bg-white transition-colors duration-200">
-                <i data-lucide="users" class="w-5 h-5 mr-3"></i> Ver Usuarios
-            </a>
-        </li>
-        {%endif%}
-    </ul>
-</nav>
+    <nav class="py-5">
+        <ul>
+            <li class="mb-1">
+                <a href="{% url 'home' %}" class="flex items-center px-5 py-3 hover:bg-opacity-10 hover:bg-white transition-colors duration-200">     
+                    <i data-lucide="home" class="w-5 h-5 mr-3"></i> Inicio
+                </a>
+            </li>
+            {% if request.user|has_group:"encargado" %}
+            <li class="mb-1">
+                <a href="{% url 'ver' %}" class="flex items-center px-5 py-3 hover:bg-opacity-10 hover:bg-white transition-colors duration-200">
+                    <i data-lucide="user" class="w-5 h-5 mr-3"></i> Mis empleados
+                </a>
+            </li>
+            <li class="mb-1">
+                <a href="{% url 'asistencias_encargado' %}" class="flex items-center px-5 py-3 hover:bg-opacity-10 hover:bg-white transition-colors duration-200">
+                    <i data-lucide="user" class="w-5 h-5 mr-3"></i> Ver asistencia
+                </a>
+            </li>
+            {%endif%}
+            
+            {% if request.user|has_group:"rrhh" %}
+            <li class="mb-1">
+                <a href="/marcaje" class="flex items-center px-5 py-3 hover:bg-opacity-10 hover:bg-white transition-colors duration-200">
+                    <i data-lucide="download" class="w-5 h-5 mr-3"></i> Descarga de Marcajes
+                </a>
+            </li>
+            <li class="mb-1">
+                <a href="/marcaje/registrados" class="flex items-center px-5 py-3 hover:bg-opacity-10 hover:bg-white transition-colors duration-200">
+                    <i data-lucide="users" class="w-5 h-5 mr-3"></i> Empleados Registrados
+                </a>
+            </li>
+            <li class="mb-1">
+                <a href="/marcaje/validar-asistencia" class="flex items-center px-5 py-3 hover:bg-opacity-10 hover:bg-white transition-colors duration-200">
+                    <i data-lucide="check-square" class="w-5 h-5 mr-3"></i> Validación de asistencia
+                </a>
+            </li>
+            {% endif %}
+            <li class="mb-1">
+                <details class="group">
+                    <summary class="flex items-center px-5 py-3 cursor-pointer hover:bg-opacity-10 hover:bg-white transition-colors duration-200 outline-none">
+                        <i data-lucide="list" class="w-5 h-5 mr-3"></i>
+                        Solicitudes
+                        <svg class="ml-auto w-4 h-4 transition-transform duration-200 group-open:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </summary>
+                    <ul class="px-10 py-2 space-y-1">
+                        {% if request.user|has_group:"encargado" %}
+                        <li>
+                            <a href="/marcaje/subir_comprobantes" class="flex items-center py-2 hover:bg-opacity-10 hover:bg-white transition-colors duration-200 rounded">
+                                <i data-lucide="upload" class="w-4 h-4 mr-2"></i> Subir comprobantes
+                            </a>
+                        </li>
+                        {% endif %}
+                        {% if request.user|has_group:"encargado" %}
+                        <li>
+                            <a href="{% url 'solicitudes_encargado' %}" class="flex items-center py-2 hover:bg-opacity-10 hover:bg-white transition-colors duration-200 rounded">
+                                <i data-lucide="list" class="w-4 h-4 mr-2"></i> Mis Solicitudes
+                            </a>
+                        </li>
+                        {% endif %}
+                        {% if request.user|has_group:"rrhh" %}
+                        <li>
+                            <a href="/marcaje/solicitud" class="flex items-center py-2 hover:bg-opacity-10 hover:bg-white transition-colors duration-200 rounded">
+                                <i data-lucide="list" class="w-4 h-4 mr-2"></i> Solicitudes Pendientes
+                            </a>
+                        </li>
+                        {%endif%}
+                        {% if request.user|has_group:"rrhh" %}
+                        <li>
+                            <a href="/marcaje/historial-solicitudes" class="flex items-center py-2 hover:bg-opacity-10 hover:bg-white transition-colors duration-200 rounded">
+                                <i data-lucide="list" class="w-4 h-4 mr-2"></i> Historial de solicitudes
+                            </a>
+                        </li>
+                        {%endif%}
+                    </ul>
+                </details>
+            </li>
+            {% if request.user|has_group:"rrhh" %}
+            <li class="mb-1">
+                <details class="group">
+                    <summary class="flex items-center px-5 py-3 cursor-pointer hover:bg-opacity-10 hover:bg-white transition-colors duration-200 outline-none">
+                        <i data-lucide="users" class="w-5 h-5 mr-3"></i>
+                        Encargados
+                        <svg class="ml-auto w-4 h-4 transition-transform duration-200 group-open:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </summary>
+                    <ul class="px-10 py-2 space-y-1">
+                        <li>
+                            <a href="/marcaje/ver_encargados" class="flex items-center py-2 hover:bg-opacity-10 hover:bg-white transition-colors duration-200 rounded">
+                                <i data-lucide="user-plus" class="w-4 h-4 mr-2"></i> Asignar Empleados
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/marcaje/empleados_y_encargados" class="flex items-center py-2 hover:bg-opacity-10 hover:bg-white transition-colors duration-200 rounded">
+                                <i data-lucide="users" class="w-4 h-4 mr-2"></i> Empleados y Encargados
+                            </a>
+                        </li>
+                    </ul>
+                </details>
+            </li>
+            {%endif%}
+            {% if request.user|has_group:"rrhh" %}
+            <li class="mb-1">
+                <a href="/marcaje/listar-fecha-corte" class="flex items-center px-5 py-3 hover:bg-opacity-10 hover:bg-white transition-colors duration-200">
+                    <i data-lucide="calendar-arrow-down" class="w-5 h-5 mr-3"></i> Fecha de Corte
+                </a>
+            </li>
+            {%endif%}
+            {% if request.user|has_group:"rrhh" %}
+            <li class="mb-1">
+                <a href="/marcaje/listar-usuarios" class="flex items-center px-5 py-3 hover:bg-opacity-10 hover:bg-white transition-colors duration-200">
+                    <i data-lucide="users" class="w-5 h-5 mr-3"></i> Ver Usuarios
+                </a>
+            </li>
+            {%endif%}
+        </ul>
+    </nav>
 </aside>

@@ -27,8 +27,7 @@ urlpatterns = [
     path('modal-permiso/<int:permiso_comprobante_id>/', views.modal_solicitud, name='modal_solicitud'),
     path('accion-permiso/', views.accion_solicitud, name='accion_solicitud'),
     path('historial-solicitudes/', views.ver_historial_solicitudes, name='historial_solicitudes'),
-    path('lista/', views.ola, name='lista'),
-    path('login/', views.cargar_login, name='login'),
+    # path('login', views.cargar_login, name='login'),
     path('logout/', logout_view, name='logout'),
     path('crear_usuario/', views.crear_usuario, name='crear_usuario'),
     path('ver', views.ver_a_cargo, name='ver'),
@@ -37,7 +36,7 @@ urlpatterns = [
     path('asistencias', views.asistencias_encargado, name='asistencias_encargado'),
     path('send-ausencias', views.enviar_ausencias, name='enviar_ausencias'),
     path('listar-usuarios/', views.ver_usuarios, name='listar_usuarios'),
-    path('fecha-corte', views.fecha_corte, name='fecha_corte')
+    path('fecha-corte', views.fecha_corte, name='fecha_corte'),
+    path('listar-fecha-corte/', views.listar_fechas_corte, name='listar_fecha_corte'),
     # path('/validar/', views.validar_asistencias),
-   
 ] 
