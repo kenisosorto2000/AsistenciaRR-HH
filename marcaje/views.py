@@ -248,10 +248,21 @@ def crear_permiso(request):
             fecha_final = request.POST.get('fecha_final')
             descripcion = request.POST.get('descripcion')
             
-
             empleado = Empleado.objects.get(id=empleado_id)
             encargado = Empleado.objects.get(id=encargado_id)
             tipo_permiso = TipoPermisos.objects.get(id=tipo_permiso)
+
+            traslape = Permisos.objects.filter(
+                empleado=empleado,
+                estado_solicitud__in=['P', 'A'],  # Pendiente o Aprobado
+                fecha_inicio__lte=fecha_final,
+                fecha_final__gte=fecha_inicio
+            ).exists()
+
+            if traslape:
+                return HttpResponseBadRequest("Ya existe un permiso pendiente o aprobado que se traslapa con estas fechas.")
+
+
             Permisos.objects.create(
                 encargado=encargado,
                 empleado=empleado,
@@ -446,7 +457,7 @@ def solicitud_rh(request):
 def vista_solicitudes_encargado(request):
     encargado = Empleado.objects.get(user=request.user)
 
-    permisos = Permisos.objects.filter(encargado=encargado.id).order_by('-fecha_solicitud')
+    permisos = Permisos.objects.filter(encargado=encargado.id, estado_solicitud__in=['P', 'SB']).order_by('-fecha_solicitud')
 
     context = []
     for permiso in permisos:
@@ -456,6 +467,23 @@ def vista_solicitudes_encargado(request):
             'comprobante': comprobante.comprobante.url if comprobante else None,
         })
     return render(request, 'solicitudes_encargado.html', {'solicitudes': context})
+
+@login_required
+@grupo_requerido('encargado')
+def ver_historial_encargado(request):
+    encargado = Empleado.objects.get(user=request.user)
+    permisos = Permisos.objects.filter(encargado=encargado.id, estado_solicitud__in=['A', 'R']).order_by('-fecha_solicitud')
+    context=[]
+    for permiso in permisos:
+        comprobante = PermisoComprobante.objects.filter(permiso=permiso).first()
+        historial = GestionPermisoDetalle.objects.filter(solicitud=permiso).first()
+        context.append({
+            'permiso': permiso,
+            'comprobante': comprobante.comprobante.url if comprobante else None,
+            'historial': historial,
+        })
+
+    return render(request, 'historial_solicitudes_encargado.html', {'solicitudes': context})
 
 @login_required
 @grupo_requerido('encargado')

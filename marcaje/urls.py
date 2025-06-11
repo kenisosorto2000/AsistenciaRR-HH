@@ -27,6 +27,7 @@ urlpatterns = [
     path('modal-permiso/<int:permiso_comprobante_id>/', views.modal_solicitud, name='modal_solicitud'),
     path('accion-permiso/', views.accion_solicitud, name='accion_solicitud'),
     path('historial-solicitudes/', views.ver_historial_solicitudes, name='historial_solicitudes'),
+    path('historial-encargado/', views.ver_historial_encargado, name='historial_encargado'),
     # path('login', views.cargar_login, name='login'),
     path('logout/', logout_view, name='logout'),
     path('crear_usuario/', views.crear_usuario, name='crear_usuario'),
