@@ -26,6 +26,6 @@ handler500 = 'marcaje.views.error_500'
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('login/', marcaje_views.cargar_login, name='login'),
-    path('dashboard/', include('inicio.urls')),
+    path('', include('inicio.urls')),
     path('marcaje/', include('marcaje.urls'))
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
