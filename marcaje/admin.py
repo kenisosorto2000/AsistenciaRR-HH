@@ -23,6 +23,7 @@ class RegistroMarcajeAdmin(admin.ModelAdmin):
 @admin.register(Permisos)
 class PermisosAdmin(admin.ModelAdmin):
     list_display = ('encargado', 'empleado', 'tipo_permiso', 'fecha_solicitud', 'fecha_inicio', 'fecha_final', 'estado_solicitud')
+    list_filter = ('encargado', 'empleado', 'tipo_permiso', 'fecha_solicitud', 'fecha_inicio', 'fecha_final', 'estado_solicitud')
 
 admin.site.register(TipoPermisos)
 
