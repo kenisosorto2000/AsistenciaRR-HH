@@ -8,7 +8,7 @@
 <div id="tablas" class="flex flex-col md:flex-row justify-around gap-6 mt-10 px-4">
 
     <!-- Tabla Empleados -->
-    <div class="bg-blue-50 dark:bg-blue-800 overflow-x-auto max-h-[600px] overflow-y-auto border border-gray-300 rounded w-full md:w-1/2">
+    <div class="bg-gray-100 dark:bg-gray-800 overflow-x-auto max-h-[600px] overflow-y-auto border border-gray-300 rounded w-full md:w-1/2">
         <!-- Encabezado fijo con título -->
         <div class="sticky top-0 z-20 bg-blue-50 dark:bg-blue-800 border-b border-gray-200 dark:border-gray-700">
             <h2 class="text-lg font-semibold text-center py-3 text-blue-700 dark:text-blue-200">
@@ -24,7 +24,7 @@
             </thead>
             <tbody>
                 {% for emp in empleados %}
-                <tr class="hover:bg-gray-50 dark:hover:bg-blue-600 transition-colors duration-200 border-b">
+                <tr class="hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-200 border-b">
                     <td class="px-4 py-2">{{ emp.nombre }}</td>
                     <td class="px-4 py-2">
                         <form method="POST"
@@ -47,7 +47,7 @@
     </div>
 
     <!-- Tabla Encargados -->
-    <div class="bg-blue-50 dark:bg-blue-800 overflow-x-auto max-h-[600px] overflow-y-auto border border-gray-300 rounded w-full md:w-1/2">
+    <div class="bg-gray-100 dark:bg-gray-800 overflow-x-auto max-h-[600px] overflow-y-auto border border-gray-300 rounded w-full md:w-1/2">
     <!-- Encabezado fijo con título -->
     <div class="sticky top-0 z-20 bg-blue-50 dark:bg-blue-800 border-b border-gray-200 dark:border-gray-700">
         <h2 class="text-lg font-semibold text-center py-3 text-blue-700 dark:text-blue-200">
@@ -63,7 +63,7 @@
             </thead>
             <tbody>
                 {% for encargado in encargados %}
-                <tr class="hover:bg-gray-50 dark:hover:bg-blue-600 transition-colors duration-200 border-b">
+                <tr class="hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-200 border-b">
                     <td class="px-4 py-2">{{ encargado.nombre }}</td>
                     <td class="px-4 py-2">
                         <form method="POST"

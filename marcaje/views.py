@@ -768,11 +768,11 @@ Este es un mensaje automático.
     # Si entran por GET
     return redirect('ausencias_encargado')
 
-# def error_404(request, exception):
-#     return render(request, '404.html', status=404)
+def error_404(request, exception):
+    return render(request, '404.html', status=404)
 
-# def error_500(request):
-#     return render(request, '500.html', status=500)
+def error_500(request):
+    return render(request, '500.html', status=500)
 
 @login_required
 @grupo_requerido('rrhh')
@@ -792,5 +792,9 @@ def fecha_corte(request):
             fecha_corte=fecha_corte,
         )
 
-        return redirect('home')
+        return redirect('listar_fecha_corte')
     return render(request, 'gestion_fecha_corte.html')
+
+def listar_fechas_corte(request):
+    fecha_cortes = GestionFechaCorte.objects.all()
+    return render(request, 'listar_fecha_corte.html', {'fecha_cortes': fecha_cortes})

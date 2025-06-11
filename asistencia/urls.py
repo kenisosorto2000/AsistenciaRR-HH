@@ -20,8 +20,8 @@ from django.conf import settings
 from django.conf.urls.static import static
 from marcaje import views as marcaje_views
 
-# handler404 = 'marcaje.views.error_404'
-# handler500 = 'marcaje.views.error_500'
+handler404 = 'marcaje.views.error_404'
+handler500 = 'marcaje.views.error_500'
 
 urlpatterns = [
     path('admin/', admin.site.urls),
