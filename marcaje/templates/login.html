@@ -1,16 +1,17 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}RRHH - Login{% endblock %}</title>
+    <link rel="icon" href="{% static 'img/Mas.png' %}" type="image/png">
     <meta name="csrf-token" content="{{ csrf_token }}">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&family=Poppins:wght@300;400;500;600;700&display=swap"
     rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Anton&family=Poppins:wght@400;700&display=swap" rel="stylesheet">
 
-{% load static %}
 <link rel="stylesheet" href="{% static 'styles/menu.css' %}">
 
 <!-- Tailwind CSS -->
@@ -75,12 +76,15 @@
                 </div>
             </form>
 
-            {% if mensaje %}
-            <div class="mt-4 text-center text-red-600 text-sm">
-                {{ mensaje }}
+            {% if error %}
+            <div id="toast-simple" class="flex items-center w-full max-w-xs p-4 mb-4 space-x-4 text-gray-500 bg-white divide-x divide-gray-200 rounded-lg shadow-sm dark:text-gray-400 dark:divide-gray-700 dark:bg-gray-700 mt-4" role="alert">
+                <svg class="w-5 h-5 text-blue-600 dark:text-blue-500 rotate-45" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 20">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m9 17 8 2L9 1 1 19l8-2Zm0 0V9"/>
+                </svg>
+                <div class="ps-4 text-sm font-normal">{{ error }}</div>
             </div>
             {% endif %}
-            </div>
+        </div>
         <script>
         // Inicializar los iconos de Lucide
         lucide.createIcons();
@@ -125,5 +129,15 @@
             });
         });
     </script>
+    <script>
+        // toast para mensajes de error
+        setTimeout(function() {
+            const toast = document.getElementById('toast-simple');
+            if (toast) {
+                toast.style.display = 'none';
+            }
+        }, 4000); // 4 segundos
+    </script>
+
     </body>
 </html>
