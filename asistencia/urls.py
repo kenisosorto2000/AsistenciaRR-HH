@@ -27,5 +27,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('login/', marcaje_views.cargar_login, name='login'),
     path('', include('inicio.urls')),
-    path('marcaje/', include('marcaje.urls'))
+    path('marcaje/', include('marcaje.urls')),
+    path('turnos/', include('turnos.urls')),
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
