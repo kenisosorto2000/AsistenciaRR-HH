@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'inicio',
     'marcaje.apps.MarcajeConfig',
     'corsheaders',
+    'turnos.apps.TurnosConfig',
 ]
 
 MIDDLEWARE = [

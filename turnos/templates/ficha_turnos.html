@@ -1,0 +1,264 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Ficha de Solicitud</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+  <style>
+    .no-print {
+      display: block;
+    }
+    @media print {
+      .no-print {
+        display: none !important;
+      }
+      body {
+        margin: 0;
+      }
+      .page {
+        margin: 0;
+        box-shadow: none;
+      }
+    }
+  </style>
+</head>
+<body class="bg-gray-100 print:bg-white text-base font-sans">
+    <div id="formulario" class="page w-[11in] h-[8.5in] bg-white mx-auto my-4 p-6 shadow-md print:shadow-none print:p-2 print:m-0 print:w-full print:h-full flex flex-col">
+        <div class="container mx-auto p-4">
+            <table class="w-full border-collapse text-xs">
+                <tr>
+                <td class="border border-black p-4 w-1/3 align-middle">
+                    <img src="{% static 'img/logo_new2.png' %}" alt="Logo claro" class="h-14 flex items-center justify-center mx-auto">
+                    <p class="text-center font-semibold">
+                    Proveedora de Materiales de construcción S de R.L
+                    </p>
+                </td>
+                <td class="border border-black p-4 w-1/3 align-middle">
+                    <p class="text-center font-bold text-md">
+                    Registro de Pago de días Libres
+                    </p>
+                </td>
+                <td class="border border-black w-1/3 p-0">
+                    <table class="w-full border-collapse">
+                    <tr>
+                        <td class="border-b border-black p-2">
+                        <span class="font-bold">CÓDIGO:</span> RRHH
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="border-b border-black p-2">
+                        <span class="font-bold">VERSIÓN:</span> 01
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="border-b border-black p-2">
+                        <span class="font-bold">FECHA DE ACTUALIZACIÓN:</span> 11/04
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="p-2">
+                        <span class="font-bold">ELABORADO POR:</span> DEPTO DE PROCESO
+                        </td>
+                    </tr>
+                    </table>
+                </td>
+                </tr>
+            </table>
+        </div>
+        <div class="container mx-auto p-4 -mt-4">
+            <table class="w-full mb-6 text-xs">
+                <tr>
+                    <td class="pr-4 align-top w-1/3">
+                        <div class="flex items-center">
+                            <label for="departamento" class="font-bold mr-2 mb-0">Departamento:</label>
+                            <input type="text" id="departamento" class="border border-gray-300 p-2 w-full" placeholder="Escribe el departamento aquí...">
+                        </div>
+                    </td>
+                    <td class="pr-4 align-top w-1/3">
+                        <div class="flex items-center">
+                            <label for="mes" class="font-bold mr-2 mb-0">Mes:</label>
+                            <input type="text" id="mes" class="border border-gray-300 p-2 flex-1" placeholder="Escribe el mes aquí...">
+                        </div>
+                    </td>
+                    <td class="pr-4 align-top w-1/3">
+                        <div class="flex items-center">
+                            <label for="quincena" class="font-bold mr-2 mb-0">Quincena:</label>
+                            <input type="number" id="quincena" class="border border-gray-300 p-2 w-full" placeholder="Escribe la quincena aquí...">
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="container mx-auto p-4 -mt-10">
+            <table class="w-full border-collapse text-xs">
+                <thead>
+                <tr>
+    <th class="border border-gray-300 bg-gray-900 text-white p-1 text-center">N°</th>
+    <th class="border border-gray-300 bg-gray-900 text-white p-2 text-center">Nombre Completo</th>
+    <th class="border border-gray-300 bg-gray-900 text-white p-2 text-center w-32">Departamento</th>
+    <th class="border border-gray-300 bg-gray-900 text-white p-2 text-center w-32">DNI</th>
+    <th class="border border-gray-300 bg-gray-900 text-white p-2 text-center" colspan="4">Fechas</th>
+    <th class="border border-gray-300 bg-gray-900 text-white p-1 text-center w-12">Total días</th>
+</tr>
+
+                <tr>
+                    <th class="border border-gray-300 bg-gray-900 text-white"></th>
+                    <th class="border border-gray-300 bg-gray-900 text-white"></th>
+                    <th class="border border-gray-300 bg-gray-900 text-white"></th>
+                    <th class="border border-gray-300 bg-gray-900 text-white"></th>
+                    <th class="border border-gray-300 bg-gray-600 text-white p-2 text-center">Fecha 1</th>
+                    <th class="border border-gray-300 bg-gray-600 text-white p-2 text-center">Fecha 2</th>
+                    <th class="border border-gray-300 bg-gray-600 text-white p-2 text-center">Fecha 3</th>
+                    <th class="border border-gray-300 bg-gray-600 text-white p-2 text-center">Fecha 4</th>
+                    <th class="border border-gray-300 bg-gray-900 text-white"></th>
+                </tr>
+                </thead>
+                <tbody>
+                <!-- 10 empty rows -->
+                <tr class="text-center">
+                    <td class="border border-gray-300 p-2 h-6">1</td>
+                    <td class="border border-gray-300 p-2">Kenis Noe Osorto Reyes</td>
+                    <td class="border border-gray-300 p-2">IT</td>
+                    <td class="border border-gray-300 p-2">0601200002767</td>
+                    <td class="border border-gray-300 p-2">11/06/2025</td>
+                    <td class="border border-gray-300 p-2">18/06/2025</td>
+                    <td class="border border-gray-300 p-2">25/06/2025</td>
+                    <td class="border border-gray-300 p-2"></td>
+                    <td class="border border-gray-300 p-2">3</td>
+                </tr>
+                <tr>
+                    <td class="border border-gray-300 p-2 h-6"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                </tr>
+                <tr>
+                    <td class="border border-gray-300 p-2 h-6"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                </tr>
+                <tr>
+                    <td class="border border-gray-300 p-2 h-6"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                </tr>
+                <tr>
+                    <td class="border border-gray-300 p-2 h-6"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                </tr>
+                <tr>
+                    <td class="border border-gray-300 p-2 h-6"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                </tr>
+                <tr>
+                    <td class="border border-gray-300 p-2 h-6"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                </tr>
+                <tr>
+                    <td class="border border-gray-300 p-2 h-6"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                </tr>
+                <tr>
+                    <td class="border border-gray-300 p-2 h-6"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                </tr>
+                <tr>
+                    <td class="border border-gray-300 p-2 h-6"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                    <td class="border border-gray-300 p-2"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="container mx-auto p-4 -mt-4">
+            <table class="text-xs w-full border-collapse">
+                <tr>
+                    <td class="border border-gray-300 p-2 w-1/3">
+                        <p> <span class="font-bold">Observaciones:</span> Este documento de estar debidamente firmado y entregado a RRHH, a mas tardar en las fechas 9 para pago de primera quincena
+                            y 24 para pago de segunda quincena. Sin firma de autorización correspondientes no se podrá a realizar los pagos.</p>
+                        <p>Se debe colocar correctamente el nombre completo del empleado, departamento y DNI.</p>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="container mx-auto p-4 mt-4">
+            <table class="w-full text-xs border-collapse">
+                <tr>
+                    <td class="p-2 w-1/3">
+                        <p class="text-center mt-2 pt-2">_________________________________</p>
+                        <p class="text-center font-bold">Firma del Empleado:</p>
+                    </td>
+                    <td class="p-2 w-1/3">
+                        <p class="text-center mt-2 pt-2">_________________________________</p>
+                        <p class="text-center font-bold">Firma del Jefe Inmediato:</p>
+                    </td>
+                    <td class="p-2 w-1/3">
+                        <p class="text-center mt-2 pt-2">_________________________________</p>
+                        <p class="text-center font-bold">Firma de Recursos Humanos:</p>
+                    </td>
+                </tr>
+            </table>
+    </div>
+</body>
+</html>
