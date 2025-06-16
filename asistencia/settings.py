@@ -56,6 +56,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django_session_timeout.middleware.SessionTimeoutMiddleware',
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True
@@ -91,6 +92,18 @@ DATABASES = {
     }
 }
 
+
+# Configuración de sesiones para que expiren al cerrar el navegador
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
+# Configurar un tiempo máximo de sesión (en segundos).
+SESSION_COOKIE_AGE = 900 # 15 minutos
+
+# Configuraciones de seguridad recomendadas para la cookie de sesión
+SESSION_COOKIE_SECURE = True  # Asegúrate de usar HTTPS en producción
+SESSION_COOKIE_HTTPONLY = True  # Evita que JavaScript acceda a la cookie
+SESSION_COOKIE_SAMESITE = 'Lax'  # Protección contra CSRF
+SESSION_TIMEOUT_REDIRECT = 'login'  # Redirecciona al login después de que la sesión expire
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators

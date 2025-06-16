@@ -67,44 +67,58 @@
             </div>
             <!-- Sidebar flotante para móviles -->
             <style>
-                @media (max-width: 1023px) {
+                aside.floating-sidebar {
+                    position: fixed;
+                    top: 88px;
+                    left: 0;
+                    width: 80vw;
+                    max-width: 250px;
+                    height: calc(100vh - 88px);
+                    background: 'bg-promaco-dark';
+                    box-shadow: 2px 0 8px rgba(0,0,0,0.15);
+                    z-index: 50;
+                    transform: translateX(-100%);
+                    transition: transform 0.3s ease;
+                }
+                aside.floating-sidebar.visible {
+                    transform: translateX(0);
+                }
+
+                @media (min-width: 1023px) {
                     aside.floating-sidebar {
-                        position: fixed !important;
-                        top: 80px; /* Altura del header (ajusta según tu header) */
-                        left: 0;
-                        width: 80vw;
-                        max-width: 320px;
-                        height: calc(100vh - 80px); /* Resta la altura del header */
-                        z-index: 50;
-                        background: 'bg-promaco-dark';
-                        box-shadow: 2px 0 8px rgba(0,0,0,0.15);
-                        transition: transform 0.3s;
-                    }
-                    aside.floating-sidebar.dark {
-                        background: #1f2937;
+                        position: static;
+                        transform: none !important;
+                        width: 400px;
+                        height: auto;
+                        box-shadow: none;
                     }
                 }
             </style>
             <script>
                 document.addEventListener('DOMContentLoaded', function() {
                     const menuToggle = document.getElementById('menu-toggle');
-                    const sidebar = document.querySelector('aside');
-                    if (sidebar) sidebar.classList.add('floating-sidebar');
-                    menuToggle.addEventListener('click', function() {
-                        if (sidebar) {
-                            sidebar.classList.toggle('hidden');
-                        }
-                    });
-                    // Ocultar el menú por defecto en pantallas pequeñas
-                    function handleResize() {
-                        if (window.innerWidth < 1024) { // lg breakpoint
-                            if (sidebar) sidebar.classList.add('hidden');
+                    const sidebar = document.querySelector('aside.floating-sidebar');
+
+                    function actualizarSidebar() {
+                        if (window.innerWidth < 1024) {
+                            // En móvil, ocultar por defecto
+                            sidebar.classList.remove('visible');
                         } else {
-                            if (sidebar) sidebar.classList.remove('hidden');
+                            // En PC, mostrar siempre
+                            sidebar.classList.add('visible');
                         }
                     }
-                    window.addEventListener('resize', handleResize);
-                    handleResize();
+
+                    if (menuToggle && sidebar) {
+                        menuToggle.addEventListener('click', function() {
+                            if (window.innerWidth < 1024) {
+                                sidebar.classList.toggle('visible');
+                            }
+                        });
+
+                        window.addEventListener('resize', actualizarSidebar);
+                        actualizarSidebar();
+                    }
                 });
             </script>
             <div>
