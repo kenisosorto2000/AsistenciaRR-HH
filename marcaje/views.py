@@ -267,7 +267,17 @@ def crear_permiso(request):
                     'error': "Ya existe un permiso pendiente o aprobado que se traslapa con estas fechas.",
                     # Puedes reenviar los datos del formulario si quieres prellenar
                 })
-
+            
+            # Crear el permiso
+            Permisos.objects.create(
+                encargado=encargado,
+                empleado=empleado,
+                tipo_permiso=tipo_permiso,
+                fecha_inicio=fecha_inicio,
+                fecha_final=fecha_final,
+                descripcion=descripcion,
+            )
+            
             # Validación extra opcional: fecha inicio <= fecha final
             if fecha_inicio > fecha_final:
                 messages.error(request, "La fecha de inicio no puede ser posterior a la fecha final.")
