@@ -462,7 +462,7 @@ def asignar_empleados(request, encargado_id):
 @grupo_requerido('rrhh')
 def solicitud_rh(request):
     estado = 'P'
-    permisos = Permisos.objects.filter(Q(estado_solicitud=estado) | Q(estado_solicitud='SB')) #filter(permiso__estado_solicitud=estado)
+    permisos = Permisos.objects.filter(Q(estado_solicitud=estado) | Q(estado_solicitud='SB')).order_by('-fecha_solicitud') #filter(permiso__estado_solicitud=estado)
 
     context = []
     for permiso in permisos:
@@ -511,8 +511,8 @@ def ver_historial_encargado(request):
 @grupo_requerido('encargado')
 def subir_comprobante(request):
     encargado = Empleado.objects.get(user=request.user)
-    empleados_cargo = Empleado.objects.filter(encargado_asignado__encargado=encargado)
-    solicitudes = Permisos.objects.filter(Q(empleado__in=empleados_cargo, tiene_comprobante=False) | Q(empleado__in=empleados_cargo, estado_solicitud='SB', pendiente_subsanar=True))
+    # empleados_cargo = Empleado.objects.filter(encargado_asignado__encargado=encargado)
+    solicitudes = Permisos.objects.filter(Q(encargado=encargado, tiene_comprobante=False) | Q(encargado=encargado, estado_solicitud='SB', pendiente_subsanar=True))
     return render(request, 'subir_comprobantes.html', {
         'solicitudes': solicitudes,
     })
