@@ -72,12 +72,14 @@
     }
 </style>
 <div class="w-full max-w-7xl mx-auto bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-300">
-    <button type="button" onclick="window.history.back();" class="mb-4 bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 px-4 rounded shadow no-print">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="inline w-5 h-5 align-middle mr-2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 15.75 3 12m0 0 3.75-3.75M3 12h18" />
-        </svg>
-        Regresar
-    </button>
+    <div class="sticky top-0 left-0 bg-white dark:bg-gray-800 z-10 p-2 w-fit">
+        <a href="{% url 'subir_comprobantes' %}" class="mb-4 bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 px-4 rounded shadow no-print flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="inline w-5 h-5 align-middle mr-2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 15.75 3 12m0 0 3.75-3.75M3 12h18" />
+            </svg>
+            Regresar
+        </a>
+    </div>
     <div class="max-w-3xl mx-auto px-4 -mt-16">
         <form method="post" enctype="multipart/form-data" class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-md border border-blue-200">
             {% csrf_token %}
@@ -156,6 +158,16 @@
                     Guardar
                 </button>
             </div>
+            {% if error %}
+                <div class="fixed top-20 right-6 z-50 flex justify-center items-center -mt-12">
+                    <div id="toast-simple" class="flex items-center max-w-xs p-4 space-x-4 text-gray-500 bg-white divide-x divide-gray-200 rounded-lg shadow-lg dark:text-gray-400 dark:divide-gray-700 dark:bg-gray-700" role="alert">
+                        <svg class="w-5 h-5 text-blue-600 dark:text-blue-500 rotate-45" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 20">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m9 17 8 2L9 1 1 19l8-2Zm0 0V9"/>
+                        </svg>
+                        <div class="ps-4 text-sm font-normal">{{ error }}</div>
+                    </div>
+                </div>
+            {% endif %}
         </form>
     </div>
 </div>    
@@ -214,6 +226,15 @@
             }
         });
     });
+</script>
+<script>
+    // toast para mensajes de error
+    setTimeout(function() {
+        const toast = document.getElementById('toast-simple');
+        if (toast) {
+            toast.style.display = 'none';
+        }
+    }, 4000); // 4 segundos
 </script>
 
 {% endblock %}

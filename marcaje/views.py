@@ -260,28 +260,40 @@ def crear_permiso(request):
             ).exists()
 
             if traslape:
-                return HttpResponseBadRequest("Ya existe un permiso pendiente o aprobado que se traslapa con estas fechas.")
+                messages.error(request, "Ya existe un permiso pendiente o aprobado que se traslapa con estas fechas.")
+                return render(request, 'crear_permiso.html', {
+                    'tipo_permisos': tipo_permisos,
+                    'encargados': encargados,
+                    'error': "Ya existe un permiso pendiente o aprobado que se traslapa con estas fechas.",
+                    # Puedes reenviar los datos del formulario si quieres prellenar
+                })
 
+            # Validación extra opcional: fecha inicio <= fecha final
+            if fecha_inicio > fecha_final:
+                messages.error(request, "La fecha de inicio no puede ser posterior a la fecha final.")
+                return render(request, 'crear_permiso.html', {
+                    'tipo_permisos': tipo_permisos,
+                    'encargados': encargados,
+                    'error': "La fecha de inicio no puede ser posterior a la fecha final.",
+                })
 
-            Permisos.objects.create(
-                encargado=encargado,
-                empleado=empleado,
-                tipo_permiso=tipo_permiso,
-                fecha_inicio=fecha_inicio,
-                fecha_final=fecha_final,
-                descripcion=descripcion,
-                
-            )
-
-            return redirect('subir_comprobantes')  # O a una página de éxito
-
+            messages.success(request, "Permiso creado exitosamente.")
+            return redirect('subir_comprobantes')  # Página de éxito
         except Empleado.DoesNotExist:
-            return HttpResponseBadRequest("Empleado no válido")
+            return render(request, 'crear_permiso.html', {
+                'error': 'Empleado no válido',
+                'tipo_permisos': tipo_permisos,
+                'encargados': encargados,
+        })
         except Exception as e:
-            return HttpResponseBadRequest(f"Error al guardar: {e}")
+            messages.error(request, f"Error al guardar: {e}")
+            return render(request, 'crear_permiso.html', {
+                'tipo_permisos': tipo_permisos,
+                'encargados': encargados,
+                'error': f'Error al guardar: {e}',
+            })
         
     return render(request, 'crear_permiso.html', {
-    
         'tipo_permisos': tipo_permisos,
         'encargados': encargados,
     })
@@ -626,16 +638,22 @@ def ver_historial_solicitudes(request):
     return render(request, 'historial_solicitudes.html', {'solicitudes': solicitudes})
 
 def cargar_login(request):
+    next_url = request.GET.get('next') or request.POST.get('next') or 'home'  # 'home' como fallback
+
     if request.method == 'POST':
         username = request.POST['username']
         password = request.POST['password']
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            return redirect('home')  # Cambia 'home' por tu vista principal
+            return redirect(next_url)
         else:
-            return render(request, 'login.html', {'error': 'Usuario o contraseña incorrectos'})
-    return render(request, 'login.html')
+            return render(request, 'login.html', {
+                'error': 'Usuario o contraseña incorrectos',
+                'next': next_url
+            })
+    return render(request, 'login.html', {'next': next_url})
+
 
 
 def logout_view(request):
