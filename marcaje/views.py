@@ -477,8 +477,10 @@ def solicitud_rh(request):
 @login_required
 @grupo_requerido('encargado')
 def vista_solicitudes_encargado(request):
-    encargado = Empleado.objects.get(user=request.user)
-
+    try:
+        encargado = Empleado.objects.get(user=request.user)
+    except Empleado.DoesNotExist:
+        return render(request, 'sin_permisos.html')
     permisos = Permisos.objects.filter(encargado=encargado.id, estado_solicitud__in=['P', 'SB']).order_by('-fecha_solicitud')
 
     context = []
@@ -510,7 +512,10 @@ def ver_historial_encargado(request):
 @login_required
 @grupo_requerido('encargado')
 def subir_comprobante(request):
-    encargado = Empleado.objects.get(user=request.user)
+    try:
+        encargado = Empleado.objects.get(user=request.user)
+    except Empleado.DoesNotExist:
+        return render(request, 'sin_permisos.html')
     # empleados_cargo = Empleado.objects.filter(encargado_asignado__encargado=encargado)
     solicitudes = Permisos.objects.filter(Q(encargado=encargado, tiene_comprobante=False) | Q(encargado=encargado, estado_solicitud='SB', pendiente_subsanar=True))
     return render(request, 'subir_comprobantes.html', {
@@ -723,8 +728,8 @@ def asistencias_encargado(request):
     try:
         encargado = Empleado.objects.get(user=user, es_encargado=True)
     except Empleado.DoesNotExist:
-        return render(request, '404.html', {'mensaje': 'No tiene permisos para ver esta página.'})
-   
+        return render(request, 'sin_permisos.html')
+
     fecha_str = request.GET.get('fecha')
     if fecha_str:
         try:
@@ -854,3 +859,6 @@ def fecha_corte(request):
 def listar_fechas_corte(request):
     fecha_cortes = GestionFechaCorte.objects.all()
     return render(request, 'listar_fecha_corte.html', {'fecha_cortes': fecha_cortes})
+
+def sin_permiso(request):
+    return render(request, 'sin_permiso.html')
