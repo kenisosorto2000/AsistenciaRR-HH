@@ -2,7 +2,7 @@
 {% block title %}Ausencias Empleados{% endblock %}
 
 {% block content %}
-<div class="w-full max-w-7xl mx-auto bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-300">
+<div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-300">
     <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-200">Ausencias del {{ fecha }}</h2>
     <div class="bg-white dark:bg-gray-800 rounded-lg mb-6" >
         <div class="p-4 border border-gray-300 shadow-md rounded-lg">
@@ -11,7 +11,6 @@
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-200" for="fecha">Fecha:</label>
                     <input class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm" type="date" name="fecha" value="{{ fecha }}">    
                 </div>
-    
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-200" for="encargado">Encargado:</label>
                     <select class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm" name="encargado" required>
@@ -21,68 +20,63 @@
                         {% endfor %}
                     </select>
                 </div>
-    
                 <div class="flex items-end">
                     <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded text-sm flex items-center justify-center">
                     Ver
+                    </button>             
+                    <button {%if not enc_id %} style="display: none;"{%endif%} type="submit" form="enviar_correo" 
+                        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded text-sm flex items-center justify-center ml-1">
+                        Enviar por correo
                     </button>
-                    
-    <button {%if not enc_id %} style="display: none;"{%endif%} type="submit" form="enviar_correo" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded text-sm flex items-center justify-center ml-1">Enviar por correo</button>
-
-                    
                 </div>
             </form>
         </div>
         {% if empleados %}
- <div class="bg-white dark:bg-gray-800 max-h-[500px] shadow-md rounded-lg overflow-y-auto mt-4">
-
-    <table id="tabla_asis" class="min-w-full text-sm text-left text-gray-700 dark:text-gray-200 border border-gray-300 rounded">
-        <thead class="bg-gray-100 dark:bg-gray-600 sticky top-[0px] z-10 uppercase text-xs">
-            <tr>
-                <th class="px-2 py-2">CÓDIGO</th>
-                <th class="px-5 py-2">NOMBRE</th>
-                <th class="px-4 py-2">DEPARTAMENTO</th>
-                <th class="px-4 py-2">SUCURSAL</th>
-                <th class="px-4 py-2">
-                    ASISTENCIA 
-                    <div class="relative">
-                        <div id="toggle4" class="relative max-w-20 h-5 bg-gray-300 rounded-full cursor-pointer transition-colors duration-300" data-state="0">
-                            <div class="absolute top-0.5 left-6 w-4 h-4 bg-white rounded-full shadow-lg transition-all duration-300 ease-in-out transform"></div>
-                        </div>
-                    </div>
-                </th>
-            </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-200 dark:divide-gray-700 text-gray-700 dark:text-gray-100">
-            {% for e in empleados %}
-                <tr class="hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 {% if e.asistio %}estado-asistio{% else %}estado-falto{% endif %}">
-                    <td class="px-2 py-2">{{ e.codigo }}</td>
-                    <td class="px-2 py-2">{{ e.nombre }}</td>
-                    <td class="px-2 py-2">{{ e.departamento }}</td>
-                    <td class="px-2 py-2">{{ e.sucursal }}</td>
-                    <td class="px-2 py-2">
-                        {% if e.asistio %}
-                            <span style="background: #38c172; color: #fff; padding: 3px 8px; border-radius: 4px;">ASISTIÓ</span>
-                        {% else %}
-                            <span style="background: #e3342f; color: #fff; padding: 3px 8px; border-radius: 4px;">FALTÓ</span>
-                        {% endif %}
-                    </td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    </div>
-{% endif %}
-<form method="post" id="enviar_correo" action="{% url 'enviar_ausencias' %}">
-    {% csrf_token %}
-    <input type="hidden" name="fecha" value="{{ fecha|date:'Y-m-d' }}">
-    <input type="hidden" name="encargado_id" value="{{ enc_id }}">
+        <div class="bg-white dark:bg-gray-800 max-h-[500px] shadow-md rounded-lg overflow-y-auto mt-4">
+            <table id="tabla_asis" class="min-w-full text-sm text-left text-gray-700 dark:text-gray-200 border border-gray-300 rounded">
+                <thead class="bg-gray-100 dark:bg-gray-600 sticky top-[0px] z-10 uppercase text-xs">
+                    <tr>
+                        <th class="px-2 py-2">CÓDIGO</th>
+                        <th class="px-5 py-2">NOMBRE</th>
+                        <th class="px-4 py-2">DEPARTAMENTO</th>
+                        <th class="px-4 py-2">SUCURSAL</th>
+                        <th class="px-4 py-2">
+                            ASISTENCIA 
+                            <div class="relative">
+                                <div id="toggle4" class="relative max-w-20 h-5 bg-gray-300 rounded-full cursor-pointer transition-colors duration-300" data-state="0">
+                                    <div class="absolute top-0.5 left-6 w-4 h-4 bg-white rounded-full shadow-lg transition-all duration-300 ease-in-out transform"></div>
+                                </div>
+                            </div>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200 dark:divide-gray-700 text-gray-700 dark:text-gray-100">
+                    {% for e in empleados %}
+                        <tr class="hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 {% if e.asistio %}estado-asistio{% else %}estado-falto{% endif %}">
+                            <td class="px-2 py-2">{{ e.codigo }}</td>
+                            <td class="px-2 py-2">{{ e.nombre }}</td>
+                            <td class="px-2 py-2">{{ e.departamento }}</td>
+                            <td class="px-2 py-2">{{ e.sucursal }}</td>
+                            <td class="px-2 py-2">
+                                {% if e.asistio %}
+                                    <span style="background: #38c172; color: #fff; padding: 3px 8px; border-radius: 4px;">ASISTIÓ</span>
+                                {% else %}
+                                    <span style="background: #e3342f; color: #fff; padding: 3px 8px; border-radius: 4px;">FALTÓ</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+        <form method="post" id="enviar_correo" action="{% url 'enviar_ausencias' %}">
+            {% csrf_token %}
+            <input type="hidden" name="fecha" value="{{ fecha|date:'Y-m-d' }}">
+            <input type="hidden" name="encargado_id" value="{{ enc_id }}">
         </form>
     </div>
-
 </div>
-
-
 <script>
     document.addEventListener("DOMContentLoaded", () => {
         // Configuración para cada toggle
@@ -172,8 +166,6 @@
         });
     });
 </script>
-
-
 
 <script>
 let table = $('#tabla_asis').DataTable({
