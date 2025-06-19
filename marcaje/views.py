@@ -25,6 +25,9 @@ from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Q
 from datetime import date, datetime
 from django.core.mail import send_mail
+from django.contrib.auth.views import PasswordChangeView
+from django.urls import reverse, reverse_lazy
+
 
 def grupo_requerido(nombre_grupo):
     def check(user):
@@ -664,7 +667,7 @@ def ver_historial_solicitudes(request):
     return render(request, 'historial_solicitudes.html', {'solicitudes': context})
 
 def cargar_login(request):
-    next_url = request.GET.get('next') or request.POST.get('next') or 'home'  # 'home' como fallback
+    next_url = request.GET.get('next') or request.POST.get('next') or 'home'
 
     if request.method == 'POST':
         username = request.POST['username']
@@ -672,13 +675,45 @@ def cargar_login(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
+
+            # 👇 Verificamos si el usuario debe cambiar su contraseña
+            if hasattr(user, 'userprofile') and user.userprofile.must_change_password:
+                return redirect('cambiar_password')  # o la URL que definas
+
             return redirect(next_url)
         else:
             return render(request, 'login.html', {
                 'error': 'Usuario o contraseña incorrectos',
                 'next': next_url
             })
+
     return render(request, 'login.html', {'next': next_url})
+
+class ForzarCambioPasswordView(PasswordChangeView):
+    template_name = 'cambiar_password.html'
+    success_url = reverse_lazy('home')
+
+    def dispatch(self, request, *args, **kwargs):
+        # Obtén el referer
+        referer = request.META.get('HTTP_REFERER', '')
+        login_url = request.build_absolute_uri(reverse('login'))  # Ajusta el nombre si es otro
+
+        # Si no viene del login, redirige al home
+        if not referer.startswith(login_url):
+            return redirect('home')  # Cambia a donde desees redirigir
+
+        # Si todo bien, sigue el flujo normal
+        return super().dispatch(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        # Cambia el flag
+        self.request.user.userprofile.must_change_password = False
+        self.request.user.userprofile.save()
+
+        # Añade un mensaje de éxito
+        messages.success(self.request, '¡Contraseña cambiada correctamente!')
+        return response
 
 
 

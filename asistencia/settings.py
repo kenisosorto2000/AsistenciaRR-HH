@@ -57,6 +57,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django_session_timeout.middleware.SessionTimeoutMiddleware',
+    'marcaje.middleware.ForzarCambioPasswordMiddleware',
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True
