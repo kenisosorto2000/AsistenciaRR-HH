@@ -141,3 +141,10 @@ class GestionFechaCorte(models.Model):
 
     def __str__(self):
         return f"{self.anio} - {self.mes}"
+    
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    must_change_password = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.user.username
