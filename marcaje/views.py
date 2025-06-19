@@ -17,7 +17,7 @@ from datetime import datetime
 from django.utils import timezone
 from .depurar_marcajes import depurar_marcajes
 from .forms import *
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.http import JsonResponse
@@ -517,7 +517,7 @@ def subir_comprobante(request):
     except Empleado.DoesNotExist:
         return render(request, 'sin_permisos.html')
     # empleados_cargo = Empleado.objects.filter(encargado_asignado__encargado=encargado)
-    solicitudes = Permisos.objects.filter(Q(encargado=encargado, tiene_comprobante=False) | Q(encargado=encargado, estado_solicitud='SB', pendiente_subsanar=True))
+    solicitudes = Permisos.objects.filter(Q(encargado=encargado, tiene_comprobante=False) | Q(encargado=encargado, estado_solicitud='SB', pendiente_subsanar=True)).order_by('-fecha_solicitud')
     return render(request, 'subir_comprobantes.html', {
         'solicitudes': solicitudes,
     })
@@ -578,6 +578,8 @@ def crear_usuario(request):
         user = User.objects.create_user(username=username, email=email, password=password)
         user.first_name = first_name
         user.last_name = last_name
+        grupo_encargado, created = Group.objects.get_or_create(name="encargado")
+        user.groups.add(grupo_encargado)
         user.save()
 
         empleado.user = user
@@ -648,9 +650,18 @@ def accion_solicitud(request):
 @login_required
 @grupo_requerido('rrhh')
 def ver_historial_solicitudes(request):
-    solicitudes = GestionPermisoDetalle.objects.all()
+    permisos = Permisos.objects.filter(estado_solicitud__in=['A', 'R', 'SB'])
+    context=[]
+    for permiso in permisos:
+        comprobante = PermisoComprobante.objects.filter(permiso=permiso).first()
+        historial = GestionPermisoDetalle.objects.filter(solicitud=permiso).order_by('').first()
+        context.append({
+            'permiso': permiso,
+            'comprobante': comprobante.comprobante.url if comprobante else None,
+            'historial': historial,
+        })
 
-    return render(request, 'historial_solicitudes.html', {'solicitudes': solicitudes})
+    return render(request, 'historial_solicitudes.html', {'solicitudes': context})
 
 def cargar_login(request):
     next_url = request.GET.get('next') or request.POST.get('next') or 'home'  # 'home' como fallback
@@ -687,6 +698,7 @@ def ausencias_encargado(request):
     enc_id = request.GET.get('encargado')
     fecha_str = request.GET.get('fecha')
 
+    
     if fecha_str:
         try:
             fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
@@ -722,6 +734,7 @@ def ausencias_encargado(request):
                 simbolo_permiso = permiso_justificado.tipo_permiso.simbolo
                 color = permiso_justificado.tipo_permiso.cod_color
                 estado_rh = permiso_justificado.estado_solicitud
+                
             else:
                 estado = 'FALTÓ'
                 simbolo_permiso = None
@@ -737,6 +750,7 @@ def ausencias_encargado(request):
                 'simbolo_permiso': simbolo_permiso,
                 'color': color,
                 'estado_rh': estado_rh,
+                
             })
 
     return render(request, 'ausencias_encargado.html', {
@@ -765,6 +779,14 @@ def asistencias_encargado(request):
     else:
         fecha = date.today()
 
+    ESTADO_SOLICITUD = [
+    ('P', 'Pendiente'),
+    ('A', 'Aprobada'),
+    ('SB', 'SUBSANADO'),
+    ('R', 'Rechazada'),
+    ]
+    ESTADO_MAP = dict(ESTADO_SOLICITUD)
+
     empleados = []
     asignaciones = AsignacionEmpleadoEncargado.objects.filter(encargado=encargado)
     empleados_asignados = [a.empleado for a in asignaciones]
@@ -784,16 +806,19 @@ def asistencias_encargado(request):
             simbolo_permiso = None
             color = None
             estado_rh = None
+            estado_rh_display = None
         elif permiso_justificado:
             estado = 'JUSTIFICADO'
             simbolo_permiso = permiso_justificado.tipo_permiso.simbolo
             color = permiso_justificado.tipo_permiso.cod_color
             estado_rh = permiso_justificado.estado_solicitud
+            estado_rh_display = ESTADO_MAP.get(estado_rh, estado_rh)
         else:
             estado = 'FALTÓ'
             simbolo_permiso = None
             color = None
             estado_rh = None
+            estado_rh_display = None
         
         empleados.append({
             'codigo': empleado.codigo,
@@ -804,6 +829,7 @@ def asistencias_encargado(request):
             'simbolo_permiso': simbolo_permiso,
             'color': color,
             'estado_rh': estado_rh,
+            'estado_rh_display': estado_rh_display,
         })
 
     return render(request, 'asistencias_encargado.html', {
