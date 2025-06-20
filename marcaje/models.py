@@ -80,12 +80,14 @@ class Permisos(models.Model):
     fecha_inicio = models.DateField()
     fecha_final = models.DateField()
     fecha_solicitud = models.DateField(auto_now_add=True)
+    hora_inicio = models.TimeField(null=True, blank=True)
+    hora_final = models.TimeField(null=True, blank=True)
     descripcion = models.CharField(max_length=300)
     tiene_comprobante = models.BooleanField(default=False)
     estado_solicitud = models.CharField(choices=ESTADO_SOLICITUD, default='P')
     pendiente_subsanar = models.BooleanField(default=False)
     aprobacion_gerencial = models.BooleanField(default=False)
-
+    
     def __str__(self):
         return f"{self.empleado.codigo} - {self.tipo_permiso}"
     

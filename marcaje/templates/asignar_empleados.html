@@ -7,6 +7,20 @@
         Asignar Empleados a {{ encargado.nombre }}
     </h3>
     {% csrf_token %}
+    <div class="mb-2 -mt-2">
+        <select name="departamento"
+            hx-post="{% url 'asignar_empleados' encargado.id %}" 
+            hx-target="#asignar" 
+            hx-swap="innerHTML"
+            class="text-sm border border-gray-300 rounded px-3 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="">Todos los departamentos</option>
+            {% for depto in departamentos %}
+            <option value="{{ depto }}" {% if depto == departamento_seleccionado %}selected{% endif %}>
+                {{ depto }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
     <div class="max-h-96 overflow-y-auto border border-gray-300 rounded-md p-3 bg-white dark:bg-gray-800 space-y-2 ">
         {% for empleado in empleados %}
         <div class="flex items-center space-x-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 py-1 rounded">
@@ -15,16 +29,21 @@
                 name="empleados_ids" 
                 value="{{ empleado.id }}" 
                 id="emp_{{ empleado.id }}" 
-                class="text-blue-600 dark:text-blue-400 focus:ring-blue-500">
+                class="text-blue-600 dark:text-blue-400 focus:ring-blue-500"
+                style="width: 1.3em; height: 1.3em;"
+            >
             <label for="emp_{{ empleado.id }}" class="text-gray-800 dark:text-gray-200">
-                {{ empleado.nombre }}
+                {{ empleado.nombre }} <br>  
+                <span class="text-blue-700 dark:text-green-300">{{ empleado.departamento }}</span>
             </label>
         </div>
         {% empty %}
-            <p class="text-gray-600 dark:text-gray-400">
-                Todos los empleados ya tienen encargado asignado.
-            </p>
+        <p class="text-gray-600 dark:text-gray-400">
+            Todos los empleados ya tienen encargado asignado o no hay en este departamento.
+        </p>
         {% endfor %}
+    </div>
+
     </div>
     {% if empleados %}
         <button type="submit" class="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium shadow">
@@ -39,4 +58,13 @@
         </button>
     {% endif %}
 </form>
+
+<script>
+    document.body.addEventListener('htmx:configRequest', (event) => {
+        const token = document.querySelector('[name=csrfmiddlewaretoken]');
+        if (token) {
+            event.detail.headers['X-CSRFToken'] = token.value;
+        }
+    });
+</script>
 

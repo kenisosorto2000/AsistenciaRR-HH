@@ -14,11 +14,13 @@ def sincronizar_marcajes(fecha=None):
     3. Manejar errores y registrar resultados
     """
     fecha = fecha or timezone.now().date()
-    API_URL = f"http://192.168.11.185:3006/api/asistencias/?fecha={fecha.strftime('%Y-%m-%d')}" # Reemplaza con tu URL real
-    
+    API_URL = f"http://192.168.11.12:8003/api/asistencias/?fecha={fecha.strftime('%Y-%m-%d')}" # Reemplaza con tu URL real
+    headers = {
+        "X-API-Key": "bec740b7-839b-4268-bb4e-a9d44b51a326"  # o "x-api-key": "TU_API_KEY"
+    }
     try:
         # 1. Obtener datos de la API
-        response = requests.get(API_URL, timeout=10)
+        response = requests.get(API_URL, headers=headers, timeout=10)
         response.raise_for_status()  # Lanza error si HTTP != 200
         datos_api = response.json()
 
