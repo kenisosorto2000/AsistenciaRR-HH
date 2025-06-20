@@ -28,7 +28,6 @@ from django.core.mail import send_mail
 from django.contrib.auth.views import PasswordChangeView
 from django.urls import reverse, reverse_lazy
 
-
 def grupo_requerido(nombre_grupo):
     def check(user):
         return user.groups.filter(name=nombre_grupo).exists()
@@ -694,19 +693,14 @@ class ForzarCambioPasswordView(PasswordChangeView):
     success_url = reverse_lazy('home')
 
     def dispatch(self, request, *args, **kwargs):
-        # Obtén el referer
-        referer = request.META.get('HTTP_REFERER', '')
-        login_url = request.build_absolute_uri(reverse('login'))  # Ajusta el nombre si es otro
-
-        # Si no viene del login, redirige al home
-        if not referer.startswith(login_url):
-            return redirect('home')  # Cambia a donde desees redirigir
-
-        # Si todo bien, sigue el flujo normal
+        # Opcional: solo permite acceso si debe cambiar password
+        if not request.user.is_authenticated or not request.user.userprofile.must_change_password:
+            return redirect('home')
         return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
         response = super().form_valid(form)
+        
         # Cambia el flag
         self.request.user.userprofile.must_change_password = False
         self.request.user.userprofile.save()
@@ -714,6 +708,7 @@ class ForzarCambioPasswordView(PasswordChangeView):
         # Añade un mensaje de éxito
         messages.success(self.request, '¡Contraseña cambiada correctamente!')
         return response
+
 
 
 
