@@ -43,7 +43,7 @@ def grupo_requerido(nombre_grupo):
 @login_required
 @grupo_requerido('rrhh')
 def empleados_proxy(request):
-    target_url = "http://192.168.11.185:3003/planilla/webservice/empleados/"
+    target_url = "http://192.168.11.12:8000/planilla/webservice/empleados/"
     
     headers = {
         'X-Requested-With': 'XMLHttpRequest',
@@ -54,7 +54,7 @@ def empleados_proxy(request):
         response = requests.get(
             target_url,
             headers=headers,
-            params={'sucursal': 2},
+            params={'sucursal': 1},
             timeout=10
         )
         response.raise_for_status()
@@ -66,6 +66,27 @@ def empleados_proxy(request):
             status=500
         )
 # @csrf_exempt  
+def asistencias_api(request):
+    target_url = "http://192.168.11.12:8003/api/asistencias/?fecha=2025-06-19"
+    
+    headers = {
+        "X-API-Key": "bec740b7-839b-4268-bb4e-a9d44b51a326"  # o "x-api-key": "TU_API_KEY"
+    }
+    
+    try:
+        response = requests.get(
+            target_url,
+            headers=headers,
+            timeout=10
+        )
+        response.raise_for_status()
+        return JsonResponse(response.json())
+    
+    except Exception as e:
+        return JsonResponse(
+            {'error': str(e)},
+            status=500
+        )
 
 @login_required
 @grupo_requerido('rrhh')
@@ -653,17 +674,16 @@ def accion_solicitud(request):
 @login_required
 @grupo_requerido('rrhh')
 def ver_historial_solicitudes(request):
-    permisos = Permisos.objects.filter(estado_solicitud__in=['A', 'R', 'SB'])
-    context=[]
-    for permiso in permisos:
-        comprobante = PermisoComprobante.objects.filter(permiso=permiso).first()
-        historial = GestionPermisoDetalle.objects.filter(solicitud=permiso).order_by('').first()
-        context.append({
-            'permiso': permiso,
-            'comprobante': comprobante.comprobante.url if comprobante else None,
-            'historial': historial,
-        })
+    historial = GestionPermisoDetalle.objects.filter(solicitud__estado_solicitud__in=['A', 'R', 'SB']).order_by('-fecha')
+    context = []
+    for h in historial:
+        comprobante_obj = PermisoComprobante.objects.filter(permiso=h.solicitud).first()
+        comprobante_url = comprobante_obj.comprobante.url if comprobante_obj else None
 
+        context.append({
+            'detalle': h,
+            'comprobante_url': comprobante_url,
+        })
     return render(request, 'historial_solicitudes.html', {'solicitudes': context})
 
 def cargar_login(request):
