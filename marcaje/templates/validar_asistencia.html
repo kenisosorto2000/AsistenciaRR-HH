@@ -61,6 +61,7 @@ document.addEventListener("DOMContentLoaded", function() {
 document.body.addEventListener('htmx:afterSwap', (e) => {
     if (e.detail.target.id === "cargar-asis") {
         initDataTable();
+        reconectarToggles();  // Aquí reconectas el toggle después de recargar la tabla
     }
 });
 </script>
