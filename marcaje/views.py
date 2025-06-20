@@ -695,24 +695,11 @@ def accion_solicitud(request):
 @login_required
 @grupo_requerido('rrhh')
 def ver_historial_solicitudes(request):
-<<<<<<< HEAD
-    permisos = Permisos.objects.filter(estado_solicitud__in=['A', 'R', 'SB'])
-    context=[]
-    for permiso in permisos:
-        comprobante = PermisoComprobante.objects.filter(permiso=permiso).first()
-        historial = GestionPermisoDetalle.objects.filter(solicitud=permiso).order_by('-fecha').first()
-        context.append({
-            'permiso': permiso,
-            'comprobante': comprobante.comprobante.url if comprobante else None,
-            'historial': historial,
-        })
-=======
     historial = GestionPermisoDetalle.objects.filter(solicitud__estado_solicitud__in=['A', 'R', 'SB']).order_by('-fecha')
     context = []
     for h in historial:
         comprobante_obj = PermisoComprobante.objects.filter(permiso=h.solicitud).first()
         comprobante_url = comprobante_obj.comprobante.url if comprobante_obj else None
->>>>>>> devHector
 
         context.append({
             'detalle': h,
