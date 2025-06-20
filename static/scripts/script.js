@@ -87,25 +87,3 @@ let table = $('#tabla-empleados').DataTable({
 
   
 // Importar html2pdf.js para la funcionalidad de exportación a PDF
-import html2pdf from 'html2pdf.js';
-
-function descargarPDF() {
-  const element = document.getElementById('formulario');
-
-  const opciones = {
-    margin: 0.5,
-    filename: 'permiso-laboral.pdf',
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: {
-      scale: 2,
-      useCORS: true
-    },
-    jsPDF: {
-      unit: 'in',
-      format: 'letter',
-      orientation: 'portrait'
-    }
-  };
-
-  html2pdf().set(opciones).from(element).save();
-}

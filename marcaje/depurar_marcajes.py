@@ -1,4 +1,4 @@
-from datetime import datetime
+from django.utils.timezone import localtime
 from .models import Marcaje, MarcajeDepurado
 
 def depurar_marcajes(fecha):
@@ -23,8 +23,8 @@ def depurar_marcajes(fecha):
             empleado_id=empleado_id,
             fecha=fecha,
             defaults={
-                'entrada': entrada.fecha_hora.time() if entrada else None,
-                'salida': salida.fecha_hora.time() if salida else None,
+                'entrada': localtime(entrada.fecha_hora).time() if entrada else None,
+                'salida': localtime(salida.fecha_hora).time() if salida else None,
             }
         )
 
