@@ -139,6 +139,16 @@
                     <label for="fecha_final" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Fecha final</label>
                     <input type="date" name="fecha_final" id="fecha_final" class="w-full dark:bg-gray-600 border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
                 </div>
+                <label>
+                    <input type="checkbox" id="usar_hora" name="usar_hora" value="1" onchange="toggleHoras()"> Incluir hora de permiso
+                </label>
+                <br>
+                <div id="horas_section" style="display: none;">
+                    <label for="hora_inicio">Hora inicio:</label>
+                    <input type="time" name="hora_inicio" id="hora_inicio" class="form-control dark:bg-gray-600 border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                    <label for="hora_final">Hora final:</label>
+                    <input type="time" name="hora_final" id="hora_final" class="form-control dark:bg-gray-600 border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                </div>
             </div>
 
             <div class="mb-4">
@@ -236,5 +246,13 @@
         }
     }, 4000); // 4 segundos
 </script>
+<script>
+    function toggleHoras() {
+        const checkbox = document.getElementById('usar_hora');
+        const horasSection = document.getElementById('horas_section');
+        horasSection.style.display = checkbox.checked ? 'block' : 'none';
+    }
+</script>
+
 
 {% endblock %}

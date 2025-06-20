@@ -27,6 +27,7 @@ from datetime import date, datetime
 from django.core.mail import send_mail
 from django.contrib.auth.views import PasswordChangeView
 from django.urls import reverse, reverse_lazy
+from django.db.models.functions import Upper, Trim
 
 def grupo_requerido(nombre_grupo):
     def check(user):
@@ -237,7 +238,6 @@ def validar_asistencias(request):
 @login_required
 @grupo_requerido('encargado')
 def crear_permiso(request):
-    
     tipo_permisos = TipoPermisos.objects.all()
     encargados = Empleado.objects.filter(es_encargado=True)
 
@@ -249,14 +249,19 @@ def crear_permiso(request):
             fecha_inicio = request.POST.get('fecha_inicio')
             fecha_final = request.POST.get('fecha_final')
             descripcion = request.POST.get('descripcion')
-            
+
+            usar_hora = request.POST.get('usar_hora')  # checkbox
+
+            hora_inicio = request.POST.get('hora_inicio') if usar_hora else None
+            hora_final = request.POST.get('hora_final') if usar_hora else None
+
             empleado = Empleado.objects.get(id=empleado_id)
             encargado = Empleado.objects.get(id=encargado_id)
             tipo_permiso = TipoPermisos.objects.get(id=tipo_permiso)
 
             traslape = Permisos.objects.filter(
                 empleado=empleado,
-                estado_solicitud__in=['P', 'A'],  # Pendiente o Aprobado
+                estado_solicitud__in=['P', 'A'],
                 fecha_inicio__lte=fecha_final,
                 fecha_final__gte=fecha_inicio
             ).exists()
@@ -266,11 +271,16 @@ def crear_permiso(request):
                 return render(request, 'crear_permiso.html', {
                     'tipo_permisos': tipo_permisos,
                     'encargados': encargados,
-                    'error': "Ya existe un permiso pendiente o aprobado que se traslapa con estas fechas.",
-                    # Puedes reenviar los datos del formulario si quieres prellenar
                 })
-            
-            # Crear el permiso
+
+            if fecha_inicio > fecha_final:
+                messages.error(request, "La fecha de inicio no puede ser posterior a la fecha final.")
+                return render(request, 'crear_permiso.html', {
+                    'tipo_permisos': tipo_permisos,
+                    'encargados': encargados,
+                })
+
+            # ⚠️ Aquí es donde guardas el permiso
             Permisos.objects.create(
                 encargado=encargado,
                 empleado=empleado,
@@ -278,37 +288,31 @@ def crear_permiso(request):
                 fecha_inicio=fecha_inicio,
                 fecha_final=fecha_final,
                 descripcion=descripcion,
+                hora_inicio=hora_inicio,
+                hora_final=hora_final
             )
-            
-            # Validación extra opcional: fecha inicio <= fecha final
-            if fecha_inicio > fecha_final:
-                messages.error(request, "La fecha de inicio no puede ser posterior a la fecha final.")
-                return render(request, 'crear_permiso.html', {
-                    'tipo_permisos': tipo_permisos,
-                    'encargados': encargados,
-                    'error': "La fecha de inicio no puede ser posterior a la fecha final.",
-                })
 
             messages.success(request, "Permiso creado exitosamente.")
-            return redirect('subir_comprobantes')  # Página de éxito
+            return redirect('subir_comprobantes')
+
         except Empleado.DoesNotExist:
+            messages.error(request, 'Empleado no válido')
             return render(request, 'crear_permiso.html', {
-                'error': 'Empleado no válido',
                 'tipo_permisos': tipo_permisos,
                 'encargados': encargados,
-        })
+            })
         except Exception as e:
             messages.error(request, f"Error al guardar: {e}")
             return render(request, 'crear_permiso.html', {
                 'tipo_permisos': tipo_permisos,
                 'encargados': encargados,
-                'error': f'Error al guardar: {e}',
             })
-        
+
     return render(request, 'crear_permiso.html', {
         'tipo_permisos': tipo_permisos,
         'encargados': encargados,
     })
+
 
 @login_required
 @grupo_requerido('encargado')
@@ -438,26 +442,44 @@ def ver_encargados(request):
 @grupo_requerido('rrhh')
 def asignar_empleados(request, encargado_id):
     encargado = get_object_or_404(Empleado, id=encargado_id, es_encargado=True)
+
+    departamento_seleccionado = request.POST.get('departamento', '')
     
-    if request.method == 'POST':
+    if request.method == 'POST' and 'empleados_ids' in request.POST:
         empleados_ids = request.POST.getlist('empleados_ids')
         for empleado_id in empleados_ids:
-            # Crea la relación encargado-empleado
             AsignacionEmpleadoEncargado.objects.get_or_create(
                 encargado=encargado,
                 empleado_id=empleado_id
             )
 
-    # Empleados sin encargado y que no son encargados
     empleados_disponibles = Empleado.objects.filter(
         es_encargado=False,
         encargado_asignado__isnull=True
     )
+    if departamento_seleccionado:
+        empleados_disponibles = empleados_disponibles.filter(departamento=departamento_seleccionado)
+
+    departamentos_qs = Empleado.objects.filter(
+        es_encargado=False,
+        encargado_asignado__isnull=True
+    ).values_list('departamento', flat=True)
+
+    departamentos_limpios = {}
+    for depto in departamentos_qs:
+        key = depto.strip().upper()
+        if key not in departamentos_limpios:
+            departamentos_limpios[key] = depto.strip()
+
+    departamentos = sorted(departamentos_limpios.values())
 
     html = render_to_string('asignar_empleados.html', {
         'encargado': encargado,
-        'empleados': empleados_disponibles
-    })
+        'empleados': empleados_disponibles,
+        'departamentos': departamentos,
+        'departamento_seleccionado': departamento_seleccionado,
+    }, request=request)  # 👈 Esto incluye el token CSRF en el contexto
+
     return HttpResponse(html)
 
 @login_required
@@ -656,7 +678,7 @@ def ver_historial_solicitudes(request):
     context=[]
     for permiso in permisos:
         comprobante = PermisoComprobante.objects.filter(permiso=permiso).first()
-        historial = GestionPermisoDetalle.objects.filter(solicitud=permiso).order_by('').first()
+        historial = GestionPermisoDetalle.objects.filter(solicitud=permiso).order_by('-fecha').first()
         context.append({
             'permiso': permiso,
             'comprobante': comprobante.comprobante.url if comprobante else None,
