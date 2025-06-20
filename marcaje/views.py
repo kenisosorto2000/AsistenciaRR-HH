@@ -67,7 +67,7 @@ def empleados_proxy(request):
         )
 # @csrf_exempt  
 def asistencias_api(request):
-    target_url = "http://192.168.11.12:8003/api/asistencias/?fecha=2025-06-19"
+    target_url = "http://192.168.11.12:8003/api/asistencias/?fecha=2025-06-20"
     
     headers = {
         "X-API-Key": "bec740b7-839b-4268-bb4e-a9d44b51a326"  # o "x-api-key": "TU_API_KEY"
