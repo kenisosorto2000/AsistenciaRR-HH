@@ -33,34 +33,34 @@
             <th class="px-4 py-2">Estado en RRHH</th>
         </tr>
         </thead>
-        <tbody class="divide-y divide-gray-200 dark:divide-gray-700 text-gray-700 dark:text-gray-100"></tbody>
-        {% for e in empleados %}
-        <tr class="hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200">
-            <td class="px-2 py-2">{{ e.codigo }}</td>
-            <td class="px-2 py-2">{{ e.nombre }}</td>
-            <td class="px-2 py-2">{{ e.departamento }}</td>
-            <td class="px-2 py-2">{{ e.sucursal }}</td>
-            <td class="px-2 py-2" 
-            style="background: {% if e.estado == 'ASISTIÓ' %}#38c172{% elif e.estado == 'JUSTIFICADO' %}{{e.color}}{% else %}#e3342f{%endif%};">
-            {% if e.estado == 'ASISTIÓ' %}
-            <p></p>
-            {% elif e.estado == 'JUSTIFICADO' %}
-             {{ e.simbolo_permiso }}
-            {%else%}
-            <p></p>
-            {%endif%}
-            </td>
-            <td class="px-2 py-2">
-            {% if e.estado == 'ASISTIÓ' %}
-            <p></p>
-            {% elif e.estado == 'JUSTIFICADO' %}
-             {{ e.estado_rh_display }}
-            {%else%}
-            <p></p>
-            {%endif%}
-            </td>
-        </tr>
-        {% endfor %}
+        <tbody class="divide-y divide-gray-200 dark:divide-gray-700 text-gray-700 dark:text-gray-100">
+            {% for e in empleados %}
+            <tr class="hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200">
+                <td class="px-2 py-2">{{ e.codigo }}</td>
+                <td class="px-2 py-2">{{ e.nombre }}</td>
+                <td class="px-2 py-2">{{ e.departamento }}</td>
+                <td class="px-2 py-2">{{ e.sucursal }}</td>
+                <td class="px-2 py-2" 
+                style="background: {% if e.estado == 'ASISTIÓ' %}#38c172{% elif e.estado == 'JUSTIFICADO' %}{{e.color}}{% else %}#e3342f{%endif%};">
+                {% if e.estado == 'ASISTIÓ' %}
+                <p></p>
+                {% elif e.estado == 'JUSTIFICADO' %}
+                {{ e.simbolo_permiso }}
+                {%else%}
+                <p></p>
+                {%endif%}
+                </td>
+                <td class="px-2 py-2">
+                {% if e.estado == 'ASISTIÓ' %}
+                <p></p>
+                {% elif e.estado == 'JUSTIFICADO' %}
+                {{ e.estado_rh_display }}
+                {%else%}
+                <p></p>
+                {%endif%}
+                </td>
+            </tr>
+            {% endfor %}
         </tbody>
     </table>
 {% else %}

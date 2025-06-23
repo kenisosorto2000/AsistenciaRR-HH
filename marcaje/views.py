@@ -980,6 +980,8 @@ def fecha_corte(request):
         return redirect('listar_fecha_corte')
     return render(request, 'gestion_fecha_corte.html')
 
+@login_required
+@grupo_requerido('rrhh')
 def listar_fechas_corte(request):
     fecha_cortes = GestionFechaCorte.objects.all()
     return render(request, 'listar_fecha_corte.html', {'fecha_cortes': fecha_cortes})
@@ -987,6 +989,8 @@ def listar_fechas_corte(request):
 def sin_permiso(request):
     return render(request, 'sin_permiso.html')
 
+@login_required
+@grupo_requerido('rrhh')
 def reporte_asistencia(request):
     fecha_str = request.GET.get('fecha')
     if fecha_str:
