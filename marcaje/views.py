@@ -986,3 +986,15 @@ def listar_fechas_corte(request):
 
 def sin_permiso(request):
     return render(request, 'sin_permiso.html')
+
+def reporte_asistencia(request):
+    fecha_str = request.GET.get('fecha')
+    if fecha_str:
+        try:
+            fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
+        except ValueError:
+            fecha = date.today()
+    else:
+        fecha = date.today()
+    asistencia = MarcajeDepurado.objects.filter(fecha=fecha)
+    return render(request, 'reporte_asistencia.html', {'asistencia': asistencia, 'fecha':fecha})

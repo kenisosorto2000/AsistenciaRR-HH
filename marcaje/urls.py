@@ -9,6 +9,7 @@ urlpatterns = [
     path('api/asis/', views.asistencias_api, name='asis_api'),
     path('registrados', views.marcar),
     path('sync-marcaje/', views.sync_marcaje_view, name='sync_marcaje'),
+    path('reporte/', views.reporte_asistencia, name='reporte_asistencia'),
     path('validar-asistencia/', views.validar_asistencias, name='validar_asistencia'),
     path('solicitud/', views.solicitud_rh),
     path('crear-permiso/', views.crear_permiso, name='crear_permiso'),

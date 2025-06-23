@@ -29,7 +29,7 @@ SECRET_KEY = 'django-insecure-t&mx7yciqn-n_%-)&#xr98h_#eh@t7=^0tekrkhfhy+6f2#hx7
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['192.168.12.140', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['192.168.12.245', 'localhost', '127.0.0.1']
 
 
 # Application definition
@@ -93,7 +93,7 @@ DATABASES = {
     }
 }
 
-CSRF_TRUSTED_ORIGINS = ['http://192.168.12.140:8000']
+CSRF_TRUSTED_ORIGINS = ['http://192.168.12.245:8000']
 SESSION_COOKIE_SAMESITE = None
 SESSION_COOKIE_SECURE = False
 # Configuración de sesiones para que expiren al cerrar el navegador

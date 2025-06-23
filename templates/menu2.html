@@ -23,6 +23,11 @@
             
             {% if request.user|has_group:"rrhh" %}
             <li class="mb-1">
+                <a href="{% url 'reporte_asistencia' %}" class="flex items-center px-5 py-3 hover:bg-opacity-10 hover:bg-white transition-colors duration-200">
+                    <i data-lucide="download" class="w-5 h-5 mr-3"></i> Reporte Asistencia
+                </a>
+            </li>
+            <li class="mb-1">
                 <a href="/marcaje" class="flex items-center px-5 py-3 hover:bg-opacity-10 hover:bg-white transition-colors duration-200">
                     <i data-lucide="download" class="w-5 h-5 mr-3"></i> Descarga de Marcajes
                 </a>
