@@ -22,18 +22,18 @@
             <thead class="bg-gray-100 dark:bg-gray-600 sticky top-[0px] z-10 uppercase text-xs">
                 <tr>
                     <th class="px-4 py-3">Empleado</th>
-                    <th class="px-4 py-3">Fecha</th>
-                    <th class="px-4 py-3">Entrada</th>
-                    <th class="px-4 py-3">Salida</th>
+                    <th class="px-4 py-3" style="text-align: center;">Fecha</th>
+                    <th class="px-4 py-3" style="text-align: center;">Entrada</th>
+                    <th class="px-4 py-3" style="text-align: center;">Salida</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-200 dark:divide-gray-700 text-gray-700 dark:text-gray-100">
                 {% for a in asistencia %}
                 <tr class="hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200">
                     <td class="px-4 py-2">{{ a.empleado }}</td>
-                    <td class="px-4 py-2">{{ a.fecha }}</td>
-                    <td class="px-4 py-2">{{ a.entrada }}</td>
-                    <td class="px-4 py-2">{{ a.salida }}</td>
+                    <td class="px-4 py-2 text-center">{{ a.fecha|date:"d/m/Y" }}</td>
+                    <td class="px-4 py-2 text-center">{{ a.entrada }}</td>
+                    <td class="px-4 py-2 text-center">{{ a.salida }}</td>
                 </tr>
                 {% endfor %}
             </tbody>

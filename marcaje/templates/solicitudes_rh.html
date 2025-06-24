@@ -8,87 +8,85 @@
 <link rel="stylesheet" href="{% static 'styles/menu.css' %}">
 <script src="https://unpkg.com/alpinejs" defer></script>
 
- <div x-data="{ open: false, selectedPermiso: '', selectedId: '' }" class="w-full max-w-7xl mx-auto bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-300 ">
+<div x-data="{ open: false, selectedPermiso: '', selectedId: '' }" class="w-full max-w-7xl mx-auto bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-300 ">
   <h2 class="text-2xl font-semibold text-center text-gray-800 dark:text-gray-200">Solicitudes Pendientes</h2>
   <div class="bg-white dark:bg-gray-800 max-h-[600px] shadow-md rounded-lg overflow-hidden">
-    <div class="p-4 overflow-x-auto overflow-y-auto">
-      <table id="permisos-pendientes" class="min-w-full text-sm text-left text-gray-800 dark:text-gray-200 border border-gray-300">
+    <div class="p-4 overflow-x-auto overflow-y-auto text-center">
+      <table id="permisos-pendientes" class="min-w-full text-sm text-center text-gray-800 dark:text-gray-200 border border-gray-300">
         <thead class="bg-gray-100 dark:bg-gray-600 sticky top-[0px] z-10 uppercase text-xs">
-        <tr>
-          <th class="px-4 py-3">Encargado</th>
-          <th class="px-4 py-3">Empleado</th>
-          <th class="px-4 py-3">Tipo Permiso</th>
-          <th class="px-4 py-3">Fecha Inicio</th>
-          <th class="px-4 py-3">Fecha Fin</th>
-          <th class="px-4 py-3">Descripción</th>
-          <th class="px-4 py-3">Estado</th>
-         
-          <th class="px-4 py-3">Comprobante</th>
-          <th class="px-4 py-3 text-center">Acciones</th>
-        </tr>
-      </thead>
-      <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-        {% for p in permisos %}
-        <tr class="hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200">
-          <td class="px-4 py-2">{{ p.permiso.encargado }}</td>
-          <td class="px-4 py-2">{{ p.permiso.empleado }}</td>
-          <td class="px-4 py-2">{{ p.permiso.tipo_permiso.tipo }}</td>
-          <td class="px-4 py-2">{{ p.permiso.fecha_inicio }}</td>
-          <td class="px-4 py-2">{{ p.permiso.fecha_final }}</td>
-          <td class="px-4 py-2">{{ p.permiso.descripcion }}</td>
-          <td class="px-4 py-2">{{ p.permiso.estado_solicitud }}</td>
-    
-          <td class="px-4 py-2">
-            {% if p.comprobante %} 
-            <!-- <a href="{{ p.comprobante }}">{{p.comprobante}}</a> -->
-            <button type="button" href="{{ p.comprobante }}" target="_blank" onclick="window.open('{{ p.comprobante }}', '_blank', 'toolbar=0,location=0,menubar=0,width=800,height=600'); return false;" data-url="{{ p.comprobante.url }}" 
-              class="ver-archivo bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 text-sm hover:text-white transition">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 inline align-middle mr-1">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-              </svg>
-              Ver comprobante
-            </button>
-            {% else %}
-            <p>Sin comprobante</p>
-            {% endif %}
-          </td>
-          <td class="px-4 py-2 text-center">
-            {% if p.comprobante and p.permiso.pendiente_subsanar == False %}
-            <button
-              type="button"
-              @click="open = true; selectedPermiso = '{{ p.permiso.empleado }}'; selectedId = '{{ p.permiso.id }}';"
-              class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-sm">
-              Opciones
-            </button>
-            {% else %}
-              {% if p.permiso.pendiente_subsanar == False %}
-              <span>Se necesita comprobante</span>
+          <tr>
+            <th class="px-4 py-3" style="text-align: center;">Encargado</th>
+            <th class="px-4 py-3" style="text-align: center;">Empleado</th>
+            <th class="px-4 py-3" style="text-align: center;">Tipo Permiso</th>
+            <th class="px-4 py-3" style="text-align: center;">Fecha Inicio</th>
+            <th class="px-4 py-3" style="text-align: center;">Fecha Fin</th>
+            <th class="px-4 py-3" style="text-align: center;">Descripción</th>
+            <th class="px-4 py-3" style="text-align: center;">Estado</th>
+            <th class="px-4 py-3" style="text-align: center;">Comprobante</th>
+            <th class="px-4 py-3" style="text-align: center;">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+          {% for p in permisos %}
+          <tr class="text-center hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200">
+            <td class="px-4 py-2">{{ p.permiso.encargado }}</td>
+            <td class="px-4 py-2">{{ p.permiso.empleado }}</td>
+            <td class="px-4 py-2">{{ p.permiso.tipo_permiso.tipo }}</td>
+            <td class="px-4 py-2">{{ p.permiso.fecha_inicio|date:"d/m/Y" }}</td> 
+            <td class="px-4 py-2">{{ p.permiso.fecha_final|date:"d/m/Y" }}</td>
+            <td class="px-4 py-2">{{ p.permiso.descripcion }}</td>
+            <td class="px-4 py-2">{{ p.permiso.estado_solicitud }}</td>
+            <td class="px-4 py-2">
+              {% if p.comprobante %} 
+              <!-- <a href="{{ p.comprobante }}">{{p.comprobante}}</a> -->
+              <button type="button" href="{{ p.comprobante }}" target="_blank" onclick="window.open('{{ p.comprobante }}', '_blank', 'toolbar=0,location=0,menubar=0,width=800,height=600'); return false;" data-url="{{ p.comprobante.url }}" 
+                class="ver-archivo bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 text-sm hover:text-white transition">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 inline align-middle mr-1">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                </svg>
+                Ver comprobante
+              </button>
               {% else %}
-            
-            <span>Pendiente de resubir</span>
-            {% endif %}
-            {% endif %}
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+              <p>Sin comprobante</p>
+              {% endif %}
+            </td>
+            <td class="px-4 py-2 text-center">
+              {% if p.comprobante and p.permiso.pendiente_subsanar == False %}
+              <button
+                type="button"
+                @click="open = true; selectedPermiso = '{{ p.permiso.empleado }}'; selectedId = '{{ p.permiso.id }}';"
+                class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-sm">
+                Opciones
+              </button>
+              {% else %}
+                {% if p.permiso.pendiente_subsanar == False %}
+                <span>Se necesita comprobante</span>
+                {% else %}
+              
+              <span>Pendiente de resubir</span>
+              {% endif %}
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
-
 <style>
   [x-cloak] { display: none !important; }
 </style>
 
 <!-- Modal usando Alpine.js para simplificar interacción -->
 <div x-show="open" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-    <div class="bg-white dark:bg-gray-800 w-full max-w-md p-6 rounded shadow-xl">
-      <form method="POST" action="{% url 'accion_solicitud' %}">
-        {% csrf_token %}
+  <div class="bg-white dark:bg-gray-800 w-full max-w-md p-6 rounded shadow-xl">
+    <form method="POST" action="{% url 'accion_solicitud' %}">
+      {% csrf_token %}
       <div class="flex justify-between items-center mb-4">
         <h2 class="text-lg font-semibold">Solicitud de <span x-text="selectedPermiso"></span></h2>
-        <button @click="open = false" type="button" class="text-reed-500 hover:text-red-800 w-4 h-4 -mt-20">
+        <button @click="open = false" type="button" class="text-red-500 hover:text-red-800 w-4 h-4 -mt-20">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="inline w-9 h-9 align-middle mr-2">
             <path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
           </svg>
@@ -124,8 +122,7 @@
         <button name="accion_realizada" value="SB" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-700">Subsanar</button>
         <button @click="open = false" type="button" class="bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700">Cancelar</button>
       </div>
-      </form>
-    </div>
+    </form>
   </div>
 </div>
 
@@ -139,12 +136,10 @@
         ✕
       </button>
     </div>
-
     <!-- Body -->
     <div class="text-center max-h-[600px] overflow-y-auto">
       <!-- Imagen -->
       <img x-show="fileType === 'imagen'" :src="fileUrl" class="max-w-full h-auto mx-auto" x-cloak>
-      
       <!-- PDF -->
       <embed x-show="fileType === 'pdf'" :src="fileUrl" type="application/pdf" class="w-full h-[500px]" x-cloak />
     </div>

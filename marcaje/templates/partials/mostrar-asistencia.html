@@ -1,6 +1,6 @@
 <table id="tabla-resultados" class="min-w-full text-sm text-left text-gray-700 dark:text-gray-200 border border-gray-300 rounded">
     <thead class="bg-gray-100 dark:bg-gray-600 sticky top-[0px] z-10 uppercase text-xs">
-        <tr>
+        <tr class="text-center">
             <th class="px-4 py-2">Fecha</th>
             <th class="px-4 py-2">Sucursal</th>
             <th class="px-4 py-2">Código</th>
@@ -8,6 +8,7 @@
             <th class="px-4 py-2">Departamento</th>
             <th class="px-4 py-2">Marca Entrada</th>
             <th class="px-4 py-2">Marca Salida</th>
+            <th class="px-4 py-2">Estado</th>
             <th class="px-4 py-2">
                 ASISTENCIA 
                 <div class="relative">
@@ -20,15 +21,24 @@
     </thead>
     <tbody class="divide-y divide-gray-200 dark:divide-gray-700 text-gray-700 dark:text-gray-100">
         {% for r in resultados %}
-        <tr class="hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200
+        <tr class="text-center hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200
                 {% if r.estado == 'ASISTIÓ' %}estado-asistio{% elif r.estado == 'JUSTIFICADO' %}estado-justificado{% else %}estado-falto{% endif %}">
-            <td>{{ r.fecha }}</td>
+            <td>{{ r.fecha|date:"d/m/Y" }}</td>
             <td>{{ r.sucursal }}</td>
             <td>{{ r.codigo }}</td>
             <td>{{ r.nombre }}</td>
             <td>{{ r.departamento }}</td>
             <td>{{ r.entrada }}</td>
             <td>{{ r.salida }}</td>
+            <td class="px-2 py-2">
+                {% if r.estado == 'ASISTIÓ' %}
+                    <p></p>
+                {% elif r.estado == 'JUSTIFICADO' %}
+                    {{ r.estado_rh_display }}
+                {% else %}
+                    <p></p>
+                {% endif %}
+            </td>
             <td class="px-2 py-2" 
                 style="background: {% if r.estado == 'ASISTIÓ' %}#38c172{% elif r.estado == 'JUSTIFICADO' %}{{ r.color }}{% else %}#e3342f{% endif %};">
                 {% if r.estado == 'JUSTIFICADO' %}
@@ -45,7 +55,7 @@
         // Configuración para cada toggle
         const toggleConfigs = {
             toggle4: {
-                positions: [1, 8, 15],
+                positions: [1, 6, 12],
                 values: [-1, 0, 1],
                 labels: ['Frío', 'Normal', 'Calor'],
                 colors: ['bg-red-400', 'bg-gray-300', 'bg-green-400'],

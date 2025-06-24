@@ -67,7 +67,7 @@ def empleados_proxy(request):
         )
 # @csrf_exempt  
 def asistencias_api(request):
-    target_url = "http://192.168.11.12:8003/api/asistencias/?fecha=2025-06-20"
+    target_url = "http://192.168.11.12:8003/api/asistencias/?fecha=2025-06-24"
     
     headers = {
         "X-API-Key": "bec740b7-839b-4268-bb4e-a9d44b51a326"  # o "x-api-key": "TU_API_KEY"
@@ -206,9 +206,16 @@ def validar_asistencias(request):
                     fecha=fecha
                 ).first()
 
+                ESTADO_SOLICITUD = [
+                ('P', 'Pendiente'),
+                ('A', 'Aprobada'),
+                ('SB', 'SUBSANADO'),
+                ('R', 'Rechazada'),
+                ]
+                ESTADO_MAP = dict(ESTADO_SOLICITUD)
+
                 permiso_justificado = Permisos.objects.filter(
                 empleado=empleado, 
-                estado_solicitud__in=['A', 'SB'],
                 fecha_inicio__lte=fecha,
                 fecha_final__gte=fecha
             ).select_related('tipo_permiso').first()
@@ -218,16 +225,19 @@ def validar_asistencias(request):
                     simbolo_permiso = None
                     color = None
                     estado_rh = None
+                    estado_rh_display = None
                 elif permiso_justificado:
                     estado = 'JUSTIFICADO'
                     simbolo_permiso = permiso_justificado.tipo_permiso.simbolo
                     color = permiso_justificado.tipo_permiso.cod_color
                     estado_rh = permiso_justificado.estado_solicitud
+                    estado_rh_display = ESTADO_MAP.get(estado_rh, estado_rh)
                 else:
                     estado = 'FALTÓ'
                     simbolo_permiso = None
                     color = None
                     estado_rh = None
+                    estado_rh_display = None
 
                 resultados.append({
                     'fecha': fecha,
@@ -242,6 +252,7 @@ def validar_asistencias(request):
                     'simbolo_permiso': simbolo_permiso,
                     'color': color,
                     'estado_rh': estado_rh,
+                    'estado_rh_display': estado_rh_display,
                 })
         except Exception as e:
             resultados = []

@@ -6,34 +6,33 @@
   <h2 class="text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Solicitudes sin comprobante</h2>
   <div class="overflow-x-auto">
     <div class="flex justify-end items-end">
-            <a href="{% url 'crear_permiso' %}" class="bg-blue-600 text-white px-6 py-2 rounded-lg shadow hover:bg-blue-700 transition duration-200 flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="inline w-5 h-5 align-middle mr-2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-              </svg>
-              Crear Solicitud
-            </a>
-        </div>
+      <a href="{% url 'crear_permiso' %}" class="bg-blue-600 text-white px-6 py-2 rounded-lg shadow hover:bg-blue-700 transition duration-200 flex items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="inline w-5 h-5 align-middle mr-2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+        </svg>
+        Crear Solicitud
+      </a>
+    </div>
     <table id="tabla-comprobantes" class="min-w-full text-sm text-left border border-gray-300">
       <thead class="bg-gray-100 dark:bg-gray-600 uppercase text-xs">
         <tr>
-          <th class="px-4 py-2">Id</th>
-          <th class="px-4 py-2">Empleado</th>
-          <th class="px-4 py-2">Fecha Inicio</th>
-          <th class="px-4 py-2">Fecha Fin</th>
-          <th class="px-4 py-2">Motivo</th>
-          <th class="px-4 py-2">Estado</th>
-          <th class="px-4 py-2">Subir comprobante</th>
-          <th class="px-4 py-2">Ver Solicitud</th>
-          
+          <th class="px-4 py-2" style="text-align: center;">Id</th>
+          <th class="px-4 py-2" style="text-align: center;">Empleado</th>
+          <th class="px-4 py-2" style="text-align: center;">Fecha Inicio</th>
+          <th class="px-4 py-2" style="text-align: center;">Fecha Fin</th>
+          <th class="px-4 py-2" style="text-align: center;">Motivo</th>
+          <th class="px-4 py-2" style="text-align: center;">Estado</th>
+          <th class="px-4 py-2" style="text-align: center;">Subir comprobante</th>
+          <th class="px-4 py-2" style="text-align: center;">Ver Solicitud</th>
         </tr>
       </thead>
       <tbody>
         {% for s in solicitudes %}
-        <tr id="permiso-{{s.id}}" class="border-t border-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200">
+        <tr id="permiso-{{s.id}}" class="text-center border-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200">
           <td class="px-4 py-2">{{ s.id }}</td>
           <td class="px-4 py-2">{{ s.empleado }}</td>
-          <td class="px-4 py-2">{{ s.fecha_inicio }}</td>
-          <td class="px-4 py-2">{{ s.fecha_final }}</td>
+          <td class="px-4 py-2">{{ s.fecha_inicio|date:"d/m/Y" }}</td>
+          <td class="px-4 py-2">{{ s.fecha_final|date:"d/m/Y" }}</td>
           <td class="px-4 py-2">{{ s.descripcion }}</td>
           <td class="px-4 py-2">{{ s.estado_solicitud }}</td>
           <td class="px-4 py-2">
@@ -41,8 +40,7 @@
               class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-sm hover:text-white transition"
               hx-get="{% url 'form_comprobante' s.id %}"
               hx-target="#formulario-{{ s.id }}"
-              hx-swap="innerHTML"
-            >
+              hx-swap="innerHTML">
              <svg xmlns="http://www.w3.org/2000/svg" class="inline w-4 h-4 mr-1 -mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5-5m0 0l5 5m-5-5v12" />
               </svg>
