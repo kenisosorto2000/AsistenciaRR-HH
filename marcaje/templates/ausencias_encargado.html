@@ -32,42 +32,44 @@
             </form>
         </div>
         {% if empleados %}
-        <div class="bg-white dark:bg-gray-800 max-h-[500px] shadow-md rounded-lg overflow-y-auto mt-4">
-            <table id="tabla_asis" class="min-w-full text-sm text-left text-gray-700 dark:text-gray-200 border border-gray-300 rounded">
-                <thead class="bg-gray-100 dark:bg-gray-600 sticky top-[0px] z-10 uppercase text-xs">
-                    <tr>
-                        <th class="px-2 py-2">CÓDIGO</th>
-                        <th class="px-5 py-2">NOMBRE</th>
-                        <th class="px-4 py-2">DEPARTAMENTO</th>
-                        <th class="px-4 py-2">SUCURSAL</th>
-                        <th class="px-4 py-2">
-                            ASISTENCIA 
-                            <div class="relative">
-                                <div id="toggle4" class="relative max-w-20 h-5 bg-gray-300 rounded-full cursor-pointer transition-colors duration-300" data-state="0">
-                                    <div class="absolute top-0.5 left-6 w-4 h-4 bg-white rounded-full shadow-lg transition-all duration-300 ease-in-out transform"></div>
+        <div class="overflow-x-auto overflow-y-auto bg-white dark:bg-gray-800 max-h-[550px] shadow-md rounded-lg mt-4">
+            <div class="p-4 overflow-x-auto overflow-y-auto">
+                <table id="tabla_asis" class="min-w-full text-sm text-center text-gray-700 dark:text-gray-200 border border-gray-300">
+                    <thead class="bg-gray-100 dark:bg-gray-600 sticky top-[0px] z-10 uppercase text-xs">
+                        <tr>
+                            <th class="px-2 py-2" style="text-align: center;">Código</th>
+                            <th class="px-5 py-2" style="text-align: center;">Nombre</th>
+                            <th class="px-4 py-2" style="text-align: center;">Departamento</th>
+                            <th class="px-4 py-2" style="text-align: center;">Sucursal</th>
+                            <th class="px-4 py-2" style="text-align: center;">
+                                ASISTENCIA
+                                <div class="relative" style="left: 14px; top: 5px;">
+                                    <div id="toggle4" class="relative max-w-20 h-5 bg-gray-300 rounded-full cursor-pointer transition-colors duration-300" data-state="0">
+                                        <div class="absolute top-0.5 left-6 w-4 h-4 bg-white rounded-full shadow-lg transition-all duration-300 ease-in-out transform"></div>
+                                    </div>
                                 </div>
-                            </div>
-                        </th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-200 dark:divide-gray-700 text-gray-700 dark:text-gray-100">
-                    {% for e in empleados %}
-                        <tr class="hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200
-                                {% if e.estado == 'ASISTIÓ' %}estado-asistio{% elif e.estado == 'JUSTIFICADO' %}estado-justificado{% else %}estado-falto{% endif %}">
-                            <td class="px-2 py-2">{{ e.codigo }}</td>
-                            <td class="px-2 py-2">{{ e.nombre }}</td>
-                            <td class="px-2 py-2">{{ e.departamento }}</td>
-                            <td class="px-2 py-2">{{ e.sucursal }}</td>
-                            <td class="px-2 py-2" 
-                                style="background: {% if e.estado == 'ASISTIÓ' %}#38c172{% elif e.estado == 'JUSTIFICADO' %}{{ e.color }}{% else %}#e3342f{% endif %};">
-                                {% if e.estado == 'JUSTIFICADO' %}
-                                    {{ e.simbolo_permiso }}
-                                {% endif %}
-                            </td>    
+                            </th>
                         </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200 dark:divide-gray-700 text-gray-700 dark:text-gray-100">
+                        {% for e in empleados %}
+                            <tr class="text-center hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200
+                                    {% if e.estado == 'ASISTIÓ' %}estado-asistio{% elif e.estado == 'JUSTIFICADO' %}estado-justificado{% else %}estado-falto{% endif %}">
+                                <td class="px-2 py-2">{{ e.codigo }}</td>
+                                <td class="px-2 py-2">{{ e.nombre }}</td>
+                                <td class="px-2 py-2">{{ e.departamento }}</td>
+                                <td class="px-2 py-2">{{ e.sucursal }}</td>
+                                <td class="px-2 py-2" 
+                                    style="background: {% if e.estado == 'ASISTIÓ' %}#38c172{% elif e.estado == 'JUSTIFICADO' %}{{ e.color }}{% else %}#e3342f{% endif %};">
+                                    {% if e.estado == 'JUSTIFICADO' %}
+                                        {{ e.simbolo_permiso }}
+                                    {% endif %}
+                                </td>    
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>    
         </div>
         {% endif %}
         <form method="post" id="enviar_correo" action="{% url 'enviar_ausencias' %}">

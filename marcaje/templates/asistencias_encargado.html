@@ -40,7 +40,7 @@
                 <td class="px-2 py-2">{{ e.nombre }}</td>
                 <td class="px-2 py-2">{{ e.departamento }}</td>
                 <td class="px-2 py-2">{{ e.sucursal }}</td>
-                <td class="px-2 py-2" 
+                <td class="px-2 py-2 text-gray-800" 
                 style="background: {% if e.estado == 'ASISTIÓ' %}#38c172{% elif e.estado == 'JUSTIFICADO' %}{{e.color}}{% else %}#e3342f{%endif%};">
                 {% if e.estado == 'ASISTIÓ' %}
                 <p></p>
