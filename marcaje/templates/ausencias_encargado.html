@@ -32,7 +32,7 @@
             </form>
         </div>
         {% if empleados %}
-        <div class="overflow-x-auto overflow-y-auto bg-white dark:bg-gray-800 max-h-[550px] shadow-md rounded-lg mt-4">
+        <div class="bg-white dark:bg-gray-800 max-h-[580px] shadow-md rounded-lg mt-4">
             <div class="p-4 overflow-x-auto overflow-y-auto">
                 <table id="tabla_asis" class="min-w-full text-sm text-center text-gray-700 dark:text-gray-200 border border-gray-300">
                     <thead class="bg-gray-100 dark:bg-gray-600 sticky top-[0px] z-10 uppercase text-xs">
@@ -54,13 +54,13 @@
                     <tbody class="divide-y divide-gray-200 dark:divide-gray-700 text-gray-700 dark:text-gray-100">
                         {% for e in empleados %}
                             <tr class="text-center hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200
-                                    {% if e.estado == 'ASISTIÓ' %}estado-asistio{% elif e.estado == 'JUSTIFICADO' %}estado-justificado{% else %}estado-falto{% endif %}">
+                                    {% if e.estado == 'ASISTIÓ' %}estado-asistio{% elif e.estado == 'DOMINGO' %}estado-domingo{% elif e.estado == 'JUSTIFICADO' %}estado-justificado{% else %}estado-falto{% endif %}">
                                 <td class="px-2 py-2">{{ e.codigo }}</td>
                                 <td class="px-2 py-2">{{ e.nombre }}</td>
                                 <td class="px-2 py-2">{{ e.departamento }}</td>
                                 <td class="px-2 py-2">{{ e.sucursal }}</td>
                                 <td class="px-2 py-2" 
-                                    style="background: {% if e.estado == 'ASISTIÓ' %}#38c172{% elif e.estado == 'JUSTIFICADO' %}{{ e.color }}{% else %}#e3342f{% endif %};">
+                                    style="background: {% if e.estado == 'ASISTIÓ' %}#38c172{% elif e.estado == 'DOMINGO' %}#00f7ff{% elif e.estado == 'JUSTIFICADO' %}{{ e.color }}{% else %}#e3342f{% endif %};">
                                     {% if e.estado == 'JUSTIFICADO' %}
                                         {{ e.simbolo_permiso }}
                                     {% endif %}
@@ -92,87 +92,145 @@
             },
         };
 
-        // Inicializar todos los toggles
-        Object.keys(toggleConfigs).forEach(toggleId => {
-            const toggle = document.getElementById(toggleId);
+        // Función general para actualizar el toggle
+        function updateToggle(stateIndex, toggleId, toggleElement) {
             const config = toggleConfigs[toggleId];
-            const circle = toggle.querySelector('div:last-child');
+            const circle = toggleElement.querySelector('div:last-child');
             const valueElement = document.getElementById(config.valueElement);
             const empleadosFilas = document.querySelectorAll('tbody tr');
 
-            // Estado actual
-            let currentState = 1;
+            const position = config.positions[stateIndex];
+            const label = config.labels[stateIndex];
+            const color = config.colors[stateIndex];
 
-            // Función para actualizar el toggle
-            function updateToggle(stateIndex) {
-                const position = config.positions[stateIndex];
-                const label = config.labels[stateIndex];
-                const color = config.colors[stateIndex];
-
-                // Actualizar posición del círculo
-                if (config.isVertical) {
-                    circle.style.top = `${position * 0.25}rem`;
-                } else {
-                    circle.style.left = `${position * 0.25}rem`;
-                }
-
-                // Actualizar color de fondo
-                toggle.className = toggle.className.replace(/bg-\w+-\d+/, '');
-                toggle.classList.add(color);
-
-                // Mostrar empleados según el estado
-                empleadosFilas.forEach(fila => {
-                    fila.style.display = 'table-row'; // Mostrar por defecto
-
-                    if (stateIndex === 0 && !fila.classList.contains('estado-falto')) {
-                        fila.style.display = 'none';
-                    } else if (stateIndex === 2 && !fila.classList.contains('estado-asistio')) {
-                        fila.style.display = 'none';
-                    }
-                });
-
-                // Actualizar texto (si existe)
-                if (valueElement) {
-                    valueElement.textContent = label;
-                }
-
-                toggle.setAttribute('data-state', stateIndex);
-                currentState = stateIndex;
+            // Actualizar posición del círculo
+            if (config.isVertical) {
+                circle.style.top = `${position * 0.25}rem`;
+            } else {
+                circle.style.left = `${position * 0.25}rem`;
             }
 
-            // Event listener para clicks
-            toggle.addEventListener('click', (e) => {
-                const rect = toggle.getBoundingClientRect();
-                let clickPosition;
+            // Actualizar color de fondo
+            toggleElement.className = toggleElement.className.replace(/bg-\w+-\d+/, '');
+            toggleElement.classList.add(color);
 
-                if (config.isVertical) {
-                    clickPosition = (e.clientY - rect.top) / rect.height;
-                } else {
-                    clickPosition = (e.clientX - rect.left) / rect.width;
+            // Filtrar empleados
+            empleadosFilas.forEach(fila => {
+                fila.style.display = 'table-row';
+                if (stateIndex === 0 && !fila.classList.contains('estado-falto')) {
+                    fila.style.display = 'none';
+                } else if (stateIndex === 2 && !fila.classList.contains('estado-asistio')) {
+                    fila.style.display = 'none';
                 }
-
-                let newState;
-                if (clickPosition < 0.33) {
-                    newState = 0;
-                } else if (clickPosition < 0.67) {
-                    newState = 1;
-                } else {
-                    newState = 2;
-                }
-
-                updateToggle(newState);
+                // stateIndex 1 muestra todos
             });
 
-            // Inicializar en estado 1 (Todos)
-            updateToggle(1);
-        });
+            // Texto del valor
+            if (valueElement) {
+                valueElement.textContent = label;
+            }
+
+            toggleElement.setAttribute('data-state', stateIndex);
+        }
+
+        // Inicializar todos los toggles
+        function inicializarToggles() {
+            Object.keys(toggleConfigs).forEach(toggleId => {
+                const toggle = document.getElementById(toggleId);
+                if (!toggle) return;
+                const config = toggleConfigs[toggleId];
+                const circle = toggle.querySelector('div:last-child');
+
+                // Estado actual
+                let currentState = 1; // Estado inicial
+
+                function handleClick(e) {
+                    const rect = toggle.getBoundingClientRect();
+                    let clickPosition;
+
+                    if (config.isVertical) {
+                        clickPosition = (e.clientY - rect.top) / rect.height;
+                    } else {
+                        clickPosition = (e.clientX - rect.left) / rect.width;
+                    }
+
+                    let newState;
+                    if (clickPosition < 0.33) {
+                        newState = 0;
+                    } else if (clickPosition < 0.67) {
+                        newState = 1;
+                    } else {
+                        newState = 2;
+                    }
+
+                    updateToggle(newState, toggleId, toggle);
+                }
+
+                toggle.addEventListener('click', handleClick);
+
+                // Guardar el handler para reconexión si lo deseas
+                toggle.dataset.handlerAttached = "true";
+
+                // Inicializar en estado 1 (Todos)
+                updateToggle(1, toggleId, toggle);
+            });
+        }
+
+        // Reconectar después de actualizar el DOM
+        function reconectarToggles() {
+            Object.keys(toggleConfigs).forEach(toggleId => {
+                const toggle = document.getElementById(toggleId);
+                if (!toggle) return;
+
+                // Eliminar el listener clonando el nodo
+                const newToggle = toggle.cloneNode(true);
+                toggle.parentNode.replaceChild(newToggle, toggle);
+
+                const config = toggleConfigs[toggleId];
+
+                newToggle.addEventListener('click', (e) => {
+                    const rect = newToggle.getBoundingClientRect();
+                    let clickPosition;
+
+                    if (config.isVertical) {
+                        clickPosition = (e.clientY - rect.top) / rect.height;
+                    } else {
+                        clickPosition = (e.clientX - rect.left) / rect.width;
+                    }
+
+                    let newState;
+                    if (clickPosition < 0.33) {
+                        newState = 0;
+                    } else if (clickPosition < 0.67) {
+                        newState = 1;
+                    } else {
+                        newState = 2;
+                    }
+
+                    updateToggle(newState, toggleId, newToggle);
+                });
+
+                // Inicializar en estado actual (por defecto 1 si no tiene data-state)
+                const currentState = parseInt(newToggle.getAttribute('data-state')) || 1;
+                updateToggle(currentState, toggleId, newToggle);
+            });
+        }
+
+        // Llamamos al inicializador al principio
+        inicializarToggles();
+
+        // Exporta reconectarToggles si lo quieres usar en tu código después de validar
+        window.reconectarToggles = reconectarToggles;
     });
 </script>
 
 <script>
-let table = $('#tabla_asis').DataTable({
-ordering: false
-});
+  let table = $('#tabla_asis').DataTable({
+    pageLength: 10,
+    lengthMenu: [10, 25, 50, 100],
+    scrollY: 400,
+    ordering: false
+  });
 </script>
 
 

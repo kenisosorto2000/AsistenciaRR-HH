@@ -45,11 +45,9 @@ def sincronizar_marcajes(fecha=None):
                     #     registro['Fecha_Hora'], 
                     #     '%Y-%m-%dT%H:%M:%S'
                     # )
-                    fecha_hora = datetime.strptime(
-                        registro['Fecha_Hora'], 
-                        '%Y-%m-%dT%H:%M:%S.%fZ'  # Ajusta el formato según tu API
+                    fecha_hora = timezone.make_aware(
+                        datetime.strptime(registro['Fecha_Hora'], '%Y-%m-%dT%H:%M:%S')
                     )
-                    
                     # Sincronizar usando id_externo
                     _, created = Marcaje.objects.update_or_create(
                         empleado=empleado,

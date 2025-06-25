@@ -18,7 +18,7 @@
         </div>
     </form>
     <div class="overflow-x-auto overflow-y-auto max-h-[520px] top-[0px] z-10 mt-6">
-        <table id="tabla-marcaje" class="min-w-full text-sm text-left text-gray-700 dark:text-gray-200 border border-gray-300 rounded">
+        <table id="tabla-reporte" class="min-w-full text-sm text-left text-gray-700 dark:text-gray-200 border border-gray-300 rounded">
             <thead class="bg-gray-100 dark:bg-gray-600 sticky top-[0px] z-10 uppercase text-xs">
                 <tr>
                     <th class="px-4 py-3">Empleado</th>
@@ -34,16 +34,16 @@
                     <td class="px-4 py-2 text-center">{{ a.fecha|date:"d/m/Y" }}</td>
                     <td class="px-4 py-2 text-center">
                         {% if a.entrada %}
-                            {{ a.entrada|time:"H:i:s" }}
+                            {{ a.entrada|time:"H:i" }}
                         {% else %}
-                            --:--:--
+                            --:--
                         {% endif %}
                     </td>
                     <td class="px-4 py-2 text-center">
                         {% if a.salida %}
-                            {{ a.salida|time:"H:i:s" }}
+                            {{ a.salida|time:"H:i" }}
                         {% else %}
-                            --:--:--
+                            --:--
                         {% endif %}
                     </td>
                 </tr>
@@ -54,3 +54,12 @@
 </div>
 
 {% endblock %}
+
+<script>
+  let table = $('#tabla-reporte').DataTable({
+    pageLength: 10,
+    lengthMenu: [10, 25, 50, 100],
+    scrollY: 400,
+    ordering: false
+  });
+</script>

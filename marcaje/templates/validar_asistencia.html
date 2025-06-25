@@ -12,7 +12,7 @@
             Cargar ausencias por encargado
         </a>
     </div>
-    <div class="bg-white dark:bg-gray-800 rounded-lg mb-6 overflow-y-auto">
+    <div class="bg-white dark:bg-gray-800 rounded-lg mb-6">
         <div class="p-4 border border-gray-300 shadow-md rounded-lg">
             <form class="grid grid-cols-1 md:grid-cols-3 gap-4" 
                 hx-get="{% url 'validar_asistencia' %}"
@@ -40,7 +40,7 @@
                 </div>
             </form>   
         </div>
-        <div id="cargar-asis" class="bg-white dark:bg-gray-800 max-h-[600px] shadow-md rounded-lg overflow-y-auto mt-4" style="height: 57vh;">
+        <div id="cargar-asis" class="bg-white dark:bg-gray-800 max-h-[600px] shadow-md rounded-lg mt-4" style="height: 62vh;">
             {% include 'partials/mostrar-asistencia.html' %}
         </div>
     </div>
@@ -49,7 +49,10 @@
 <script>
 function initDataTable() {
     $('#tabla-resultados').DataTable({
-        ordering: false,
+        pageLength: 10,
+        lengthMenu: [10, 25, 50, 100],
+        scrollY: 300,
+        ordering: false
     });
 }
 

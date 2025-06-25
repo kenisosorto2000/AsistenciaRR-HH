@@ -226,18 +226,28 @@ def validar_asistencias(request):
                     color = None
                     estado_rh = None
                     estado_rh_display = None
+
                 elif permiso_justificado:
                     estado = 'JUSTIFICADO'
                     simbolo_permiso = permiso_justificado.tipo_permiso.simbolo
                     color = permiso_justificado.tipo_permiso.cod_color
                     estado_rh = permiso_justificado.estado_solicitud
                     estado_rh_display = ESTADO_MAP.get(estado_rh, estado_rh)
+
+                elif fecha.weekday() == 6:  # 6 = Domingo
+                    estado = 'DOMINGO'
+                    simbolo_permiso = None
+                    color = "#00f7ff"  # Amarillo, puedes personalizarlo
+                    estado_rh = None
+                    estado_rh_display = 'Descanso dominical'
+
                 else:
                     estado = 'FALTÓ'
                     simbolo_permiso = None
                     color = None
                     estado_rh = None
                     estado_rh_display = None
+
 
                 resultados.append({
                     'fecha': fecha,
@@ -246,8 +256,8 @@ def validar_asistencias(request):
                     'nombre': empleado.nombre,
                     'departamento': empleado.departamento,
                     'asistio': marcaje_depurado is not None,
-                    'entrada': marcaje_depurado.entrada.strftime('%H:%M:%S') if marcaje_depurado and marcaje_depurado.entrada else '--:--:--',
-                    'salida': marcaje_depurado.salida.strftime('%H:%M:%S') if marcaje_depurado and marcaje_depurado.salida else '--:--:--',
+                    'entrada': marcaje_depurado.entrada.strftime('%H:%M') if marcaje_depurado and marcaje_depurado.entrada else '--:--',
+                    'salida': marcaje_depurado.salida.strftime('%H:%M') if marcaje_depurado and marcaje_depurado.salida else '--:--',
                     'estado': estado,
                     'simbolo_permiso': simbolo_permiso,
                     'color': color,
@@ -795,7 +805,7 @@ def ausencias_encargado(request):
 
     if enc_id:
         encargado_seleccionado = get_object_or_404(Empleado, id=enc_id)
-        asignaciones = AsignacionEmpleadoEncargado.objects.filter(encargado=enc_id)
+        asignaciones = AsignacionEmpleadoEncargado.objects.filter(encargado=enc_id).order_by('empleado__nombre')
         empleados_asignados = [a.empleado for a in asignaciones]
 
         for empleado in empleados_asignados:
@@ -812,12 +822,16 @@ def ausencias_encargado(request):
                 simbolo_permiso = None
                 color = None
                 estado_rh = None
+            elif fecha.weekday() == 6:  # 6 = Domingo
+                estado = 'DOMINGO'
+                simbolo_permiso = None
+                color = "#00f7ff"
+                estado_rh = None                
             elif permiso_justificado:
                 estado = 'JUSTIFICADO'
                 simbolo_permiso = permiso_justificado.tipo_permiso.simbolo
                 color = permiso_justificado.tipo_permiso.cod_color
-                estado_rh = permiso_justificado.estado_solicitud
-                
+                estado_rh = permiso_justificado.estado_solicitud                
             else:
                 estado = 'FALTÓ'
                 simbolo_permiso = None
@@ -890,12 +904,21 @@ def asistencias_encargado(request):
             color = None
             estado_rh = None
             estado_rh_display = None
+
         elif permiso_justificado:
             estado = 'JUSTIFICADO'
             simbolo_permiso = permiso_justificado.tipo_permiso.simbolo
             color = permiso_justificado.tipo_permiso.cod_color
             estado_rh = permiso_justificado.estado_solicitud
             estado_rh_display = ESTADO_MAP.get(estado_rh, estado_rh)
+
+        elif fecha.weekday() == 6:  # 6 = Domingo
+            estado = 'DOMINGO'
+            simbolo_permiso = None
+            color = "#00f7ff"  # Amarillo, puedes personalizarlo
+            estado_rh = None
+            estado_rh_display = 'Descanso dominical'
+
         else:
             estado = 'FALTÓ'
             simbolo_permiso = None
