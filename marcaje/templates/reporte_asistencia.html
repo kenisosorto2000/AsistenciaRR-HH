@@ -32,8 +32,20 @@
                 <tr class="hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200">
                     <td class="px-4 py-2">{{ a.empleado }}</td>
                     <td class="px-4 py-2 text-center">{{ a.fecha|date:"d/m/Y" }}</td>
-                    <td class="px-4 py-2 text-center">{{ a.entrada }}</td>
-                    <td class="px-4 py-2 text-center">{{ a.salida }}</td>
+                    <td class="px-4 py-2 text-center">
+                        {% if a.entrada %}
+                            {{ a.entrada|time:"H:i:s" }}
+                        {% else %}
+                            --:--:--
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-2 text-center">
+                        {% if a.salida %}
+                            {{ a.salida|time:"H:i:s" }}
+                        {% else %}
+                            --:--:--
+                        {% endif %}
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>

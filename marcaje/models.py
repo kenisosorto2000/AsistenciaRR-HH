@@ -118,7 +118,7 @@ class GestionPermisoDetalle(models.Model):
     accion_realizada = models.CharField(max_length=100)
     revisada_por = models.CharField(max_length=100)
     comentarios = models.CharField(max_length=300)
-    fecha = models.DateField(auto_now_add=True)
+    fecha = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.fecha} - {self.solicitud}"

@@ -41,9 +41,13 @@ def sincronizar_marcajes(fecha=None):
                         stats['empleados_no_encontrados'] += 1
                         continue
                     # Convertir fecha (ajusta el formato si es necesario)
+                    # fecha_hora = datetime.strptime(
+                    #     registro['Fecha_Hora'], 
+                    #     '%Y-%m-%dT%H:%M:%S'
+                    # )
                     fecha_hora = datetime.strptime(
                         registro['Fecha_Hora'], 
-                        '%Y-%m-%dT%H:%M:%S'
+                        '%Y-%m-%dT%H:%M:%S.%fZ'  # Ajusta el formato según tu API
                     )
                     
                     # Sincronizar usando id_externo

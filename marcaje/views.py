@@ -67,7 +67,7 @@ def empleados_proxy(request):
         )
 # @csrf_exempt  
 def asistencias_api(request):
-    target_url = "http://192.168.11.12:8003/api/asistencias/?fecha=2025-06-24"
+    target_url = "http://192.168.11.12:8003/api/asistencias/?fecha=2025-06-25"
     
     headers = {
         "X-API-Key": "bec740b7-839b-4268-bb4e-a9d44b51a326"  # o "x-api-key": "TU_API_KEY"
@@ -246,8 +246,8 @@ def validar_asistencias(request):
                     'nombre': empleado.nombre,
                     'departamento': empleado.departamento,
                     'asistio': marcaje_depurado is not None,
-                    'entrada': marcaje_depurado.entrada.strftime('%H:%M') if marcaje_depurado and marcaje_depurado.entrada else '--',
-                    'salida': marcaje_depurado.salida.strftime('%H:%M') if marcaje_depurado and marcaje_depurado.salida else '--',
+                    'entrada': marcaje_depurado.entrada.strftime('%H:%M:%S') if marcaje_depurado and marcaje_depurado.entrada else '--:--:--',
+                    'salida': marcaje_depurado.salida.strftime('%H:%M:%S') if marcaje_depurado and marcaje_depurado.salida else '--:--:--',
                     'estado': estado,
                     'simbolo_permiso': simbolo_permiso,
                     'color': color,
@@ -1011,5 +1011,5 @@ def reporte_asistencia(request):
             fecha = date.today()
     else:
         fecha = date.today()
-    asistencia = MarcajeDepurado.objects.filter(fecha=fecha)
+    asistencia = MarcajeDepurado.objects.filter(fecha=fecha).order_by('entrada')
     return render(request, 'reporte_asistencia.html', {'asistencia': asistencia, 'fecha':fecha})
