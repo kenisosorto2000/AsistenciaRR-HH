@@ -28,7 +28,6 @@ from django.core.mail import send_mail
 from django.contrib.auth.views import PasswordChangeView
 from django.urls import reverse, reverse_lazy
 from django.db.models.functions import Upper, Trim
-from django.utils.http import url_has_allowed_host_and_scheme
 
 def grupo_requerido(nombre_grupo):
     def check(user):
@@ -739,18 +738,18 @@ def cargar_login(request):
         if user is not None:
             login(request, user)
 
+            # 👇 Verificamos si el usuario debe cambiar su contraseña
             if hasattr(user, 'userprofile') and user.userprofile.must_change_password:
-                return redirect('cambiar_password')
+                return redirect('cambiar_password')  # o la URL que definas
 
             return redirect(next_url)
-
-        return render(request, 'login.html', {
-            'error': 'Usuario o contraseña incorrectos',
-            'next': next_url
-        })
+        else:
+            return render(request, 'login.html', {
+                'error': 'Usuario o contraseña incorrectos',
+                'next': next_url
+            })
 
     return render(request, 'login.html', {'next': next_url})
-
 
 class ForzarCambioPasswordView(PasswordChangeView):
     template_name = 'cambiar_password.html'
