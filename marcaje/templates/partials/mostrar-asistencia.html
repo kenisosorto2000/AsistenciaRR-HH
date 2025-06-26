@@ -11,8 +11,8 @@
             <th class="px-4 py-2" style="text-align: center;">Estado</th>
             <th class="px-4 py-2" style="text-align: center;">
                 ASISTENCIA
-                <div class="relative">
-                    <div id="toggle4" class="relative max-w-20 h-5 bg-gray-300 rounded-full cursor-pointer transition-colors duration-300" data-state="0">
+                <div class="relative ml-1">
+                    <div id="toggle4" class="relative max-w-16 h-5 bg-gray-300 rounded-full cursor-pointer transition-colors duration-300" data-state="0">
                         <div class="absolute top-0.5 left-6 w-4 h-4 bg-white rounded-full shadow-lg transition-all duration-300 ease-in-out transform"></div>
                     </div>
                 </div>
@@ -59,7 +59,7 @@
         // Configuración para cada toggle
         const toggleConfigs = {
             toggle4: {
-                positions: [1, 6, 12],
+                positions: [1, 6, 11],
                 values: [-1, 0, 1],
                 labels: ['Frío', 'Normal', 'Calor'],
                 colors: ['bg-red-400', 'bg-gray-300', 'bg-green-400'],
