@@ -54,9 +54,10 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'marcaje.middleware.InactividadMiddleware',  # Middleware para manejar la inactividad
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'django_session_timeout.middleware.SessionTimeoutMiddleware',
+    # 'django_session_timeout.middleware.SessionTimeoutMiddleware',
     'marcaje.middleware.ForzarCambioPasswordMiddleware',
 ]
 
@@ -100,7 +101,9 @@ SESSION_COOKIE_SECURE = False
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 # Configurar un tiempo máximo de sesión (en segundos).
-SESSION_COOKIE_AGE = 900 # 15 minutos
+SESSION_EXPIRE_AFTER_LAST_ACTIVITY = True     # Que se cuente desde la última actividad
+SESSION_TIMEOUT = 600                         # Tiempo de inactividad en segundos (10 minutos aquí)
+# SESSION_COOKIE_AGE = 720                    # Tiempo de vida de la cookie de sesión (12 minutos aquí)
 
 # Configuraciones de seguridad recomendadas para la cookie de sesión
 # SESSION_COOKIE_SECURE = True  # Asegúrate de usar HTTPS en producción
@@ -148,7 +151,7 @@ USE_TZ = True
 
 LOGIN_URL = 'login' 
 LOGOUT_URL = 'login' # Redirecciona después del login exitoso
-# LOGOUT_REDIRECT_URL = 'login'  # Redirecciona después del logout
+LOGIN_REDIRECT_URL = '/'  # Redirecciona después del login exitoso
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
