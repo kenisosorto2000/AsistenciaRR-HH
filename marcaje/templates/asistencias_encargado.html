@@ -7,66 +7,65 @@
     <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-200">Asistencia del {{ fecha }}</h2>
     <div class="bg-white dark:bg-gray-800 rounded-lg mb-6" style="height: 75vh;">
         <div class="p-4 border border-gray-300 shadow-md rounded-lg">
-<form method="get" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-    <div>
-    <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">Fecha:</label>
-    <input class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm" type="date" name="fecha" value="{{ fecha }}">
-    </div>
-    <div class="flex items-end">
+            <form method="get" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">Fecha:</label>
+                    <input class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-gray-200 dark:bg-gray-700 dark:text-white text-sm" type="date" name="fecha" value="{{ fecha }}">
+                </div>
+                <div class="flex items-end">
                     <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded text-sm flex items-center justify-center">
-                    Ver
+                        Ver
                     </button>
-    </div>
-</form>
-
-</div>
-{% if empleados %}
-<div class="overflow-x-auto max-h-[500px] overflow-y-auto mt-2 top-[0px] z-10"></div>
-    <table class="min-w-full text-sm text-left text-gray-700 dark:text-gray-200 border border-gray-300 rounded">
-        <thead class="bg-gray-100 dark:bg-gray-600 sticky top-[0px] z-10 uppercase text-xs">
-            <tr>
-            <th class="px-4 py-2">Código</th>
-            <th class="px-4 py-2">Nombre</th>
-            <th class="px-4 py-2">Departamento</th>
-            <th class="px-4 py-2">Sucursal</th>
-            <th class="px-4 py-2">Asistencia</th>
-            <th class="px-4 py-2">Estado en RRHH</th>
-        </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-200 dark:divide-gray-700 text-gray-700 dark:text-gray-100"></tbody>
-        {% for e in empleados %}
-        <tr class="hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200">
-            <td class="px-2 py-2">{{ e.codigo }}</td>
-            <td class="px-2 py-2">{{ e.nombre }}</td>
-            <td class="px-2 py-2">{{ e.departamento }}</td>
-            <td class="px-2 py-2">{{ e.sucursal }}</td>
-            <td class="px-2 py-2" 
-            style="background: {% if e.estado == 'ASISTIÓ' %}#38c172{% elif e.estado == 'JUSTIFICADO' %}{{e.color}}{% else %}#e3342f{%endif%};">
-            {% if e.estado == 'ASISTIÓ' %}
-            <p></p>
-            {% elif e.estado == 'JUSTIFICADO' %}
-             {{ e.simbolo_permiso }}
-            {%else%}
-            <p></p>
-            {%endif%}
-            </td>
-            <td class="px-2 py-2">
-            {% if e.estado == 'ASISTIÓ' %}
-            <p></p>
-            {% elif e.estado == 'JUSTIFICADO' %}
-             {{ e.estado_rh_display }}
-            {%else%}
-            <p></p>
-            {%endif%}
-            </td>
-        </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-{% else %}
-    <p>No hay ausencias para esta fecha.</p>
-{% endif %}
-    </div>
+                </div>
+            </form>
+        </div>
+        {% if empleados %}
+        <div class="overflow-x-auto max-h-[500px] overflow-y-auto mt-2 top-[0px] z-10"></div>
+            <table class="min-w-full text-sm text-left text-gray-700 dark:text-gray-200 border border-gray-300 rounded">
+                <thead class="bg-gray-100 dark:bg-gray-600 sticky top-[0px] z-10 uppercase text-xs">
+                    <tr>
+                    <th class="px-4 py-2" style="text-align: center;">Código</th>
+                    <th class="px-4 py-2" style="text-align: center;">Nombre</th>
+                    <th class="px-4 py-2" style="text-align: center;">Departamento</th>
+                    <th class="px-4 py-2" style="text-align: center;">Sucursal</th>
+                    <th class="px-4 py-2" style="text-align: center;">Asistencia</th>
+                    <th class="px-4 py-2" style="text-align: center;">Estado en RRHH</th>
+                </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200 dark:divide-gray-700 text-gray-700 dark:text-gray-100">
+                    {% for e in empleados %}
+                    <tr class="text-center hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200">
+                        <td class="px-2 py-2">{{ e.codigo }}</td>
+                        <td class="px-2 py-2">{{ e.nombre }}</td>
+                        <td class="px-2 py-2">{{ e.departamento }}</td>
+                        <td class="px-2 py-2">{{ e.sucursal }}</td>
+                        <td class="px-2 py-2 text-gray-800" 
+                            style="background: {% if e.estado == 'ASISTIÓ' %}#38c172{% elif e.estado == 'JUSTIFICADO' %}{{ e.color }}{% elif e.estado == 'DOMINGO' %}#00f7ff{% else %}#e3342f{% endif %};">
+                            {% if e.estado == 'DOMINGO' %}
+                                <p class="text-gray-800 text-sm">DO</p>
+                            {% elif e.estado == 'JUSTIFICADO' %}
+                                {{ e.simbolo_permiso }}
+                            {% else %}
+                                <p></p>
+                            {% endif %}
+                        </td>
+                        <td class="px-2 py-2">
+                            {% if e.estado == 'ASISTIÓ' %}
+                            <p></p>
+                            {% elif e.estado == 'JUSTIFICADO' %}
+                            {{ e.estado_rh_display }}
+                            {%else%}
+                            <p></p>
+                            {%endif%}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+                <p>No hay ausencias para esta fecha.</p>
+            {% endif %}
+        </div>
     </div>
 </div>
 {% endblock %}

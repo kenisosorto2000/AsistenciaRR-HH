@@ -7,11 +7,15 @@
 
 <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-300">
     <div class="flex justify-between mb-4">
-    <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-200">Validar Asistencia</h2>
-     
-    <a href="{% url 'ausencias_encargado' %}" class="bg-blue-600 text-white px-6 py-2 rounded-lg shadow hover:bg-blue-700 transition duration-200 flex items-center">Cargar ausencias por encargado</a>
+        <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-200">Validar Asistencia</h2>
+        <a id="btn-exportar" href="#" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+            Exportar a Excel
+        </a>
+        <a href="{% url 'ausencias_encargado' %}" class="bg-blue-600 text-white px-6 py-2 rounded-lg shadow hover:bg-blue-700 transition duration-200 flex items-center">
+            Cargar ausencias por encargado
+        </a>
     </div>
-    <div class="bg-white dark:bg-gray-800 rounded-lg mb-6 overflow-y-auto">
+    <div class="bg-white dark:bg-gray-800 rounded-lg mb-6">
         <div class="p-4 border border-gray-300 shadow-md rounded-lg">
             <form class="grid grid-cols-1 md:grid-cols-3 gap-4" 
                 hx-get="{% url 'validar_asistencia' %}"
@@ -19,7 +23,7 @@
                 hx-swap="innerHTML">
                 <div>
                     <label for="sucursal" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Sucursal:</label>
-                    <select name="sucursal" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
+                    <select name="sucursal" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-gray-200 dark:bg-gray-700 dark:text-white text-sm">
                     {% for suc in sucursales %}
                     <option value="{{ suc.id }}" {% if suc.id|stringformat:"s" == selected_sucursal %}selected{% endif %}>{{ suc.nombre }}</option>
                     {% endfor %}
@@ -27,7 +31,7 @@
                 </div>
                 <div>
                     <label for="fecha" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Fecha:</label>
-                    <input type="date" name="fecha" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
+                    <input type="date" name="fecha" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-gray-200 dark:bg-gray-700 dark:text-white text-sm">
                 </div>
                 <div class="flex items-end">
                     <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded text-sm flex items-center justify-center">
@@ -39,7 +43,7 @@
                 </div>
             </form>   
         </div>
-        <div id="cargar-asis" class="bg-white dark:bg-gray-800 max-h-[600px] shadow-md rounded-lg overflow-y-auto mt-4" style="height: 57vh;">
+        <div id="cargar-asis" class="bg-white dark:bg-gray-800 max-h-[600px] shadow-md rounded-lg mt-4 overflow-hidden" style="height: 62vh;">
             {% include 'partials/mostrar-asistencia.html' %}
         </div>
     </div>
@@ -48,7 +52,10 @@
 <script>
 function initDataTable() {
     $('#tabla-resultados').DataTable({
-        ordering: false,
+        pageLength: 10,
+        lengthMenu: [10, 25, 50, 100],
+        scrollY: 300,
+        ordering: false
     });
 }
 
@@ -67,6 +74,23 @@ document.body.addEventListener('htmx:afterSwap', (e) => {
 </script>
 <!-- <script src="{% static 'scripts/validar_asistencia.js' %}"></script> -->
 
+<script>
+document.getElementById("btn-exportar").addEventListener("click", function (e) {
+    e.preventDefault();
+
+    const sucursal = document.querySelector("select[name='sucursal']").value;
+    const fecha = document.querySelector("input[name='fecha']").value;
+
+    if (!sucursal || !fecha) {
+        alert("Selecciona una sucursal y una fecha.");
+        return;
+    }
+
+    const baseUrl = "{% url 'exportar_asistencias_excel' %}";
+    const finalUrl = `${baseUrl}?sucursal=${sucursal}&fecha=${fecha}`;
+    window.location.href = finalUrl;
+});
+</script>
 
 
 {% endblock %}

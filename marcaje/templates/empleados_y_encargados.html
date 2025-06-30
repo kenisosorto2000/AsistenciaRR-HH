@@ -16,7 +16,7 @@
             <tbody>
                 {% for emp in empleados %}
                 <tr class="hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-200 border-b">
-                    <td class="px-4 py-2">{{ emp.nombre }}</td>
+                    <td class="px-4 py-2">{{ forloop.counter }}. {{ emp.nombre }}</td>
                     <td class="px-4 py-2">
                         <form method="POST"
                               hx-post="{% url 'convertir_a_encargado' emp.id %}"
@@ -55,7 +55,7 @@
             <tbody>
                 {% for encargado in encargados %}
                 <tr class="hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-200 border-b ">
-                    <td class="px-4 py-2">{{ encargado.nombre }}</td>
+                    <td class="px-4 py-2">{{ forloop.counter }}. {{ encargado.nombre }}</td>
                     <td class="px-4 py-2">
                         <form method="POST"
                               hx-post="{% url 'convertir_a_empleado' encargado.id %}"

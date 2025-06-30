@@ -62,9 +62,13 @@
                 <label class="block text-sm font-bold dark:text-gray-200 text-indigo-900 mb-1">Usuario</label>
                 <input type="text" required name="username" class="w-full px-3 py-2 border border-indigo-900 rounded focus:outline-none focus:ring-2 text-gray-800 focus:ring-blue-500 required">
                 </div>
-                <div class="mb-4">
-                <label class="block text-sm font-bold dark:text-gray-200 text-indigo-900 mb-1">Contraseña</label>
-                <input type="password" required name="password" class="w-full px-3 py-2 border border-indigo-900 rounded focus:outline-none focus:ring-2 text-gray-800 focus:ring-blue-500 required">
+                <div class="mb-4 relative">
+                    <label class="block text-sm font-bold dark:text-gray-200 text-indigo-900 mb-1">Contraseña</label>
+                    <input type="password"  required name="password" id="passwordInput" class="w-full px-3 py-2 border border-indigo-900 rounded focus:outline-none focus:ring-2 text-gray-800 focus:ring-blue-500">
+                    <button type="button"  onclick="togglePassword()"  class="absolute right-3 top-9 text-indigo-800" tabindex="-1">
+                        <i id="eyeIcon" data-lucide="eye" class="w-5 h-5 text-indigo-800"></i>
+                        <i id="eyeOffIcon" data-lucide="eye-off" class="w-5 h-5 text-indigo-800 hidden"></i>
+                    </button>
                 </div>
                 <div class="flex justify-center text-center">
                 <input type="hidden" name="next" value="{{ next }}">
@@ -139,6 +143,22 @@
             }
         }, 4000); // 4 segundos
     </script>
+    <script>
+        function togglePassword() {
+            const input = document.getElementById('passwordInput');
+            const eye = document.getElementById('eyeIcon');
+            const eyeOff = document.getElementById('eyeOffIcon');
 
-    </body>
+            if (input.type === 'password') {
+            input.type = 'text';
+            eye.classList.add('hidden');
+            eyeOff.classList.remove('hidden');
+            } else {
+            input.type = 'password';
+            eye.classList.remove('hidden');
+            eyeOff.classList.add('hidden');
+            }
+        }
+    </script>
+</body>
 </html>

@@ -3,10 +3,12 @@
 </h2>
 
 {% if empleados %}
-  <ul class="max-h-96 overflow-y-auto bg-white dark:bg-gray-800 border border-gray-300 rounded-md divide-y divide-gray-200 dark:divide-gray-600">
+  <ul class="max-h-[450px] overflow-y-auto bg-white dark:bg-gray-800 border border-gray-300 rounded-md divide-y divide-gray-200 dark:divide-gray-600">
     {% for e in empleados %}
       <li class="px-4 py-2 text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200">
-        {{ e.nombre }}
+        {{ forloop.counter }}. {{ e.nombre }}
+        <br>
+        <span class="text-blue-700 dark:text-green-300">{{ e.departamento }}</span>
       </li>
     {% endfor %}
   </ul>

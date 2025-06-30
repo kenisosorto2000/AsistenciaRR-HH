@@ -7,7 +7,7 @@ urlpatterns = [
     path('sync-empleados/', views.sync_empleados_view, name='sync_empleados'),
     path('api/empleados/', views.empleados_proxy, name='empleados_proxy'),
     path('api/asis/', views.asistencias_api, name='asis_api'),
-    path('registrados', views.marcar),
+    path('registrados/', views.marcar, name='registrados'),
     path('sync-marcaje/', views.sync_marcaje_view, name='sync_marcaje'),
     path('reporte/', views.reporte_asistencia, name='reporte_asistencia'),
     path('validar-asistencia/', views.validar_asistencias, name='validar_asistencia'),
@@ -44,4 +44,5 @@ urlpatterns = [
     # path('/validar/', views.validar_asistencias),
     # path('sin-permiso/', views.sin_permiso, name='sin_permiso'),
     path('cambiar-password/', views.ForzarCambioPasswordView.as_view(), name='cambiar_password'),
+    path('extraer-asistencias/', views.exportar_asistencias_excel, name='exportar_asistencias_excel'),
 ]

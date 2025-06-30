@@ -17,7 +17,7 @@ def sincronizar_empleados():
     """
     # Configuración
     url = "http://192.168.11.12:8000/planilla/webservice/empleados/"
-    params = {'sucursal': 1}
+    params = {'sucursal': 7}
     headers = {
         'X-Requested-With': 'XMLHttpRequest',
         'Accept': 'application/json',

@@ -1,0 +1,38 @@
+grupos: 
+encargado
+rrhh
+
+
+permisos:
+encargado->
+    - marcaje | permiso comprobante | Can add permiso comprobante
+    - marcaje | permiso comprobante | Can change permiso comprobante
+    - marcaje | permiso comprobante | Can delete permiso comprobante
+    - marcaje | permiso comprobante | Can view permiso comprobante
+
+rrhh->
+    - Autenticacion y Autorizacion | usuario | Can add user
+    - Autenticacion y Autorizacion | usuario | Can change user
+    - Autenticacion y Autorizacion | usuario | Can delete user
+    - Autenticacion y Autorizacion | usuario | Can view user
+    - Marcaje | Empleado | Can view Empleado
+    - Marcaje | gestion fecha corte | Can add gestion fecha corte
+    - Marcaje | gestion fecha corte | Can change gestion fecha corte
+    - Marcaje | gestion fecha corte | Can delete gestion fecha corte
+    - Marcaje | gestion fecha corte | Can view gestion fecha corte
+    - Marcaje | gestion permiso detalle | Can add gestion permiso detalle
+    - Marcaje | gestion permiso detalle | Can change gestion permiso detalle
+    - Marcaje | gestion permiso detalle | Can delete gestion permiso detalle
+    - Marcaje | gestion permiso detalle | Can view gestion permiso detalle
+    - Marcaje | marcaje | Can add marcaje
+    - Marcaje | marcaje | Can change marcaje
+    - Marcaje | marcaje | Can delete marcaje
+    - Marcaje | marcaje | Can view marcaje
+    - Marcaje | permiso comprobante | Can add permiso comprobante
+    - Marcaje | permiso comprobante | Can change permiso comprobante
+    - Marcaje | permiso comprobante | Can delete permiso comprobante
+    - Marcaje | permiso comprobante | Can view permiso comprobante
+    - Marcaje | permisos | Can add permisos
+    - Marcaje | permisos | Can change permisos
+    - Marcaje | permisos | Can delete permisos
+    - Marcaje | permisos | Can view permisos
