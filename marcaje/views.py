@@ -28,6 +28,8 @@ from django.core.mail import send_mail
 from django.contrib.auth.views import PasswordChangeView
 from django.urls import reverse, reverse_lazy
 from django.db.models.functions import Upper, Trim
+from openpyxl import Workbook
+from openpyxl.styles import PatternFill, Font, Alignment
 
 def grupo_requerido(nombre_grupo):
     def check(user):
@@ -67,7 +69,7 @@ def empleados_proxy(request):
         )
 # @csrf_exempt  
 def asistencias_api(request):
-    target_url = "http://192.168.11.12:8003/api/asistencias/?fecha=2025-06-27"
+    target_url = "http://192.168.11.12:8003/api/asistencias/?fecha=2025-06-30"
     
     headers = {
         "X-API-Key": "bec740b7-839b-4268-bb4e-a9d44b51a326"  # o "x-api-key": "TU_API_KEY"
@@ -247,6 +249,18 @@ def validar_asistencias(request):
                     color = None
                     estado_rh = None
                     estado_rh_display = None
+                
+                # Definir símbolo visual para Excel y HTML
+                if estado == 'ASISTIÓ':
+                    simbolo_excel = '✔'
+                elif estado == 'FALTÓ':
+                    simbolo_excel = 'X'
+                elif estado == 'DOMINGO':
+                    simbolo_excel = 'DO'
+                elif estado == 'JUSTIFICADO':
+                    simbolo_excel = simbolo_permiso or ''
+                else:
+                    simbolo_excel = ''
 
 
                 resultados.append({
@@ -263,6 +277,7 @@ def validar_asistencias(request):
                     'color': color,
                     'estado_rh': estado_rh,
                     'estado_rh_display': estado_rh_display,
+                    'estado_simbolo': simbolo_excel  # nuevo campo para Excel
                 })
         except Exception as e:
             resultados = []
@@ -495,17 +510,17 @@ def asignar_empleados(request, encargado_id):
                 empleado_id=empleado_id
             )
 
+    # ✅ Incluye a encargados, excepto el encargado actual
     empleados_disponibles = Empleado.objects.filter(
-        es_encargado=False,
-        encargado_asignado__isnull=True
-    )
+        encargado_asignado_isnull=True
+    ).exclude(id=encargado.id)
+
     if departamento_seleccionado:
         empleados_disponibles = empleados_disponibles.filter(departamento=departamento_seleccionado)
 
     departamentos_qs = Empleado.objects.filter(
-        es_encargado=False,
-        encargado_asignado__isnull=True
-    ).values_list('departamento', flat=True)
+        encargado_asignado_isnull=True
+    ).exclude(id=encargado.id).values_list('departamento', flat=True)
 
     departamentos_limpios = {}
     for depto in departamentos_qs:
@@ -520,7 +535,7 @@ def asignar_empleados(request, encargado_id):
         'empleados': empleados_disponibles,
         'departamentos': departamentos,
         'departamento_seleccionado': departamento_seleccionado,
-    }, request=request)  # 👈 Esto incluye el token CSRF en el contexto
+    }, request=request)
 
     return HttpResponse(html)
 
@@ -566,7 +581,7 @@ def ver_historial_encargado(request):
     context=[]
     for permiso in permisos:
         comprobante = PermisoComprobante.objects.filter(permiso=permiso).first()
-        historial = GestionPermisoDetalle.objects.filter(solicitud=permiso).first()
+        historial = GestionPermisoDetalle.objects.filter(solicitud=permiso).order_by('-fecha').first()
         context.append({
             'permiso': permiso,
             'comprobante': comprobante.comprobante.url if comprobante else None,
@@ -1036,3 +1051,135 @@ def reporte_asistencia(request):
         fecha = date.today()
     asistencia = MarcajeDepurado.objects.filter(fecha=fecha).order_by('entrada')
     return render(request, 'reporte_asistencia.html', {'asistencia': asistencia, 'fecha':fecha})
+
+@login_required
+@grupo_requerido('rrhh')
+def exportar_asistencias_excel(request):
+    sucursal_id = request.GET.get('sucursal')
+    fecha_str = request.GET.get('fecha')
+
+    if not sucursal_id or not fecha_str:
+        return HttpResponse("Parámetros inválidos", status=400)
+
+    try:
+        fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
+    except ValueError:
+        return HttpResponse("Fecha inválida", status=400)
+
+    empleados = Empleado.objects.filter(sucursal_id=sucursal_id)
+    resultados = []
+
+    ESTADO_SOLICITUD = [
+        ('P', 'Pendiente'),
+        ('A', 'Aprobada'),
+        ('SB', 'Subsanado'),
+        ('R', 'Rechazada'),
+    ]
+    ESTADO_MAP = dict(ESTADO_SOLICITUD)
+
+    for empleado in empleados:
+        marcaje_depurado = MarcajeDepurado.objects.filter(
+            empleado=empleado,
+            fecha=fecha
+        ).first()
+
+        permiso_justificado = Permisos.objects.filter(
+            empleado=empleado,
+            fecha_inicio__lte=fecha,
+            fecha_final__gte=fecha
+        ).select_related('tipo_permiso').first()
+
+        if marcaje_depurado:
+            estado = 'ASISTIÓ'
+            simbolo_permiso = None
+            color = '38c172'  # Verde para asistió
+            estado_rh = None
+            estado_rh_display = None
+
+        elif permiso_justificado:
+            estado = 'JUSTIFICADO'
+            simbolo_permiso = permiso_justificado.tipo_permiso.simbolo
+            # Convertir el color guardado en cod_color a hex sin #, por ejemplo 'fbbf24'
+            color = permiso_justificado.tipo_permiso.cod_color.lstrip('#') if permiso_justificado.tipo_permiso.cod_color else 'fbbf24'
+            estado_rh = permiso_justificado.estado_solicitud
+            estado_rh_display = ESTADO_MAP.get(estado_rh, estado_rh)
+
+        elif fecha.weekday() == 6:  # Domingo
+            estado = 'DOMINGO'
+            simbolo_permiso = None
+            color = "00f7ff"  # Azul celeste
+            estado_rh = None
+            estado_rh_display = 'Descanso dominical'
+
+        else:
+            estado = 'FALTÓ'
+            simbolo_permiso = None
+            color = 'e3342f'  # Rojo para faltó
+            estado_rh = None
+            estado_rh_display = None
+
+        # Símbolo para Excel
+        if estado == 'ASISTIÓ':
+            estado_simbolo = '✔'
+        elif estado == 'FALTÓ':
+            estado_simbolo = 'X'
+        elif estado == 'DOMINGO':
+            estado_simbolo = 'DO'
+        elif estado == 'JUSTIFICADO':
+            estado_simbolo = simbolo_permiso or ''
+        else:
+            estado_simbolo = ''
+
+        resultados.append({
+            'fecha': fecha.strftime("%d/%m/%Y"),
+            'sucursal': empleado.sucursal.nombre,
+            'codigo': empleado.codigo,
+            'nombre': empleado.nombre,
+            'departamento': empleado.departamento,
+            'entrada': marcaje_depurado.entrada.strftime('%H:%M') if marcaje_depurado and marcaje_depurado.entrada else '--:--',
+            'salida': marcaje_depurado.salida.strftime('%H:%M') if marcaje_depurado and marcaje_depurado.salida else '--:--',
+            'estado_rh_display': estado_rh_display or '',
+            'estado': estado,
+            'estado_simbolo': estado_simbolo,
+            'color': color,
+        })
+
+    # Crear archivo Excel
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Asistencia"
+
+    headers = [
+        "Fecha", "Sucursal", "Código", "Nombre", "Departamento",
+        "Marca Entrada", "Marca Salida", "Estado RH", "Asistencia"
+    ]
+    ws.append(headers)
+
+    for cell in ws[ws.max_row]:
+        cell.font = Font(bold=True)
+        cell.alignment = Alignment(horizontal='center')
+
+    for r in resultados:
+        ws.append([
+            r['fecha'],
+            r['sucursal'],
+            r['codigo'],
+            r['nombre'],
+            r['departamento'],
+            r['entrada'],
+            r['salida'],
+            r['estado_rh_display'],
+            r['estado_simbolo'],
+        ])
+        fila_actual = ws.max_row
+        fill = PatternFill(start_color=r['color'], end_color=r['color'], fill_type='solid')
+        # Aplica color solo a la celda "Asistencia" (columna 9)
+        ws.cell(row=fila_actual, column=9).fill = fill
+
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    filename = f"asistencia_{fecha.strftime('%d-%m-%Y')}.xlsx"
+    response['Content-Disposition'] = f'attachment; filename={filename}'
+    wb.save(response)
+    return response

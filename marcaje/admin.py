@@ -18,7 +18,7 @@ class MarcajeAdmin(admin.ModelAdmin):
         return obj.empleado.sucursal.nombre if obj.empleado.sucursal else '-'
 
     def empleado_departamento(self, obj):
-        return obj.empleado.departamento.nombre if obj.empleado.departamento else '-'
+        return obj.empleado.departamento or '-'
 
 @admin.register(MarcajeDepurado)
 class RegistroMarcajeAdmin(admin.ModelAdmin):
@@ -31,7 +31,7 @@ class RegistroMarcajeAdmin(admin.ModelAdmin):
         return obj.empleado.sucursal.nombre if obj.empleado.sucursal else '-'
 
     def empleado_departamento(self, obj):
-        return obj.empleado.departamento.nombre if obj.empleado.departamento else '-'
+        return obj.empleado.departamento or '-'
 
 @admin.register(Permisos)
 class PermisosAdmin(admin.ModelAdmin):
