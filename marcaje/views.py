@@ -69,7 +69,7 @@ def empleados_proxy(request):
         )
 # @csrf_exempt  
 def asistencias_api(request):
-    target_url = "http://192.168.11.12:8003/api/asistencias/?fecha=2025-06-30"
+    target_url = "http://192.168.11.12:8003/api/asistencias/?fecha=2025-07-01"
     
     headers = {
         "X-API-Key": "bec740b7-839b-4268-bb4e-a9d44b51a326"  # o "x-api-key": "TU_API_KEY"
@@ -1042,6 +1042,8 @@ def sin_permiso(request):
 @grupo_requerido('rrhh')
 def reporte_asistencia(request):
     fecha_str = request.GET.get('fecha')
+    departamento_seleccionado = request.GET.get('departamento', '')
+
     if fecha_str:
         try:
             fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
@@ -1049,8 +1051,32 @@ def reporte_asistencia(request):
             fecha = date.today()
     else:
         fecha = date.today()
-    asistencia = MarcajeDepurado.objects.filter(fecha=fecha).order_by('entrada')
-    return render(request, 'reporte_asistencia.html', {'asistencia': asistencia, 'fecha':fecha})
+
+    # Obtener todos los departamentos posibles ese día
+    departamentos_qs = MarcajeDepurado.objects.filter(fecha=fecha).select_related('empleado')\
+        .values_list('empleado__departamento', flat=True).distinct()
+
+    departamentos_limpios = {}
+    for depto in departamentos_qs:
+        if depto:
+            key = depto.strip().upper()
+            if key not in departamentos_limpios:
+                departamentos_limpios[key] = depto.strip()
+    departamentos = sorted(departamentos_limpios.values())
+
+    # Consulta principal con select_related
+    asistencia = MarcajeDepurado.objects.filter(fecha=fecha).select_related('empleado')
+    if departamento_seleccionado:
+        asistencia = asistencia.filter(empleado__departamento=departamento_seleccionado)
+
+    return render(request, 'reporte_asistencia.html', {
+        'asistencia': asistencia.order_by('entrada'),
+        'fecha': fecha,
+        'departamentos': departamentos,
+        'departamento_seleccionado': departamento_seleccionado,
+    })
+
+
 
 @login_required
 @grupo_requerido('rrhh')
