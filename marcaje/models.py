@@ -78,7 +78,7 @@ class Permisos(models.Model):
         ('SB', 'SUBSANADO'),
         ('R', 'Rechazada'),
     ]
-    encargado = models.ForeignKey(Empleado, related_name="solicitudes_enviadas", on_delete=models.PROTECT)
+    encargado = models.ForeignKey(Empleado, related_name="solicitudes_enviadas", on_delete=models.PROTECT, null=True, blank=True)
     empleado = models.ForeignKey(Empleado, on_delete=models.CASCADE)
     tipo_permiso = models.ForeignKey(TipoPermisos, on_delete=models.PROTECT)
     fecha_inicio = models.DateField()

@@ -225,12 +225,14 @@ def validar_asistencias(request):
                 if marcaje_depurado:
                     estado = 'ASISTIÓ'
                     simbolo_permiso = None
+                    nombre_tipo = None
                     color = None
                     estado_rh = None
                     estado_rh_display = None
 
                 elif permiso_justificado:
                     estado = 'JUSTIFICADO'
+                    nombre_tipo = permiso_justificado.tipo_permiso.tipo
                     simbolo_permiso = permiso_justificado.tipo_permiso.simbolo
                     color = permiso_justificado.tipo_permiso.cod_color
                     estado_rh = permiso_justificado.estado_solicitud
@@ -239,18 +241,20 @@ def validar_asistencias(request):
                 elif fecha.weekday() == 6:  # 6 = Domingo
                     estado = 'DOMINGO'
                     simbolo_permiso = None
-                    color = "#00f7ff"  # Amarillo, puedes personalizarlo
+                    nombre_tipo = None
+                    color = "#00f7ff"
                     estado_rh = None
                     estado_rh_display = 'Descanso dominical'
 
                 else:
                     estado = 'FALTÓ'
                     simbolo_permiso = None
+                    nombre_tipo = None
                     color = None
                     estado_rh = None
                     estado_rh_display = None
-                
-                # Definir símbolo visual para Excel y HTML
+
+                # Símbolo para Excel
                 if estado == 'ASISTIÓ':
                     simbolo_excel = '✔'
                 elif estado == 'FALTÓ':
@@ -262,7 +266,6 @@ def validar_asistencias(request):
                 else:
                     simbolo_excel = ''
 
-
                 resultados.append({
                     'fecha': fecha,
                     'sucursal': empleado.sucursal.nombre,
@@ -270,14 +273,23 @@ def validar_asistencias(request):
                     'nombre': empleado.nombre,
                     'departamento': empleado.departamento,
                     'asistio': marcaje_depurado is not None,
-                    'entrada': marcaje_depurado.entrada.strftime('%H:%M') if marcaje_depurado and marcaje_depurado.entrada else '--:--',
-                    'salida': marcaje_depurado.salida.strftime('%H:%M') if marcaje_depurado and marcaje_depurado.salida else '--:--',
+                    'entrada': (
+                        marcaje_depurado.entrada.strftime('%H:%M')
+                        if marcaje_depurado and marcaje_depurado.entrada
+                        else (simbolo_permiso if permiso_justificado else '--:--')
+                    ),
+                    'salida': (
+                        marcaje_depurado.salida.strftime('%H:%M')
+                        if marcaje_depurado and marcaje_depurado.salida
+                        else '--:--'
+                    ),
                     'estado': estado,
                     'simbolo_permiso': simbolo_permiso,
+                    'nombre_tipo': nombre_tipo,
                     'color': color,
                     'estado_rh': estado_rh,
                     'estado_rh_display': estado_rh_display,
-                    'estado_simbolo': simbolo_excel  # nuevo campo para Excel
+                    'estado_simbolo': simbolo_excel,
                 })
         except Exception as e:
             resultados = []
@@ -291,6 +303,71 @@ def validar_asistencias(request):
         'selected_sucursal': sucursal_id,
         'selected_fecha': fecha_str,
     })
+
+
+@login_required
+@grupo_requerido('rrhh')
+def crear_permiso_especial(request):
+    tipo_permisos = TipoPermisos.objects.all()
+    empleados = Empleado.objects.all()  # Muestra todos los empleados
+
+    if request.method == 'POST':
+        try:
+            empleado_id = request.POST.get('empleado')
+            tipo_permiso_id = request.POST.get('tipo_permiso')
+            fecha_inicio = request.POST.get('fecha_inicio')
+            fecha_final = request.POST.get('fecha_final')
+            descripcion = request.POST.get('descripcion')
+            usar_hora = request.POST.get('usar_hora')
+
+            hora_inicio = request.POST.get('hora_inicio') if usar_hora else None
+            hora_final = request.POST.get('hora_final') if usar_hora else None
+
+            empleado = Empleado.objects.get(id=empleado_id)
+            tipo_permiso = TipoPermisos.objects.get(id=tipo_permiso_id)
+
+            if fecha_inicio > fecha_final:
+                messages.error(request, "La fecha de inicio no puede ser posterior a la fecha final.")
+                raise ValueError()
+
+            traslape = Permisos.objects.filter(
+                empleado=empleado,
+                estado_solicitud__in=['P', 'A'],
+                fecha_inicio__lte=fecha_final,
+                fecha_final__gte=fecha_inicio
+            ).exists()
+
+            if traslape:
+                messages.error(request, "Ya existe un permiso pendiente o aprobado que se traslapa con estas fechas.")
+                raise ValueError()
+
+            # Crea el permiso sin asignar un encargado
+            Permisos.objects.create(
+                empleado=empleado,
+                tipo_permiso=tipo_permiso,
+                fecha_inicio=fecha_inicio,
+                fecha_final=fecha_final,
+                descripcion=descripcion,
+                hora_inicio=hora_inicio,
+                hora_final=hora_final,
+                tiene_comprobante=False,
+                estado_solicitud='P',  # Pendiente
+                encargado=None,  # Encargado no requerido
+            )
+
+            messages.success(request, "Permiso creado exitosamente.")
+            return redirect('subir_comprobantes_especial')
+
+        except Empleado.DoesNotExist:
+            messages.error(request, 'Empleado no válido')
+        except Exception as e:
+            messages.error(request, f"Error al guardar: {e}")
+
+    return render(request, 'crear_permiso_especial.html', {
+        'tipo_permisos': tipo_permisos,
+        'empleados': empleados,
+    })
+
 
 @login_required
 @grupo_requerido('encargado')
@@ -589,6 +666,16 @@ def ver_historial_encargado(request):
         })
 
     return render(request, 'historial_solicitudes_encargado.html', {'solicitudes': context})
+
+def subir_comprobante_especial(request):
+    solicitudes = Permisos.objects.filter(
+        Q(tiene_comprobante=False) | Q(estado_solicitud='SB', pendiente_subsanar=True)
+    ).order_by('-fecha_solicitud')
+
+    return render(request, 'subir_comprobantes_especial.html', {
+        'solicitudes': solicitudes,
+    })
+
 
 @login_required
 @grupo_requerido('encargado')
@@ -1115,32 +1202,31 @@ def exportar_asistencias_excel(request):
             fecha_final__gte=fecha
         ).select_related('tipo_permiso').first()
 
+        # Inicializa nombre y símbolo desde el permiso si existe
+        nombre_tipo = permiso_justificado.tipo_permiso.tipo if permiso_justificado else None
+        simbolo_permiso = permiso_justificado.tipo_permiso.simbolo if permiso_justificado else None
+
         if marcaje_depurado:
             estado = 'ASISTIÓ'
-            simbolo_permiso = None
-            color = '38c172'  # Verde para asistió
+            color = '38c172'  # Verde
             estado_rh = None
             estado_rh_display = None
 
         elif permiso_justificado:
             estado = 'JUSTIFICADO'
-            simbolo_permiso = permiso_justificado.tipo_permiso.simbolo
-            # Convertir el color guardado en cod_color a hex sin #, por ejemplo 'fbbf24'
             color = permiso_justificado.tipo_permiso.cod_color.lstrip('#') if permiso_justificado.tipo_permiso.cod_color else 'fbbf24'
             estado_rh = permiso_justificado.estado_solicitud
             estado_rh_display = ESTADO_MAP.get(estado_rh, estado_rh)
 
         elif fecha.weekday() == 6:  # Domingo
             estado = 'DOMINGO'
-            simbolo_permiso = None
-            color = "00f7ff"  # Azul celeste
+            color = "00f7ff"
             estado_rh = None
             estado_rh_display = 'Descanso dominical'
 
         else:
             estado = 'FALTÓ'
-            simbolo_permiso = None
-            color = 'e3342f'  # Rojo para faltó
+            color = 'e3342f'
             estado_rh = None
             estado_rh_display = None
 
@@ -1152,7 +1238,7 @@ def exportar_asistencias_excel(request):
         elif estado == 'DOMINGO':
             estado_simbolo = 'DO'
         elif estado == 'JUSTIFICADO':
-            estado_simbolo = simbolo_permiso or ''
+            estado_simbolo = nombre_tipo or ''
         else:
             estado_simbolo = ''
 
@@ -1162,13 +1248,23 @@ def exportar_asistencias_excel(request):
             'codigo': empleado.codigo,
             'nombre': empleado.nombre,
             'departamento': empleado.departamento,
-            'entrada': marcaje_depurado.entrada.strftime('%H:%M') if marcaje_depurado and marcaje_depurado.entrada else '--:--',
-            'salida': marcaje_depurado.salida.strftime('%H:%M') if marcaje_depurado and marcaje_depurado.salida else '--:--',
+            'entrada': (
+                marcaje_depurado.entrada.strftime('%H:%M')
+                if marcaje_depurado and marcaje_depurado.entrada
+                else (simbolo_permiso if permiso_justificado else '--:--')
+            ),
+            'salida': (
+                marcaje_depurado.salida.strftime('%H:%M')
+                if marcaje_depurado and marcaje_depurado.salida
+                else '--:--'
+            ),
             'estado_rh_display': estado_rh_display or '',
             'estado': estado,
-            'estado_simbolo': estado_simbolo,
+            'estado_simbolo': estado_simbolo if estado_simbolo else nombre_tipo or '',  # Aquí ahora va el NOMBRE del permiso
             'color': color,
         })
+
+
 
     # Crear archivo Excel
     wb = Workbook()

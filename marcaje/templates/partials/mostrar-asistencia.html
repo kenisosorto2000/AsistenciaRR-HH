@@ -28,7 +28,15 @@
             <td>{{ r.codigo }}</td>
             <td>{{ r.nombre }}</td>
             <td>{{ r.departamento }}</td>
-            <td>{{ r.entrada }}</td>
+            <td>
+                {% if r.estado == 'ASISTIÓ' %}
+                    {{ r.entrada }}
+                {% elif r.simbolo_permiso %}
+                    {{ r.simbolo_permiso }}
+                {% else %}
+                        --:--
+                {% endif %}
+            </td>
             <td>{{ r.salida }}</td>
             <td class="px-2 py-2">
                 {% if r.estado == 'ASISTIÓ' or r.estado == 'DOMINGO' %}
@@ -44,7 +52,7 @@
                 {% if r.estado == 'DOMINGO' %}
                     <p class="text-gray-800 text-sm">DO</p>
                 {% elif r.estado == 'JUSTIFICADO' %}
-                    {{ r.simbolo_permiso }}
+                    {{ r.nombre_tipo }}
                 {% else %}
                     <p></p>
                 {% endif %}
