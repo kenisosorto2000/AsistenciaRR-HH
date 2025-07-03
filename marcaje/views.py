@@ -326,10 +326,6 @@ def crear_permiso_especial(request):
             empleado = Empleado.objects.get(id=empleado_id)
             tipo_permiso = TipoPermisos.objects.get(id=tipo_permiso_id)
 
-            if fecha_inicio > fecha_final:
-                messages.error(request, "La fecha de inicio no puede ser posterior a la fecha final.")
-                raise ValueError()
-
             traslape = Permisos.objects.filter(
                 empleado=empleado,
                 estado_solicitud__in=['P', 'A'],
@@ -339,7 +335,19 @@ def crear_permiso_especial(request):
 
             if traslape:
                 messages.error(request, "Ya existe un permiso pendiente o aprobado que se traslapa con estas fechas.")
-                raise ValueError()
+                return render(request, 'crear_permiso_especial.html', {
+                    'tipo_permisos': tipo_permisos,
+                    'empleados': empleados,
+                    'error': "Ya existe un permiso pendiente o aprobado que se traslapa con estas fechas.",
+                })
+
+            if fecha_inicio > fecha_final:
+                messages.error(request, "La fecha de inicio no puede ser posterior a la fecha final.")
+                return render(request, 'crear_permiso_especial.html', {
+                    'tipo_permisos': tipo_permisos,
+                    'empleados': empleados,
+                    'error': "La fecha de inicio no puede ser posterior a la fecha final.",
+                })
 
             # Crea el permiso sin asignar un encargado
             Permisos.objects.create(
@@ -405,6 +413,7 @@ def crear_permiso(request):
                 return render(request, 'crear_permiso.html', {
                     'tipo_permisos': tipo_permisos,
                     'encargados': encargados,
+                    'error': "Ya existe un permiso pendiente o aprobado que se traslapa con estas fechas.",
                 })
 
             if fecha_inicio > fecha_final:
@@ -412,6 +421,7 @@ def crear_permiso(request):
                 return render(request, 'crear_permiso.html', {
                     'tipo_permisos': tipo_permisos,
                     'encargados': encargados,
+                    'error': "La fecha de inicio no puede ser posterior a la fecha final.",
                 })
 
             # ⚠️ Aquí es donde guardas el permiso
