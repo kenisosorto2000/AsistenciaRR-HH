@@ -3,16 +3,16 @@
 
 {% block content %}
 <div class="w-full max-w-7xl mx-auto bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-300">
-  <h2 class="text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Solicitudes sin comprobante</h2>
+  <h2 class="text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Solicitudes Especiales sin Comprobante</h2>
+  <div class="flex justify-end items-end space-x-4 mb-4 -mt-10">
+    <a href="{% url 'crear_permiso_especial' %}" class="bg-blue-600 text-white px-6 py-2 rounded-lg shadow hover:bg-blue-700 transition duration-200 flex items-center">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="inline w-5 h-5 align-middle mr-2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+      </svg>
+      Crear Solicitud
+    </a>
+  </div>
   <div class="overflow-x-auto">
-    <div class="flex justify-end items-end">
-      <a href="{% url 'crear_permiso_especial' %}" class="bg-blue-600 text-white px-6 py-2 rounded-lg shadow hover:bg-blue-700 transition duration-200 flex items-center">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="inline w-5 h-5 align-middle mr-2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-        </svg>
-        Crear Solicitud
-      </a>
-    </div>
     <table id="tabla-comprobantes" class="min-w-full text-sm text-left border border-gray-300">
       <thead class="bg-gray-100 dark:bg-gray-600 uppercase text-xs">
         <tr>
@@ -62,7 +62,9 @@
         </tr>
         {% empty %}
         <tr>
-          <td colspan="5" class="text-center py-4 text-gray-500">No hay solicitudes pendientes de comprobante.</td>
+          {% for _ in "12345678" %}
+            <td class="text-center text-gray-400">--</td>
+          {% endfor %}
         </tr>
         {% endfor %}
       </tbody>
@@ -71,11 +73,17 @@
 </div>
 
 <script>
-  let table = $('#tabla-comprobantes').DataTable({
+  $('#tabla-comprobantes').DataTable({
     pageLength: 10,
     lengthMenu: [10, 25, 50, 100],
     scrollY: 400,
-    ordering: false
+    ordering: false,
+    columnDefs: [
+      { targets: '_all', defaultContent: '' }  // Evita errores si faltan celdas
+    ],
+    language: {
+      emptyTable: "No hay solicitudes pendientes de comprobante."
+    }
   });
 </script>
 {% endblock %}

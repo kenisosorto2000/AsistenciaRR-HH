@@ -372,7 +372,7 @@ def crear_permiso_especial(request):
 @login_required
 @grupo_requerido('encargado')
 def crear_permiso(request):
-    tipo_permisos = TipoPermisos.objects.all()
+    tipo_permisos = TipoPermisos.objects.exclude(tipo__in=['Especial', 'Servicios Profesionales'])
     encargados = Empleado.objects.filter(es_encargado=True)
 
     if request.method == 'POST':
