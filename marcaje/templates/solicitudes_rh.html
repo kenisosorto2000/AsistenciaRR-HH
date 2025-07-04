@@ -23,6 +23,7 @@
             <th class="px-4 py-3" style="text-align: center;">Descripción</th>
             <th class="px-4 py-3" style="text-align: center;">Estado</th>
             <th class="px-4 py-3" style="text-align: center;">Comprobante</th>
+            <th class="px-4 py-3" style="text-align: center;">Ver Ficha</th>
             <th class="px-4 py-3" style="text-align: center;">Acciones</th>
           </tr>
         </thead>
@@ -51,6 +52,17 @@
                   <p>Sin comprobante</p>
               {% endif %}
             </td>
+            <td class="px-4 py-2">
+            <div class="flex flex-nowrap items-center">
+              <a href="{% url 'ficha_permiso' p.permiso.id %}" target="_blank" class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 text-sm hover:text-white transition flex items-center whitespace-nowrap">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="inline w-4 h-4 mr-1 -mt-1 flex-shrink-0">
+                  <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
+                  <path fill-rule="evenodd" d="M1.323 11.447C2.811 6.976 7.028 3.75 12.001 3.75c4.97 0 9.185 3.223 10.675 7.69.12.362.12.752 0 1.113-1.487 4.471-5.705 7.697-10.677 7.697-4.97 0-9.186-3.223-10.675-7.69a1.762 1.762 0 0 1 0-1.113ZM17.25 12a5.25 5.25 0 1 1-10.5 0 5.25 5.25 0 0 1 10.5 0Z" clip-rule="evenodd" />
+                </svg>
+                Ver Solicitud
+              </a>
+            </div>
+          </td>
             <td class="px-4 py-2 text-center">
               {% if p.comprobante and p.permiso.pendiente_subsanar == False %}
                 <button type="button" @click="open = true; selectedPermiso = '{{ p.permiso.empleado }}'; selectedId = '{{ p.permiso.id }}';"

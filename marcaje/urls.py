@@ -13,6 +13,7 @@ urlpatterns = [
     path('validar-asistencia/', views.validar_asistencias, name='validar_asistencia'),
     path('solicitud/', views.solicitud_rh),
     path('crear-permiso/', views.crear_permiso, name='crear_permiso'),
+    path('crear-incapacidad/', views.crear_incapacidad, name='crear_incapacidad'),
     path('crear-permiso-especial/', views.crear_permiso_especial, name='crear_permiso_especial'),
     path('obtener-empleados/', views.obtener_empleados, name='obtener_empleados'),
     path('nomas/<int:encargado_id>/', views.asignar_empleados, name='asignar_empleados'),

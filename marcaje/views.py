@@ -380,7 +380,7 @@ def crear_permiso_especial(request):
 @login_required
 @grupo_requerido('encargado')
 def crear_permiso(request):
-    tipo_permisos = TipoPermisos.objects.exclude(tipo__in=['Especial', 'Servicios Profesionales'])
+    tipo_permisos = TipoPermisos.objects.exclude(tipo__in=['Especial', 'Servicios Profesionales', 'Suspensión', 'Incapacidad sin Seguro Social', 'Incapacidad con Seguro Social'])
     encargados = Empleado.objects.filter(es_encargado=True)
 
     if request.method == 'POST':
@@ -456,6 +456,75 @@ def crear_permiso(request):
         'tipo_permisos': tipo_permisos,
         'encargados': encargados,
     })
+@login_required
+@grupo_requerido('encargado')
+def crear_incapacidad(request):
+    tipo_permisos = TipoPermisos.objects.filter(tipo__in=['Incapacidad sin Seguro Social', 'Incapacidad con Seguro Social'])
+    encargados = Empleado.objects.filter(es_encargado=True)
+
+    if request.method == 'POST':
+        try:
+            encargado_id = request.POST.get('encargado')
+            empleado_id = request.POST.get('empleado')
+            tipo_permiso = request.POST.get('tipo_permiso')
+            fecha_inicio = request.POST.get('fecha_inicio')
+            fecha_final = request.POST.get('fecha_final')
+            descripcion = request.POST.get('descripcion')
+
+            usar_hora = request.POST.get('usar_hora')
+
+            hora_inicio = request.POST.get('hora_inicio') if usar_hora else None
+            hora_final = request.POST.get('hora_final') if usar_hora else None
+
+            empleado = Empleado.objects.get(id=empleado_id)
+            encargado = Empleado.objects.get(id=encargado_id)
+            tipo_permiso = TipoPermisos.objects.get(id=tipo_permiso)
+
+            if fecha_inicio > fecha_final:
+                messages.error(request, "La fecha de inicio no puede ser posterior a la fecha final.")
+                return render(request, 'crear_incapacidad.html', {
+                    'tipo_permisos': tipo_permisos,
+                    'encargados': encargados,
+                })
+
+            traslape = Permisos.objects.filter(
+                empleado=empleado,
+                estado_solicitud__in=['P', 'A'],
+                fecha_inicio__lte=fecha_final,
+                fecha_final__gte=fecha_inicio
+            ).exists()
+
+            if traslape:
+                messages.error(request, "Ya existe un permiso pendiente o aprobado que se traslapa con estas fechas.")
+                return render(request, 'crear_incapacidad.html', {
+                    'tipo_permisos': tipo_permisos,
+                    'encargados': encargados,
+                })
+
+            Permisos.objects.create(
+                encargado=encargado,
+                empleado=empleado,
+                tipo_permiso=tipo_permiso,
+                fecha_inicio=fecha_inicio,
+                fecha_final=fecha_final,
+                descripcion=descripcion,
+                hora_inicio=hora_inicio,
+                hora_final=hora_final
+            )
+
+            messages.success(request, "Permiso de incapacidad creado exitosamente.")
+            return redirect('subir_comprobantes')
+
+        except Empleado.DoesNotExist:
+            messages.error(request, 'Empleado no válido')
+        except Exception as e:
+            messages.error(request, f"Error al guardar: {e}")
+
+    return render(request, 'crear_incapacidad.html', {
+        'tipo_permisos': tipo_permisos,
+        'encargados': encargados,
+    })
+
 
 
 @login_required
@@ -694,8 +763,20 @@ def subir_comprobante(request):
         encargado = Empleado.objects.get(user=request.user)
     except Empleado.DoesNotExist:
         return render(request, 'sin_permisos.html')
-    # empleados_cargo = Empleado.objects.filter(encargado_asignado__encargado=encargado)
-    solicitudes = Permisos.objects.filter(Q(encargado=encargado, tiene_comprobante=False) | Q(encargado=encargado, estado_solicitud='SB', pendiente_subsanar=True)).order_by('-fecha_solicitud')
+
+    permisos = Permisos.objects.filter(
+        Q(encargado=encargado, tiene_comprobante=False) |
+        Q(encargado=encargado, estado_solicitud='SB', pendiente_subsanar=True)
+    ).order_by('-fecha_solicitud')
+
+    solicitudes = []
+    for permiso in permisos:
+        historial = GestionPermisoDetalle.objects.filter(solicitud=permiso).order_by('-fecha').first()
+        solicitudes.append({
+            'permiso': permiso,
+            'historial': historial,
+        })
+
     return render(request, 'subir_comprobantes.html', {
         'solicitudes': solicitudes,
     })
