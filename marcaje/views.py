@@ -69,7 +69,7 @@ def empleados_proxy(request):
         )
 # @csrf_exempt  
 def asistencias_api(request):
-    target_url = "http://192.168.11.12:8003/api/asistencias/?fecha=2025-07-02"
+    target_url = "http://192.168.11.12:8003/api/asistencias/?fecha=2025-07-04"
     
     headers = {
         "X-API-Key": "bec740b7-839b-4268-bb4e-a9d44b51a326"  # o "x-api-key": "TU_API_KEY"
@@ -669,14 +669,14 @@ def asignar_empleados(request, encargado_id):
     # ✅ Incluye a encargados, excepto el encargado actual
     empleados_disponibles = Empleado.objects.filter(
         encargado_asignado__isnull=True
-    ).exclude(id=encargado.id)
+    )
 
     if departamento_seleccionado:
         empleados_disponibles = empleados_disponibles.filter(departamento=departamento_seleccionado)
 
     departamentos_qs = Empleado.objects.filter(
         encargado_asignado__isnull=True
-    ).exclude(id=encargado.id).values_list('departamento', flat=True)
+    ).values_list('departamento', flat=True)
 
     departamentos_limpios = {}
     for depto in departamentos_qs:

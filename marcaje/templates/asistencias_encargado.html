@@ -20,8 +20,8 @@
             </form>
         </div>
         {% if empleados %}
-        <div class="overflow-x-auto max-h-[500px] overflow-y-auto mt-2 top-[0px] z-10"></div>
-            <table class="min-w-full text-sm text-left text-gray-700 dark:text-gray-200 border border-gray-300 rounded">
+        <div class="overflow-x-auto overflow-y-auto max-h-[500px] mt-2 top-[0px] z-10">
+            <table id="tabla-asistencias" class="min-w-full text-sm text-left text-gray-700 dark:text-gray-200 border border-gray-300 rounded">
                 <thead class="bg-gray-100 dark:bg-gray-600 sticky top-[0px] z-10 uppercase text-xs">
                     <tr>
                     <th class="px-4 py-2" style="text-align: center;">Código</th>
@@ -68,4 +68,21 @@
         </div>
     </div>
 </div>
+
+<script>
+function initDataTable() {
+    $('#tabla-asistencias').DataTable({
+        pageLength: 10,
+        lengthMenu: [10, 25, 50, 100],
+        scrollY: 300,
+        ordering: false
+    });
+}
+document.addEventListener('DOMContentLoaded', function() {
+    initDataTable();
+});
+</script>
+
 {% endblock %}
+
+
