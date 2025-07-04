@@ -537,6 +537,7 @@ def ficha_permiso(request, permiso_id):
     })
 
 @login_required
+@grupo_requerido('rrhh')
 def obtener_empleados(request):
     sucursal_id = request.GET.get('sucursal_id')
     departamento = request.GET.get('departamento')
@@ -549,7 +550,7 @@ def obtener_empleados(request):
     return JsonResponse(list(empleados), safe=False)
 
 @login_required
-@grupo_requerido('encargado')
+@grupo_requerido('rrhh')
 def cargar_empleados_por_encargado(request):
     encargado_id = request.GET.get('encargado_id')
     if encargado_id:
@@ -560,6 +561,7 @@ def cargar_empleados_por_encargado(request):
     return JsonResponse({'empleados': []})
 
 @login_required
+@grupo_requerido('rrhh')
 def get_empleados_por_encargado(request, encargado_id):
     encargado = get_object_or_404(Empleado, id=encargado_id, es_encargado=True)
     asignaciones = AsignacionEmpleadoEncargado.objects.select_related('empleado', 'encargado')
@@ -569,10 +571,12 @@ def get_empleados_por_encargado(request, encargado_id):
 
     return render(request, 'asignados.html', {
         'encargado': encargado,
-        'empleados': empleados
+        'empleados': empleados,
+        'encargado_id': encargado.id  # 👈 necesario para el template
     })
 
 @login_required
+@grupo_requerido('rrhh')
 def ver_empleados_asignados(request, encargado_id):
     encargado_id = request.GET.get('encargado_id')
     if encargado_id:
@@ -582,6 +586,7 @@ def ver_empleados_asignados(request, encargado_id):
         
     
 @login_required
+@grupo_requerido('rrhh')
 def empleados_y_encargados(request):
     empleados = Empleado.objects.filter(es_encargado=False)
     encargados = Empleado.objects.filter(es_encargado=True)
@@ -694,6 +699,25 @@ def asignar_empleados(request, encargado_id):
     }, request=request)
 
     return HttpResponse(html)
+
+@login_required
+@grupo_requerido('rrhh')
+def quitar_empleado_asignado(request, encargado_id, empleado_id):
+    encargado = get_object_or_404(Empleado, id=encargado_id, es_encargado=True)
+    empleado = get_object_or_404(Empleado, id=empleado_id)
+    
+    if request.method == "POST":
+        asignacion = AsignacionEmpleadoEncargado.objects.filter(encargado=encargado, empleado=empleado)
+        if asignacion.exists():
+            asignacion.delete()
+        # Recarga la lista actualizada y retorna solo el fragmento HTML
+        asignaciones = AsignacionEmpleadoEncargado.objects.filter(encargado=encargado).select_related('empleado')
+        empleados = [a.empleado for a in asignaciones]
+        return render(request, 'asignados.html', {
+            'encargado': encargado,
+            'empleados': empleados,
+        })
+    return HttpResponse(status=405)  # Método no permitido si no es POST
 
 @login_required
 @grupo_requerido('rrhh')

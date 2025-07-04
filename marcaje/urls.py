@@ -29,6 +29,7 @@ urlpatterns = [
     path('empleados_y_encargados/', views.empleados_y_encargados, name='empleados_y_encargados'),
     path('ver_encargados/', views.ver_encargados, name='ver_encargados'),
     path('asignados/', views.asignar_empleados),
+    path('encargado/<int:encargado_id>/quitar-empleado/<int:empleado_id>/', views.quitar_empleado_asignado, name='quitar_empleado_asignado'),
     path('modal-permiso/<int:permiso_comprobante_id>/', views.modal_solicitud, name='modal_solicitud'),
     path('accion-permiso/', views.accion_solicitud, name='accion_solicitud'),
     path('historial-solicitudes/', views.ver_historial_solicitudes, name='historial_solicitudes'),
