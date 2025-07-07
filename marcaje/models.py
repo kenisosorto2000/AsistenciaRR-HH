@@ -12,8 +12,12 @@ class Empleado(models.Model):
     codigo = models.CharField(max_length=20)
     nombre = models.CharField(max_length=100)
     departamento = models.CharField(max_length=100)
-    sucursal = models.ForeignKey(Sucursal, on_delete=models.PROTECT)
+    sucursal = models.ForeignKey('Sucursal', on_delete=models.SET_NULL, null=True)
+    tipo_nomina = models.CharField(max_length=100, blank=True, null=True)
     es_encargado = models.BooleanField(default=False)
+
+    # nuevo campo
+    activo = models.BooleanField(default=True)
     class Meta:
         verbose_name = "Empleado"
         verbose_name_plural = "Empleados"
@@ -78,7 +82,7 @@ class Permisos(models.Model):
         ('SB', 'SUBSANADO'),
         ('R', 'Rechazada'),
     ]
-    encargado = models.ForeignKey(Empleado, related_name="solicitudes_enviadas", on_delete=models.PROTECT)
+    encargado = models.ForeignKey(Empleado, related_name="solicitudes_enviadas", on_delete=models.PROTECT, null=True, blank=True)
     empleado = models.ForeignKey(Empleado, on_delete=models.CASCADE)
     tipo_permiso = models.ForeignKey(TipoPermisos, on_delete=models.PROTECT)
     fecha_inicio = models.DateField()

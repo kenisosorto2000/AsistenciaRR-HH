@@ -3,6 +3,7 @@
         <tr>
             <th class="px-4 py-2" style="text-align: center;">Fecha</th>
             <th class="px-4 py-2" style="text-align: center;">Sucursal</th>
+            <th class="px-4 py-2" style="text-align: center;">Tipo de Nómina</th>
             <th class="px-4 py-2" style="text-align: center;">Código</th>
             <th class="px-4 py-2" style="text-align: center;">Nombre</th>
             <th class="px-4 py-2" style="text-align: center;">Departamento</th>
@@ -25,10 +26,19 @@
                 {% if r.estado == 'ASISTIÓ' %}estado-asistio{% elif r.estado == 'JUSTIFICADO' %}estado-justificado{% elif r.estado == 'DOMINGO' %}estado-domingo{% else %}estado-falto{% endif %}">
             <td>{{ r.fecha|date:"d/m/Y" }}</td>
             <td>{{ r.sucursal }}</td>
+            <td>{{ r.tipo_nomina }}</td>
             <td>{{ r.codigo }}</td>
             <td>{{ r.nombre }}</td>
             <td>{{ r.departamento }}</td>
-            <td>{{ r.entrada }}</td>
+            <td>
+                {% if r.estado == 'ASISTIÓ' %}
+                    {{ r.entrada }}
+                {% elif r.simbolo_permiso %}
+                    {{ r.simbolo_permiso }}
+                {% else %}
+                        --:--
+                {% endif %}
+            </td>
             <td>{{ r.salida }}</td>
             <td class="px-2 py-2">
                 {% if r.estado == 'ASISTIÓ' or r.estado == 'DOMINGO' %}
@@ -44,7 +54,7 @@
                 {% if r.estado == 'DOMINGO' %}
                     <p class="text-gray-800 text-sm">DO</p>
                 {% elif r.estado == 'JUSTIFICADO' %}
-                    {{ r.simbolo_permiso }}
+                    {{ r.nombre_tipo }}
                 {% else %}
                     <p></p>
                 {% endif %}

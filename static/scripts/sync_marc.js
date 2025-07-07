@@ -28,13 +28,22 @@ document.getElementById('sync-btn').addEventListener('click', async function() {
         }
 
         // 3. Mostrar resultados
+        // 3. Mostrar resultados
         statusEl.innerHTML = `
-            
             ${data.message} | 
             Nuevos: ${data.creados} | 
             Actualizados: ${data.actualizados}
         `;
         statusEl.className = 'text-success';
+
+        toastr.success(
+            `✅ Sincronización completada<br>
+            🆕 Nuevos: ${data.creados}<br>
+            🔁 Actualizados: ${data.actualizados}<br>
+            ⚠️ Errores: ${data.errores || 0}`,
+            'Marcajes sincronizados'
+        );
+
         
         // 4. Opcional: Procesar los marcajes
         console.log('Datos recibidos:', JSON.parse(data.marcajes));

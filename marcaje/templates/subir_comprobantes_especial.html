@@ -1,30 +1,15 @@
 {% extends 'base.html' %}
 {% block title %}Subir Comprobantes{% endblock %}
-{% load auth_extras %}
 
 {% block content %}
 <div class="w-full max-w-7xl mx-auto bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-300">
-  <h2 class="text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Solicitudes sin comprobante</h2>
+  <h2 class="text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Solicitudes Especiales sin Comprobante</h2>
   <div class="flex justify-end items-end space-x-4 mb-4 -mt-10">
-    {% if request.user|has_group:"rrhh" %}
-      <a href="{% url 'subir_comprobantes_especial' %}" class="bg-blue-600 text-white px-6 py-2 rounded-lg shadow hover:bg-blue-700 transition duration-200 flex items-center">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="inline w-5 h-5 align-middle mr-2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-        </svg>
-        Crear Solicitud Especial
-      </a>
-    {% endif %}
-    <a href="{% url 'crear_permiso' %}" class="bg-blue-600 text-white px-6 py-2 rounded-lg shadow hover:bg-blue-700 transition duration-200 flex items-center">
+    <a href="{% url 'crear_permiso_especial' %}" class="bg-blue-600 text-white px-6 py-2 rounded-lg shadow hover:bg-blue-700 transition duration-200 flex items-center">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="inline w-5 h-5 align-middle mr-2">
         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
       </svg>
       Crear Solicitud
-    </a>
-    <a href="{% url 'crear_incapacidad' %}" class="bg-blue-600 text-white px-6 py-2 rounded-lg shadow hover:bg-blue-700 transition duration-200 flex items-center">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="inline w-5 h-5 align-middle mr-2">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-      </svg>
-      Crear Incapacidad
     </a>
   </div>
   <div class="overflow-x-auto">
@@ -37,43 +22,35 @@
           <th class="px-4 py-2" style="text-align: center;">Fecha Fin</th>
           <th class="px-4 py-2" style="text-align: center;">Motivo</th>
           <th class="px-4 py-2" style="text-align: center;">Estado</th>
-          <th class="px-4 py-2" style="text-align: center;">Comentarios</th>
           <th class="px-4 py-2" style="text-align: center;">Subir comprobante</th>
           <th class="px-4 py-2" style="text-align: center;">Ver Solicitud</th>
         </tr>
       </thead>
       <tbody>
         {% for s in solicitudes %}
-        <tr id="permiso-{{s.permiso.id}}" class="text-center border-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200">
-          <td class="px-4 py-2">{{ s.permiso.id }}</td>
-          <td class="px-4 py-2">{{ s.permiso.empleado }}</td>
-          <td class="px-4 py-2">{{ s.permiso.fecha_inicio|date:"d/m/Y" }}</td>
-          <td class="px-4 py-2">{{ s.permiso.fecha_final|date:"d/m/Y" }}</td>
-          <td class="px-4 py-2">{{ s.permiso.descripcion }}</td>
-          <td class="px-4 py-2">{{ s.permiso.estado_solicitud }}</td>
-          <td class="px-4 py-2">
-            {% if s.permiso.estado_solicitud == 'SB' and s.historial %}
-              {{ s.historial.comentarios }}
-            {% else %}
-                —
-            {% endif %}
-          </td>
+        <tr id="permiso-{{s.id}}" class="text-center border-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200">
+          <td class="px-4 py-2">{{ s.id }}</td>
+          <td class="px-4 py-2">{{ s.empleado }}</td>
+          <td class="px-4 py-2">{{ s.fecha_inicio|date:"d/m/Y" }}</td>
+          <td class="px-4 py-2">{{ s.fecha_final|date:"d/m/Y" }}</td>
+          <td class="px-4 py-2">{{ s.descripcion }}</td>
+          <td class="px-4 py-2">{{ s.estado_solicitud }}</td>
           <td class="px-4 py-2">
             <button 
               class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-sm hover:text-white transition"
-              hx-get="{% url 'form_comprobante' s.permiso.id %}"
-              hx-target="#formulario-{{ s.permiso.id }}"
+              hx-get="{% url 'form_comprobante' s.id %}"
+              hx-target="#formulario-{{ s.id }}"
               hx-swap="innerHTML">
              <svg xmlns="http://www.w3.org/2000/svg" class="inline w-4 h-4 mr-1 -mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5-5m0 0l5 5m-5-5v12" />
               </svg>
               Subir Comprobante
             </button>
-            <div id="formulario-{{ s.permiso.id }}" class="mt-2"></div>
+            <div id="formulario-{{ s.id }}" class="mt-2"></div>
           </td>
           <td class="px-4 py-2">
             <div class="flex flex-nowrap items-center">
-              <a href="{% url 'ficha_permiso' s.permiso.id %}" target="_blank" class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 text-sm hover:text-white transition flex items-center whitespace-nowrap">
+              <a href="{% url 'ficha_permiso' s.id %}" target="_blank" class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 text-sm hover:text-white transition flex items-center whitespace-nowrap">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="inline w-4 h-4 mr-1 -mt-1 flex-shrink-0">
                   <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
                   <path fill-rule="evenodd" d="M1.323 11.447C2.811 6.976 7.028 3.75 12.001 3.75c4.97 0 9.185 3.223 10.675 7.69.12.362.12.752 0 1.113-1.487 4.471-5.705 7.697-10.677 7.697-4.97 0-9.186-3.223-10.675-7.69a1.762 1.762 0 0 1 0-1.113ZM17.25 12a5.25 5.25 0 1 1-10.5 0 5.25 5.25 0 0 1 10.5 0Z" clip-rule="evenodd" />
@@ -109,7 +86,4 @@
     }
   });
 </script>
-
-
-
 {% endblock %}
