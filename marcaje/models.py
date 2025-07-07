@@ -12,8 +12,12 @@ class Empleado(models.Model):
     codigo = models.CharField(max_length=20)
     nombre = models.CharField(max_length=100)
     departamento = models.CharField(max_length=100)
-    sucursal = models.ForeignKey(Sucursal, on_delete=models.PROTECT)
+    sucursal = models.ForeignKey('Sucursal', on_delete=models.SET_NULL, null=True)
+    tipo_nomina = models.CharField(max_length=100, blank=True, null=True)
     es_encargado = models.BooleanField(default=False)
+
+    # nuevo campo
+    activo = models.BooleanField(default=True)
     class Meta:
         verbose_name = "Empleado"
         verbose_name_plural = "Empleados"

@@ -10,6 +10,7 @@ from django.template.loader import render_to_string
 import requests
 from django.http import JsonResponse, Http404
 from .sync import sincronizar_empleados
+from .sync import sincronizar_todas_sucursales
 from .sync_marcaje import sincronizar_marcajes
 from django.core import serializers
 from django.views.decorators.http import require_POST
@@ -69,7 +70,18 @@ def empleados_proxy(request):
         )
 # @csrf_exempt  
 def asistencias_api(request):
-    target_url = "http://192.168.11.12:8003/api/asistencias/?fecha=2025-07-04"
+    if request.method == 'GET':
+        fecha_str = request.GET.get('fecha')
+        
+        if fecha_str:
+            try:
+                fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
+            except ValueError:
+                return JsonResponse({'error': 'Formato de fecha inválido'}, status=400)
+        else:
+            fecha = timezone.now().date()
+            
+    target_url = f"http://192.168.11.12:8003/api/asistencias/?fecha={fecha.strftime('%Y-%m-%d')}"
     
     headers = {
         "X-API-Key": "bec740b7-839b-4268-bb4e-a9d44b51a326"  # o "x-api-key": "TU_API_KEY"
@@ -89,19 +101,26 @@ def asistencias_api(request):
             {'error': str(e)},
             status=500
         )
-
+    
 @login_required
 @grupo_requerido('rrhh')
 def sync_empleados_view(request):
-    if request.method == 'POST':
-        resultado = sincronizar_empleados()
+    resultados = sincronizar_todas_sucursales()
+    
+    total_creados = sum(r.get('creados', 0) for r in resultados if r.get('status') == 'success')
+    total_actualizados = sum(r.get('actualizados', 0) for r in resultados if r.get('status') == 'success')
 
-        empleados = Empleado.objects.all()
-        empleados_json = serializers.serialize('json', empleados)
-            
-        resultado['empleados'] = empleados_json  # Agrega los datos al resultado
-        return JsonResponse(resultado)
-    return JsonResponse({'error': 'Método no permitido'}, status=405)
+    empleados = Empleado.objects.filter(activo=True)
+    empleados_json = serializers.serialize('json', empleados)
+
+    return JsonResponse({
+        'status': 'success',
+        'creados': total_creados,
+        'actualizados': total_actualizados,
+        'sincronizaciones': resultados,
+        'empleados': empleados_json,
+    })
+
 
 @login_required
 @grupo_requerido('rrhh')
@@ -128,7 +147,7 @@ def sync_marcaje_view(request):
         # Preparar respuesta compatible con tu frontend
         return JsonResponse({
             'status': 'success',
-            'message': f'Sincronización completada para {fecha_str}',
+            'message': f'Sincronización completada para {fecha}',
             'creados': resultado.get('creados', 0),
             'actualizados': resultado.get('actualizados', 0),
             'errores': resultado.get('errores', 0),
@@ -146,7 +165,7 @@ def sync_marcaje_view(request):
 @grupo_requerido('rrhh')
 def marcar(request):
     departamento = request.GET.get('departamento')
-    empleados = Empleado.objects.all()
+    empleados = Empleado.objects.filter(activo=True)
 
     if departamento:
         empleados = empleados.filter(departamento=departamento)
@@ -181,7 +200,6 @@ def lista_registros(request):
         'registros': registros,
         'empleados': empleados,
         'departamentos': departamentos,
-        
         'departamento_seleccionado': departamento,
         # 'sucursal__seleccionada': sucursal,
     }
@@ -200,7 +218,7 @@ def validar_asistencias(request):
     if sucursal_id and fecha_str:
         try:
             fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
-            empleados = Empleado.objects.filter(sucursal_id=sucursal_id)
+            empleados = Empleado.objects.filter(sucursal_id=sucursal_id, activo=True)
             
             for empleado in empleados:
                 marcaje_depurado = MarcajeDepurado.objects.filter(
@@ -269,6 +287,7 @@ def validar_asistencias(request):
                 resultados.append({
                     'fecha': fecha,
                     'sucursal': empleado.sucursal.nombre,
+                    'tipo_nomina': empleado.tipo_nomina,
                     'codigo': empleado.codigo,
                     'nombre': empleado.nombre,
                     'departamento': empleado.departamento,
@@ -1294,7 +1313,7 @@ def exportar_asistencias_excel(request):
     except ValueError:
         return HttpResponse("Fecha inválida", status=400)
 
-    empleados = Empleado.objects.filter(sucursal_id=sucursal_id)
+    empleados = Empleado.objects.filter(sucursal_id=sucursal_id, activo=True)
     resultados = []
 
     ESTADO_SOLICITUD = [
