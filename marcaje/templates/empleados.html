@@ -62,12 +62,23 @@
 
 <script src="{% static 'scripts/script.js' %}"></script>
 <script>
-    let table1 = $('#tabla-empleados').DataTable({
+function initDataTable() {
+    const table = $('#tabla-empleados');
+    if ($.fn.DataTable.isDataTable(table)) {
+        table.DataTable().destroy();
+    }
+
+    table.DataTable({
         pageLength: 10,
         lengthMenu: [10, 25, 50, 100],
         scrollY: 400,
-        ordering: false
+        ordering: true
     });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    initDataTable();
+});
 </script>
 
 {% endblock %}

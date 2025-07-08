@@ -125,7 +125,7 @@ def sincronizar_empleados(id_sucursal):
 
 def sincronizar_todas_sucursales():
     resultados = []
-    for sucursal in Sucursal.objects.all():
-        resultado = sincronizar_empleados(sucursal.id)
+    for id_sucursal in range(1, 11):
+        resultado = sincronizar_empleados(id_sucursal)
         resultados.append(resultado)
     return resultados
