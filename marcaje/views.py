@@ -57,7 +57,7 @@ def empleados_proxy(request):
         response = requests.get(
             target_url,
             headers=headers,
-            params={'sucursal': 1},
+            params={'sucursal': 4},
             timeout=10
         )
         response.raise_for_status()
@@ -328,7 +328,7 @@ def validar_asistencias(request):
 @grupo_requerido('rrhh')
 def crear_permiso_especial(request):
     tipo_permisos = TipoPermisos.objects.all()
-    empleados = Empleado.objects.all()  # Muestra todos los empleados
+    empleados = Empleado.objects.filter(activo=True)  # Muestra todos los empleados activos
 
     if request.method == 'POST':
         try:
@@ -479,7 +479,7 @@ def crear_permiso(request):
 @grupo_requerido('encargado')
 def crear_incapacidad(request):
     tipo_permisos = TipoPermisos.objects.filter(tipo__in=['Incapacidad sin Seguro Social', 'Incapacidad con Seguro Social'])
-    encargados = Empleado.objects.filter(es_encargado=True)
+    encargados = Empleado.objects.filter(es_encargado=True, activo=True)
 
     if request.method == 'POST':
         try:
@@ -584,8 +584,8 @@ def cargar_empleados_por_encargado(request):
 def get_empleados_por_encargado(request, encargado_id):
     encargado = get_object_or_404(Empleado, id=encargado_id, es_encargado=True)
     asignaciones = AsignacionEmpleadoEncargado.objects.select_related('empleado', 'encargado')
-    
-    asignaciones = AsignacionEmpleadoEncargado.objects.filter(encargado=encargado).select_related('empleado')
+
+    asignaciones = AsignacionEmpleadoEncargado.objects.filter(encargado=encargado, empleado__activo=True).select_related('empleado')
     empleados = [a.empleado for a in asignaciones]
 
     return render(request, 'asignados.html', {
@@ -607,8 +607,8 @@ def ver_empleados_asignados(request, encargado_id):
 @login_required
 @grupo_requerido('rrhh')
 def empleados_y_encargados(request):
-    empleados = Empleado.objects.filter(es_encargado=False)
-    encargados = Empleado.objects.filter(es_encargado=True)
+    empleados = Empleado.objects.filter(es_encargado=False, activo=True)
+    encargados = Empleado.objects.filter(es_encargado=True, activo=True)
 
     return render(request, 'emp_enc.html', {'empleados': empleados, 'encargados': encargados})
 
@@ -617,10 +617,11 @@ def empleados_y_encargados(request):
 def convertir_a_encargado(request, empleado_id):
     empleado = get_object_or_404(Empleado, id=empleado_id)
     empleado.es_encargado = True
+    empleado.activo = True
     empleado.save()
-        
-    empleados = Empleado.objects.filter(es_encargado=False)
-    encargados = Empleado.objects.filter(es_encargado=True)
+
+    empleados = Empleado.objects.filter(es_encargado=False, activo=True)
+    encargados = Empleado.objects.filter(es_encargado=True, activo=True)
     html = render_to_string('empleados_y_encargados.html', {
         'empleados': empleados,
         'encargados': encargados
@@ -631,12 +632,12 @@ def convertir_a_encargado(request, empleado_id):
 @grupo_requerido('rrhh')
 def convertir_a_empleado(request, empleado_id):
     empleado = get_object_or_404(Empleado, id=empleado_id)
-    empleados_asignados = Empleado.objects.filter(encargado_asignado__encargado=empleado)
+    empleados_asignados = Empleado.objects.filter(encargado_asignado__encargado=empleado, activo=True)
     
     if request.method == "POST":
         if empleados_asignados.exists() and not request.POST.get("reasignacion_completa"):
             # Mostrar formulario de reasignación
-            encargados_disponibles = Empleado.objects.filter(es_encargado=True).exclude(id=empleado.id)
+            encargados_disponibles = Empleado.objects.filter(es_encargado=True, activo=True).exclude(id=empleado.id)
             html = render_to_string('reasignar_encargado.html', {
                 'empleado': empleado,
                 'empleados_asignados': empleados_asignados,
@@ -656,10 +657,11 @@ def convertir_a_empleado(request, empleado_id):
 
         # Ahora sí, quita el rol
         empleado.es_encargado = False
+        empleado.activo = True  # Asegúrate de que el empleado siga activo
         empleado.save()
-    
-    empleados = Empleado.objects.filter(es_encargado=False)
-    encargados = Empleado.objects.filter(es_encargado=True)
+
+    empleados = Empleado.objects.filter(es_encargado=False, activo=True)
+    encargados = Empleado.objects.filter(es_encargado=True, activo=True)
     html = render_to_string('empleados_y_encargados.html', {
         'empleados': empleados,
         'encargados': encargados
@@ -670,7 +672,7 @@ def convertir_a_empleado(request, empleado_id):
 @login_required
 @grupo_requerido('rrhh')
 def ver_encargados(request):
-    encargados = Empleado.objects.filter(es_encargado=True)
+    encargados = Empleado.objects.filter(es_encargado=True, activo=True)
 
     return render(request, 'ver_encargados.html', {'encargados': encargados})
 
@@ -692,7 +694,7 @@ def asignar_empleados(request, encargado_id):
 
     # ✅ Incluye a encargados, excepto el encargado actual
     empleados_disponibles = Empleado.objects.filter(
-        encargado_asignado__isnull=True
+        encargado_asignado__isnull=True, activo=True
     )
 
     if departamento_seleccionado:
@@ -1121,7 +1123,10 @@ def asistencias_encargado(request):
     ESTADO_MAP = dict(ESTADO_SOLICITUD)
 
     empleados = []
-    asignaciones = AsignacionEmpleadoEncargado.objects.filter(encargado=encargado)
+    asignaciones = AsignacionEmpleadoEncargado.objects.filter(
+        encargado=encargado,
+        empleado__activo=True
+    ).select_related('empleado')
     empleados_asignados = [a.empleado for a in asignaciones]
 
     for empleado in empleados_asignados:
