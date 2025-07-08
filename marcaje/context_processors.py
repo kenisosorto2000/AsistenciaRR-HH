@@ -12,8 +12,7 @@ def empleados_a_cargo_context(request):
             if encargado.es_encargado:
                 # Trae todos los empleados asignados a este encargado
                 empleados_cargo = Empleado.objects.filter(
-                    encargado_asignado__encargado=encargado
-                )
+                    encargado_asignado__encargado=encargado, activo=True)
         except Empleado.DoesNotExist:
             encargado_obj = None
     return {'empleados_a_cargo_global': empleados_cargo, 'encargado': encargado_obj}
