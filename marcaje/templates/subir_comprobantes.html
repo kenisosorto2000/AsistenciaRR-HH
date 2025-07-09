@@ -50,7 +50,7 @@
           <td class="px-4 py-2">{{ s.permiso.fecha_inicio|date:"d/m/Y" }}</td>
           <td class="px-4 py-2">{{ s.permiso.fecha_final|date:"d/m/Y" }}</td>
           <td class="px-4 py-2">{{ s.permiso.descripcion }}</td>
-          <td class="px-4 py-2">{{ s.permiso.estado_solicitud }}</td>
+          <td class="px-4 py-2">{{ s.estado_rh_display }}</td>
           <td class="px-4 py-2">
             {% if s.permiso.estado_solicitud == 'SB' and s.historial %}
               {{ s.historial.comentarios }}

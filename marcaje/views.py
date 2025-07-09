@@ -743,18 +743,21 @@ def quitar_empleado_asignado(request, encargado_id, empleado_id):
 @login_required
 @grupo_requerido('rrhh')
 def solicitud_rh(request):
-    estado = 'P'
-    permisos = Permisos.objects.filter(Q(estado_solicitud=estado) | Q(estado_solicitud='SB')).order_by('-fecha_solicitud') #filter(permiso__estado_solicitud=estado)
+    permisos = Permisos.objects.filter(
+        Q(estado_solicitud='P') | Q(estado_solicitud='SB')
+    ).order_by('-fecha_solicitud')
 
     context = []
     for permiso in permisos:
         comprobante = PermisoComprobante.objects.filter(permiso=permiso).first()
         context.append({
             'permiso': permiso,
+            'estado_rh_display': permiso.get_estado_solicitud_display(),  # ✅ más limpio
             'comprobante': comprobante.comprobante.url if comprobante else None,
         })
 
-    return render(request, 'solicitudes_rh.html', {'permisos': context},)
+    return render(request, 'solicitudes_rh.html', {'permisos': context})
+
 
 @login_required
 @grupo_requerido('encargado')
@@ -770,6 +773,7 @@ def vista_solicitudes_encargado(request):
         comprobante = PermisoComprobante.objects.filter(permiso=permiso).first()
         context.append({
             'permiso': permiso,
+            'estado_rh_display': permiso.get_estado_solicitud_display(),
             'comprobante': comprobante.comprobante.url if comprobante else None,
         })
     return render(request, 'solicitudes_encargado.html', {'solicitudes': context})
@@ -786,19 +790,28 @@ def ver_historial_encargado(request):
         context.append({
             'permiso': permiso,
             'comprobante': comprobante.comprobante.url if comprobante else None,
+            'estado_rh_display': historial.solicitud.get_estado_solicitud_display(),
             'historial': historial,
         })
 
     return render(request, 'historial_solicitudes_encargado.html', {'solicitudes': context})
 
 def subir_comprobante_especial(request):
-    solicitudes = Permisos.objects.filter(
+    solicitudes_raw = Permisos.objects.filter(
         Q(tiene_comprobante=False) | Q(estado_solicitud='SB', pendiente_subsanar=True)
     ).order_by('-fecha_solicitud')
 
+    solicitudes = []
+    for permiso in solicitudes_raw:
+        solicitudes.append({
+            'permiso': permiso,
+            'estado_rh_display': permiso.get_estado_solicitud_display(),
+        })
+
     return render(request, 'subir_comprobantes_especial.html', {
-        'solicitudes': solicitudes,
+        'solicitudes': solicitudes
     })
+
 
 
 @login_required
@@ -819,6 +832,7 @@ def subir_comprobante(request):
         historial = GestionPermisoDetalle.objects.filter(solicitud=permiso).order_by('-fecha').first()
         solicitudes.append({
             'permiso': permiso,
+            'estado_rh_display': permiso.get_estado_solicitud_display(),
             'historial': historial,
         })
 
@@ -962,6 +976,7 @@ def ver_historial_solicitudes(request):
 
         context.append({
             'detalle': h,
+            'estado_rh_display': h.solicitud.get_estado_solicitud_display(),
             'comprobante_url': comprobante_url,
         })
     return render(request, 'historial_solicitudes.html', {'solicitudes': context})
@@ -1384,6 +1399,7 @@ def exportar_asistencias_excel(request):
         resultados.append({
             'fecha': fecha.strftime("%d/%m/%Y"),
             'sucursal': empleado.sucursal.nombre,
+            'tipo_nomina': empleado.tipo_nomina,
             'codigo': empleado.codigo,
             'nombre': empleado.nombre,
             'departamento': empleado.departamento,
@@ -1411,7 +1427,7 @@ def exportar_asistencias_excel(request):
     ws.title = "Asistencia"
 
     headers = [
-        "Fecha", "Sucursal", "Código", "Nombre", "Departamento",
+        "Fecha", "Sucursal", "Nómina", "Código", "Nombre", "Departamento",
         "Marca Entrada", "Marca Salida", "Estado RH", "Asistencia"
     ]
     ws.append(headers)
@@ -1424,6 +1440,7 @@ def exportar_asistencias_excel(request):
         ws.append([
             r['fecha'],
             r['sucursal'],
+            r['tipo_nomina'],
             r['codigo'],
             r['nombre'],
             r['departamento'],
@@ -1434,8 +1451,8 @@ def exportar_asistencias_excel(request):
         ])
         fila_actual = ws.max_row
         fill = PatternFill(start_color=r['color'], end_color=r['color'], fill_type='solid')
-        # Aplica color solo a la celda "Asistencia" (columna 9)
-        ws.cell(row=fila_actual, column=9).fill = fill
+        # Aplica color solo a la celda "Asistencia" (columna 10)
+        ws.cell(row=fila_actual, column=10).fill = fill
 
     response = HttpResponse(
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'

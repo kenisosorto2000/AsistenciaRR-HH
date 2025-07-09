@@ -36,7 +36,7 @@
             <td class="px-4 py-2">{{ p.permiso.fecha_inicio|date:"d/m/Y" }}</td>
             <td class="px-4 py-2">{{ p.permiso.fecha_final|date:"d/m/Y" }}</td>
             <td class="px-4 py-2">{{ p.permiso.descripcion }}</td>
-            <td class="px-4 py-2">{{ p.permiso.estado_solicitud }}</td>
+            <td class="px-4 py-2">{{ p.estado_rh_display }}</td>
             <td class="px-4 py-2">
               {% if p.comprobante %} 
                 <!-- <a href="{{ p.comprobante }}">{{p.comprobante}}</a> -->
