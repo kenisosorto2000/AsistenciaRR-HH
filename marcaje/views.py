@@ -31,6 +31,7 @@ from django.urls import reverse, reverse_lazy
 from django.db.models.functions import Upper, Trim
 from openpyxl import Workbook
 from openpyxl.styles import PatternFill, Font, Alignment
+from django.db.models import ProtectedError
 
 def grupo_requerido(nombre_grupo):
     def check(user):
@@ -229,7 +230,7 @@ def validar_asistencias(request):
                 ESTADO_SOLICITUD = [
                 ('P', 'Pendiente'),
                 ('A', 'Aprobada'),
-                ('SB', 'SUBSANADO'),
+                ('SB', 'Subsanar'),
                 ('R', 'Rechazada'),
                 ]
                 ESTADO_MAP = dict(ESTADO_SOLICITUD)
@@ -397,6 +398,90 @@ def crear_permiso_especial(request):
 
 
 @login_required
+@grupo_requerido('rrhh')
+def editar_permiso_especial(request, permiso_id):
+    permiso = get_object_or_404(Permisos, id=permiso_id)
+    tipo_permisos = TipoPermisos.objects.all()
+    empleados = Empleado.objects.filter(activo=True)
+
+    if request.method == 'POST':
+        try:
+            empleado_id = request.POST.get('empleado')
+            tipo_permiso_id = request.POST.get('tipo_permiso')
+            fecha_inicio = request.POST.get('fecha_inicio')
+            fecha_final = request.POST.get('fecha_final')
+            descripcion = request.POST.get('descripcion')
+            usar_hora = request.POST.get('usar_hora')
+
+            hora_inicio = request.POST.get('hora_inicio') if usar_hora else None
+            hora_final = request.POST.get('hora_final') if usar_hora else None
+
+            empleado = Empleado.objects.get(id=empleado_id)
+            tipo_permiso = TipoPermisos.objects.get(id=tipo_permiso_id)
+
+            if fecha_inicio > fecha_final:
+                messages.error(request, "La fecha de inicio no puede ser posterior a la fecha final.")
+                raise ValueError("Fechas inválidas")
+
+            traslape = Permisos.objects.filter(
+                empleado=empleado,
+                estado_solicitud__in=['P', 'A'],
+                fecha_inicio__lte=fecha_final,
+                fecha_final__gte=fecha_inicio
+            ).exclude(id=permiso.id).exists()
+
+            if traslape:
+                messages.error(request, "Ya existe un permiso pendiente o aprobado que se traslapa con estas fechas.")
+                raise ValueError("Traslape detectado")
+
+            # Actualizar campos
+            permiso.empleado = empleado
+            permiso.tipo_permiso = tipo_permiso
+            permiso.fecha_inicio = fecha_inicio
+            permiso.fecha_final = fecha_final
+            permiso.descripcion = descripcion
+            permiso.hora_inicio = hora_inicio
+            permiso.hora_final = hora_final
+            permiso.encargado = None  # sigue sin encargado
+            permiso.save()
+
+            messages.success(request, "Permiso actualizado correctamente.")
+            return redirect('subir_comprobantes_especial')
+
+        except Empleado.DoesNotExist:
+            messages.error(request, 'Empleado no válido')
+        except Exception as e:
+            messages.error(request, f"Error al actualizar: {e}")
+
+    return render(request, 'editar_permiso_especial.html', {
+        'permiso': permiso,
+        'tipo_permisos': tipo_permisos,
+        'empleados': empleados,
+    })
+
+
+@login_required
+@grupo_requerido('rrhh')
+@login_required
+def eliminar_permiso_especial(request, permiso_id):
+    permiso = get_object_or_404(Permisos, id=permiso_id)
+
+    if request.method == 'POST':
+        try:
+            permiso.delete()
+            messages.success(request, "Permiso eliminado correctamente.")
+            return redirect('subir_comprobantes_especial')
+        except ProtectedError:
+            messages.error(request, "No se puede eliminar este permiso porque tiene registros relacionados.")
+            return redirect('subir_comprobantes_especial')
+        except Exception as e:
+            messages.error(request, f"Ocurrió un error: {e}")
+            return redirect('subir_comprobantes_especial')
+
+    return render(request, 'eliminar_permiso_especial.html', {'permiso': permiso})
+
+
+@login_required
 @grupo_requerido('encargado')
 def crear_permiso(request):
     tipo_permisos = TipoPermisos.objects.exclude(tipo__in=['Especial', 'Servicios Profesionales', 'Suspensión', 'Incapacidad sin Seguro Social', 'Incapacidad con Seguro Social', 'No marcó'])
@@ -475,6 +560,82 @@ def crear_permiso(request):
         'tipo_permisos': tipo_permisos,
         'encargados': encargados,
     })
+
+
+@login_required
+@grupo_requerido('encargado')
+def editar_permiso(request, permiso_id):
+    permiso = get_object_or_404(Permisos, id=permiso_id)
+    tipo_permisos = TipoPermisos.objects.exclude(tipo__in=[
+        'Especial', 'Servicios Profesionales', 'Suspensión',
+        'Incapacidad sin Seguro Social', 'Incapacidad con Seguro Social', 'No marcó'
+    ])
+    encargados = Empleado.objects.filter(es_encargado=True)
+
+    if request.method == 'POST':
+        try:
+            permiso.encargado_id = request.POST.get('encargado')
+            permiso.empleado_id = request.POST.get('empleado')
+            permiso.tipo_permiso_id = request.POST.get('tipo_permiso')
+            permiso.fecha_inicio = request.POST.get('fecha_inicio')
+            permiso.fecha_final = request.POST.get('fecha_final')
+            permiso.descripcion = request.POST.get('descripcion')
+
+            usar_hora = request.POST.get('usar_hora')
+            permiso.hora_inicio = request.POST.get('hora_inicio') if usar_hora else None
+            permiso.hora_final = request.POST.get('hora_final') if usar_hora else None
+
+            if permiso.fecha_inicio > permiso.fecha_final:
+                messages.error(request, "La fecha de inicio no puede ser posterior a la fecha final.")
+                return render(request, 'editar_permiso.html', {
+                    'permiso': permiso,
+                    'tipo_permisos': tipo_permisos,
+                    'encargados': encargados,
+                })
+
+            # Validar traslape excluyendo el permiso actual
+            traslape = Permisos.objects.filter(
+                empleado=permiso.empleado,
+                estado_solicitud__in=['P', 'A'],
+                fecha_inicio__lte=permiso.fecha_final,
+                fecha_final__gte=permiso.fecha_inicio
+            ).exclude(id=permiso.id).exists()
+
+            if traslape:
+                messages.error(request, "Ya existe un permiso pendiente o aprobado que se traslapa con estas fechas.")
+                return render(request, 'editar_permiso.html', {
+                    'permiso': permiso,
+                    'tipo_permisos': tipo_permisos,
+                    'encargados': encargados,
+                })
+
+            permiso.save()
+            messages.success(request, "Permiso actualizado correctamente.")
+            return redirect('subir_comprobantes')  # o donde lo necesites
+
+        except Exception as e:
+            messages.error(request, f"Error al actualizar: {e}")
+
+    return render(request, 'editar_permiso.html', {
+        'permiso': permiso,
+        'tipo_permisos': tipo_permisos,
+        'encargados': encargados,
+    })
+
+@login_required
+@grupo_requerido('encargado')
+@login_required
+def eliminar_permiso(request, permiso_id):
+    permiso = get_object_or_404(Permisos, id=permiso_id)
+
+    if request.method == 'POST':
+        permiso.delete()
+        return redirect('subir_comprobantes')
+
+    return render(request, 'eliminar_permiso.html', {'permiso': permiso})
+
+
+
 @login_required
 @grupo_requerido('encargado')
 def crear_incapacidad(request):
@@ -1132,7 +1293,7 @@ def asistencias_encargado(request):
     ESTADO_SOLICITUD = [
     ('P', 'Pendiente'),
     ('A', 'Aprobada'),
-    ('SB', 'SUBSANADO'),
+    ('SB', 'Subsanar'),
     ('R', 'Rechazada'),
     ]
     ESTADO_MAP = dict(ESTADO_SOLICITUD)
@@ -1339,7 +1500,7 @@ def exportar_asistencias_excel(request):
     ESTADO_SOLICITUD = [
         ('P', 'Pendiente'),
         ('A', 'Aprobada'),
-        ('SB', 'Subsanado'),
+        ('SB', 'Subsanar'),
         ('R', 'Rechazada'),
     ]
     ESTADO_MAP = dict(ESTADO_SOLICITUD)

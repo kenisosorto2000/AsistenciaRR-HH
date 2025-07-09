@@ -79,7 +79,7 @@ class Permisos(models.Model):
     ESTADO_SOLICITUD = [
         ('P', 'Pendiente'),
         ('A', 'Aprobada'),
-        ('SB', 'Subsanado'),
+        ('SB', 'Subsanar'),
         ('R', 'Rechazada'),
     ]
     encargado = models.ForeignKey(Empleado, related_name="solicitudes_enviadas", on_delete=models.PROTECT, null=True, blank=True)
