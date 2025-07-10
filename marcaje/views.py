@@ -484,7 +484,7 @@ def eliminar_permiso_especial(request, permiso_id):
 @login_required
 @grupo_requerido('encargado')
 def crear_permiso(request):
-    tipo_permisos = TipoPermisos.objects.exclude(tipo__in=['Especial', 'Servicios Profesionales', 'Salió', 'Suspensión', 'Incapacidad sin Seguro Social', 'Incapacidad con Seguro Social', 'No marcó'])
+    tipo_permisos = TipoPermisos.objects.exclude(tipo__in=['Especial', 'Servicios Profesionales', 'Salió', 'Suspensión', 'Incapacidad sin Seguro Social', 'Incapacidad con Seguro Social', 'No marcó', 'Domingo'])
     encargados = Empleado.objects.filter(es_encargado=True)
 
     if request.method == 'POST':
@@ -1317,21 +1317,23 @@ def asistencias_encargado(request):
     empleados_asignados = [a.empleado for a in asignaciones]
 
     for empleado in empleados_asignados:
-        tiene_marcaje = MarcajeDepurado.objects.filter(empleado=empleado, fecha=fecha).exists()
-        
+        marcaje_depurado = MarcajeDepurado.objects.filter(empleado=empleado, fecha=fecha).first()
+
         permiso_justificado = Permisos.objects.filter(
                 empleado=empleado, 
                 fecha_inicio__lte=fecha,
                 fecha_final__gte=fecha
             ).select_related('tipo_permiso').first()
-        
-        
-        if tiene_marcaje:
+
+
+        if marcaje_depurado:
             estado = 'ASISTIÓ'
             simbolo_permiso = None
             color = None
             estado_rh = None
             estado_rh_display = None
+            entrada = marcaje_depurado.entrada.strftime('%H:%M') if marcaje_depurado.entrada else '--:--'
+            salida = marcaje_depurado.salida.strftime('%H:%M') if marcaje_depurado.salida else '--:--'
 
         elif permiso_justificado:
             estado = 'JUSTIFICADO'
@@ -1339,13 +1341,17 @@ def asistencias_encargado(request):
             color = permiso_justificado.tipo_permiso.cod_color
             estado_rh = permiso_justificado.estado_solicitud
             estado_rh_display = ESTADO_MAP.get(estado_rh, estado_rh)
+            entrada = simbolo_permiso
+            salida = '--:--'
 
-        elif fecha.weekday() == 6:  # 6 = Domingo
+        elif fecha.weekday() == 6:
             estado = 'DOMINGO'
             simbolo_permiso = None
-            color = "#00f7ff"  # Amarillo, puedes personalizarlo
+            color = "#00f7ff"
             estado_rh = None
             estado_rh_display = 'Descanso dominical'
+            entrada = 'DO'
+            salida = '--:--'
 
         else:
             estado = 'FALTÓ'
@@ -1353,17 +1359,23 @@ def asistencias_encargado(request):
             color = None
             estado_rh = None
             estado_rh_display = None
+            entrada = '--:--'
+            salida = '--:--'
         
         empleados.append({
+            'fecha': fecha,
             'codigo': empleado.codigo,
             'nombre': empleado.nombre,
             'departamento': empleado.departamento,
             'sucursal': empleado.sucursal.nombre,
+            'tipo_nomina': empleado.tipo_nomina,
             'estado': estado,
             'simbolo_permiso': simbolo_permiso,
             'color': color,
             'estado_rh': estado_rh,
             'estado_rh_display': estado_rh_display,
+            'entrada': entrada,
+            'salida': salida,
         })
 
     return render(request, 'asistencias_encargado.html', {
@@ -1371,6 +1383,140 @@ def asistencias_encargado(request):
         'encargado': encargado,
         'empleados': empleados,
     })
+
+@login_required
+@grupo_requerido('encargado')
+def exportar_asistencias_encargado_excel(request):
+    user = request.user
+    try:
+        encargado = Empleado.objects.get(user=user, es_encargado=True)
+    except Empleado.DoesNotExist:
+        return HttpResponse("No tiene permisos para exportar", status=403)
+
+    fecha_str = request.GET.get('fecha')
+    if not fecha_str:
+        return HttpResponse("Fecha no proporcionada", status=400)
+
+    try:
+        fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
+    except ValueError:
+        return HttpResponse("Fecha inválida", status=400)
+
+    asignaciones = AsignacionEmpleadoEncargado.objects.filter(
+        encargado=encargado,
+        empleado__activo=True
+    ).select_related('empleado')
+    empleados = [a.empleado for a in asignaciones]
+
+    ESTADO_SOLICITUD = [
+        ('P', 'Pendiente'),
+        ('A', 'Aprobada'),
+        ('SB', 'Subsanar'),
+        ('R', 'Rechazada'),
+    ]
+    ESTADO_MAP = dict(ESTADO_SOLICITUD)
+
+    resultados = []
+
+    for empleado in empleados:
+        marcaje_depurado = MarcajeDepurado.objects.filter(empleado=empleado, fecha=fecha).first()
+        permiso_justificado = Permisos.objects.filter(
+            empleado=empleado,
+            fecha_inicio__lte=fecha,
+            fecha_final__gte=fecha
+        ).select_related('tipo_permiso').first()
+
+        nombre_tipo = permiso_justificado.tipo_permiso.tipo if permiso_justificado else None
+        simbolo_permiso = permiso_justificado.tipo_permiso.simbolo if permiso_justificado else None
+
+        if marcaje_depurado:
+            estado = 'ASISTIÓ'
+            color = '38c172'
+            estado_rh_display = None
+            entrada = marcaje_depurado.entrada.strftime('%H:%M') if marcaje_depurado.entrada else '--:--'
+            salida = marcaje_depurado.salida.strftime('%H:%M') if marcaje_depurado.salida else '--:--'
+        elif permiso_justificado:
+            estado = 'JUSTIFICADO'
+            color = permiso_justificado.tipo_permiso.cod_color.lstrip('#') if permiso_justificado.tipo_permiso.cod_color else 'fbbf24'
+            estado_rh_display = ESTADO_MAP.get(permiso_justificado.estado_solicitud, permiso_justificado.estado_solicitud)
+            entrada = simbolo_permiso
+            salida = '--:--'
+        elif fecha.weekday() == 6:
+            estado = 'DOMINGO'
+            color = "00f7ff"
+            estado_rh_display = 'Descanso dominical'
+            entrada = 'DO'
+            salida = '--:--'
+        else:
+            estado = 'FALTÓ'
+            color = 'e3342f'
+            estado_rh_display = None
+            entrada = '--:--'
+            salida = '--:--'
+
+        if estado == 'ASISTIÓ':
+            estado_simbolo = '✔'
+        elif estado == 'FALTÓ':
+            estado_simbolo = 'X'
+        elif estado == 'DOMINGO':
+            estado_simbolo = 'DO'
+        elif estado == 'JUSTIFICADO':
+            estado_simbolo = nombre_tipo or ''
+        else:
+            estado_simbolo = ''
+
+        resultados.append({
+            'fecha': fecha.strftime("%d/%m/%Y"),
+            'sucursal': empleado.sucursal.nombre,
+            'tipo_nomina': empleado.tipo_nomina,
+            'codigo': empleado.codigo,
+            'nombre': empleado.nombre,
+            'departamento': empleado.departamento,
+            'entrada': entrada,
+            'salida': salida,
+            'estado_rh_display': estado_rh_display or '',
+            'estado_simbolo': estado_simbolo,
+            'color': color,
+        })
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Asistencia"
+
+    headers = [
+        "Fecha", "Sucursal", "Nómina", "Código", "Nombre", "Departamento",
+        "Marca Entrada", "Marca Salida", "Estado RH", "Asistencia"
+    ]
+    ws.append(headers)
+
+    for cell in ws[ws.max_row]:
+        cell.font = Font(bold=True)
+        cell.alignment = Alignment(horizontal='center')
+
+    for r in resultados:
+        ws.append([
+            r['fecha'],
+            r['sucursal'],
+            r['tipo_nomina'],
+            r['codigo'],
+            r['nombre'],
+            r['departamento'],
+            r['entrada'],
+            r['salida'],
+            r['estado_rh_display'],
+            r['estado_simbolo'],
+        ])
+        fila_actual = ws.max_row
+        fill = PatternFill(start_color=r['color'], end_color=r['color'], fill_type='solid')
+        ws.cell(row=fila_actual, column=10).fill = fill
+
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    filename = f"asistencia_{encargado.nombre}_{fecha.strftime('%d-%m-%Y')}.xlsx"
+    response['Content-Disposition'] = f'attachment; filename={filename}'
+    wb.save(response)
+    return response
 
 @login_required
 @grupo_requerido('rrhh')
