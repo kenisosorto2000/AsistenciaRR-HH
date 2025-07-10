@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block title %}Eliminar Permiso{% endblock %}
+
+{% block content %}
+<div class="max-w-xl mx-auto bg-white dark:bg-gray-800 p-6 mt-12 rounded-xl shadow-md border border-red-300">
+    <div class="text-center">
+        <h1 class="text-2xl font-bold text-red-600 dark:text-red-400 mb-4">Eliminar Solicitud de Permiso</h1>
+        <p class="text-gray-700 dark:text-gray-300 mb-6">
+            ¿Estás seguro que deseas eliminar esta solicitud de permiso para <strong>{{ permiso.empleado.nombre }}</strong> 
+            del <strong>{{ permiso.fecha_inicio|date:"d/m/Y" }}</strong> al 
+            <strong>{{ permiso.fecha_final|date:"d/m/Y" }}</strong>?
+        </p>
+
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+            <div class="flex justify-center space-x-4">
+                <a href="{% url 'subir_comprobantes_especial' %}" class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-lg shadow">
+                    Cancelar
+                </a>
+                <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg shadow">
+                    Sí, eliminar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

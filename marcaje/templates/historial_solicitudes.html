@@ -17,6 +17,7 @@
             <th class="px-4 py-3" style="text-align: center;">Comentarios</th>
             <th class="px-4 py-3" style="text-align: center;">Fecha Revision</th>
             <th class="px-4 py-3" style="text-align: center;">Comprobantes</th>
+            <th class="px-4 py-3" style="text-align: center;">Acciones</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
@@ -24,9 +25,15 @@
           <tr class="hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200">
             <td class="px-4 py-2">{{ s.detalle.solicitud.empleado }}</td>
             <td class="px-4 py-2">{{ s.detalle.solicitud.tipo_permiso.tipo }}</td>
-            <td class="px-4 py-2">{{ s.detalle.solicitud.fecha_solicitud|date:"d/m/Y" }}</td>
+            <td class="px-4 py-2">{{ s.detalle.solicitud.fecha_solicitud|date:"d/m/Y H:i:s" }}</td>
             <td class="px-4 py-2">{{ s.detalle.revisada_por }}</td>
-            <td class="px-4 py-2">{{ s.detalle.accion_realizada }}</td>
+            <td class="px-4 py-2">
+              {% if s.detalle.accion_realizada == 'SB' %}
+                  Subsanar
+              {% else %}
+                  {{ s.estado_rh_display }}
+              {% endif %}
+            </td>
             <td class="px-4 py-2">{{ s.detalle.comentarios }}</td>
             <td class="px-4 py-2">{{ s.detalle.fecha|date:"d/m/Y H:i" }}</td>
             <td class="px-4 py-2">
@@ -42,6 +49,18 @@
               </button>
               {% else %}
               <p>Sin comprobante</p>
+              {% endif %}
+            </td>
+            <td class="px-4 py-2">
+              {% if s.detalle.accion_realizada == 'A' %}
+                <!-- Botón Eliminar -->
+                <a href="{% url 'eliminar_permiso' s.detalle.solicitud.id %}" 
+                  class="inline-flex items-center px-3 py-1 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold rounded shadow transition duration-150">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    Eliminar
+                </a>
               {% endif %}
             </td>
           </tr>

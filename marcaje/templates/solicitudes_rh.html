@@ -15,6 +15,7 @@
       <table id="permisos-pendientes" class="min-w-full text-sm text-left text-gray-800 dark:text-gray-200 border border-gray-300">
         <thead class="bg-gray-100 dark:bg-gray-600 sticky top-[0px] z-10 uppercase text-xs">
           <tr>
+            <th class="px-4 py-3" style="text-align: center;">Fecha Solicitud</th>
             <th class="px-4 py-3" style="text-align: center;">Encargado</th>
             <th class="px-4 py-3" style="text-align: center;">Empleado</th>
             <th class="px-4 py-3" style="text-align: center;">Tipo Permiso</th>
@@ -30,13 +31,14 @@
         <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
           {% for p in permisos %}
           <tr class="text-center hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200">
+            <td class="px-4 py-2">{{ p.permiso.fecha_solicitud|date:"d/m/Y H:i" }}</td>
             <td class="px-4 py-2">{{ p.permiso.encargado }}</td>
             <td class="px-4 py-2">{{ p.permiso.empleado }}</td>
             <td class="px-4 py-2">{{ p.permiso.tipo_permiso.tipo }}</td>
             <td class="px-4 py-2">{{ p.permiso.fecha_inicio|date:"d/m/Y" }}</td>
             <td class="px-4 py-2">{{ p.permiso.fecha_final|date:"d/m/Y" }}</td>
             <td class="px-4 py-2">{{ p.permiso.descripcion }}</td>
-            <td class="px-4 py-2">{{ p.permiso.estado_solicitud }}</td>
+            <td class="px-4 py-2">{{ p.estado_rh_display }}</td>
             <td class="px-4 py-2">
               {% if p.comprobante %} 
                 <!-- <a href="{{ p.comprobante }}">{{p.comprobante}}</a> -->

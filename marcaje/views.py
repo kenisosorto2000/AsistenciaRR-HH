@@ -31,6 +31,7 @@ from django.urls import reverse, reverse_lazy
 from django.db.models.functions import Upper, Trim
 from openpyxl import Workbook
 from openpyxl.styles import PatternFill, Font, Alignment
+from django.db.models import ProtectedError
 
 def grupo_requerido(nombre_grupo):
     def check(user):
@@ -70,18 +71,18 @@ def empleados_proxy(request):
         )
 # @csrf_exempt  
 def asistencias_api(request):
-    if request.method == 'GET':
-        fecha_str = request.GET.get('fecha')
+    # if request.method == 'GET':
+    #     fecha_str = request.GET.get('fecha')
         
-        if fecha_str:
-            try:
-                fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
-            except ValueError:
-                return JsonResponse({'error': 'Formato de fecha inválido'}, status=400)
-        else:
-            fecha = timezone.now().date()
+    #     if fecha_str:
+    #         try:
+    #             fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
+    #         except ValueError:
+    #             return JsonResponse({'error': 'Formato de fecha inválido'}, status=400)
+    #     else:
+    #         fecha = timezone.now().date()
             
-    target_url = f"http://192.168.11.12:8003/api/asistencias/?fecha={fecha.strftime('%Y-%m-%d')}"
+    target_url = f"http://192.168.11.12:8003/api/asistencias/?fecha=2025-07-10"  #?fecha={fecha.strftime('%Y-%m-%d')}"
     
     headers = {
         "X-API-Key": "bec740b7-839b-4268-bb4e-a9d44b51a326"  # o "x-api-key": "TU_API_KEY"
@@ -229,7 +230,7 @@ def validar_asistencias(request):
                 ESTADO_SOLICITUD = [
                 ('P', 'Pendiente'),
                 ('A', 'Aprobada'),
-                ('SB', 'SUBSANADO'),
+                ('SB', 'Subsanar'),
                 ('R', 'Rechazada'),
                 ]
                 ESTADO_MAP = dict(ESTADO_SOLICITUD)
@@ -397,9 +398,93 @@ def crear_permiso_especial(request):
 
 
 @login_required
+@grupo_requerido('rrhh')
+def editar_permiso_especial(request, permiso_id):
+    permiso = get_object_or_404(Permisos, id=permiso_id)
+    tipo_permisos = TipoPermisos.objects.all()
+    empleados = Empleado.objects.filter(activo=True)
+
+    if request.method == 'POST':
+        try:
+            empleado_id = request.POST.get('empleado')
+            tipo_permiso_id = request.POST.get('tipo_permiso')
+            fecha_inicio = request.POST.get('fecha_inicio')
+            fecha_final = request.POST.get('fecha_final')
+            descripcion = request.POST.get('descripcion')
+            usar_hora = request.POST.get('usar_hora')
+
+            hora_inicio = request.POST.get('hora_inicio') if usar_hora else None
+            hora_final = request.POST.get('hora_final') if usar_hora else None
+
+            empleado = Empleado.objects.get(id=empleado_id)
+            tipo_permiso = TipoPermisos.objects.get(id=tipo_permiso_id)
+
+            if fecha_inicio > fecha_final:
+                messages.error(request, "La fecha de inicio no puede ser posterior a la fecha final.")
+                raise ValueError("Fechas inválidas")
+
+            traslape = Permisos.objects.filter(
+                empleado=empleado,
+                estado_solicitud__in=['P', 'A'],
+                fecha_inicio__lte=fecha_final,
+                fecha_final__gte=fecha_inicio
+            ).exclude(id=permiso.id).exists()
+
+            if traslape:
+                messages.error(request, "Ya existe un permiso pendiente o aprobado que se traslapa con estas fechas.")
+                raise ValueError("Traslape detectado")
+
+            # Actualizar campos
+            permiso.empleado = empleado
+            permiso.tipo_permiso = tipo_permiso
+            permiso.fecha_inicio = fecha_inicio
+            permiso.fecha_final = fecha_final
+            permiso.descripcion = descripcion
+            permiso.hora_inicio = hora_inicio
+            permiso.hora_final = hora_final
+            permiso.encargado = None  # sigue sin encargado
+            permiso.save()
+
+            messages.success(request, "Permiso actualizado correctamente.")
+            return redirect('subir_comprobantes_especial')
+
+        except Empleado.DoesNotExist:
+            messages.error(request, 'Empleado no válido')
+        except Exception as e:
+            messages.error(request, f"Error al actualizar: {e}")
+
+    return render(request, 'editar_permiso_especial.html', {
+        'permiso': permiso,
+        'tipo_permisos': tipo_permisos,
+        'empleados': empleados,
+    })
+
+
+@login_required
+@grupo_requerido('rrhh')
+@login_required
+def eliminar_permiso_especial(request, permiso_id):
+    permiso = get_object_or_404(Permisos, id=permiso_id)
+
+    if request.method == 'POST':
+        try:
+            permiso.delete()
+            messages.success(request, "Permiso eliminado correctamente.")
+            return redirect('subir_comprobantes_especial')
+        except ProtectedError:
+            messages.error(request, "No se puede eliminar este permiso porque tiene registros relacionados.")
+            return redirect('subir_comprobantes_especial')
+        except Exception as e:
+            messages.error(request, f"Ocurrió un error: {e}")
+            return redirect('subir_comprobantes_especial')
+
+    return render(request, 'eliminar_permiso_especial.html', {'permiso': permiso})
+
+
+@login_required
 @grupo_requerido('encargado')
 def crear_permiso(request):
-    tipo_permisos = TipoPermisos.objects.exclude(tipo__in=['Especial', 'Servicios Profesionales', 'Suspensión', 'Incapacidad sin Seguro Social', 'Incapacidad con Seguro Social', 'No marcó'])
+    tipo_permisos = TipoPermisos.objects.exclude(tipo__in=['Especial', 'Servicios Profesionales', 'Salió', 'Suspensión', 'Incapacidad sin Seguro Social', 'Incapacidad con Seguro Social', 'No marcó', 'Domingo'])
     encargados = Empleado.objects.filter(es_encargado=True)
 
     if request.method == 'POST':
@@ -475,6 +560,82 @@ def crear_permiso(request):
         'tipo_permisos': tipo_permisos,
         'encargados': encargados,
     })
+
+
+@login_required
+@grupo_requerido('encargado')
+def editar_permiso(request, permiso_id):
+    permiso = get_object_or_404(Permisos, id=permiso_id)
+    tipo_permisos = TipoPermisos.objects.exclude(tipo__in=[
+        'Especial', 'Servicios Profesionales', 'Suspensión',
+        'Incapacidad sin Seguro Social', 'Incapacidad con Seguro Social', 'No marcó'
+    ])
+    encargados = Empleado.objects.filter(es_encargado=True)
+
+    if request.method == 'POST':
+        try:
+            permiso.encargado_id = request.POST.get('encargado')
+            permiso.empleado_id = request.POST.get('empleado')
+            permiso.tipo_permiso_id = request.POST.get('tipo_permiso')
+            permiso.fecha_inicio = request.POST.get('fecha_inicio')
+            permiso.fecha_final = request.POST.get('fecha_final')
+            permiso.descripcion = request.POST.get('descripcion')
+
+            usar_hora = request.POST.get('usar_hora')
+            permiso.hora_inicio = request.POST.get('hora_inicio') if usar_hora else None
+            permiso.hora_final = request.POST.get('hora_final') if usar_hora else None
+
+            if permiso.fecha_inicio > permiso.fecha_final:
+                messages.error(request, "La fecha de inicio no puede ser posterior a la fecha final.")
+                return render(request, 'editar_permiso.html', {
+                    'permiso': permiso,
+                    'tipo_permisos': tipo_permisos,
+                    'encargados': encargados,
+                })
+
+            # Validar traslape excluyendo el permiso actual
+            traslape = Permisos.objects.filter(
+                empleado=permiso.empleado,
+                estado_solicitud__in=['P', 'A'],
+                fecha_inicio__lte=permiso.fecha_final,
+                fecha_final__gte=permiso.fecha_inicio
+            ).exclude(id=permiso.id).exists()
+
+            if traslape:
+                messages.error(request, "Ya existe un permiso pendiente o aprobado que se traslapa con estas fechas.")
+                return render(request, 'editar_permiso.html', {
+                    'permiso': permiso,
+                    'tipo_permisos': tipo_permisos,
+                    'encargados': encargados,
+                })
+
+            permiso.save()
+            messages.success(request, "Permiso actualizado correctamente.")
+            return redirect('subir_comprobantes')  # o donde lo necesites
+
+        except Exception as e:
+            messages.error(request, f"Error al actualizar: {e}")
+
+    return render(request, 'editar_permiso.html', {
+        'permiso': permiso,
+        'tipo_permisos': tipo_permisos,
+        'encargados': encargados,
+    })
+
+@login_required
+@grupo_requerido('encargado')
+@login_required
+def eliminar_permiso(request, permiso_id):
+    permiso = get_object_or_404(Permisos, id=permiso_id)
+
+    if request.method == 'POST':
+        permiso.delete()
+        return redirect('subir_comprobantes')
+
+    return render(request, 'eliminar_permiso.html', {'permiso': permiso})
+
+
+
 @login_required
 @grupo_requerido('encargado')
 def crear_incapacidad(request):
@@ -744,17 +905,19 @@ def quitar_empleado_asignado(request, encargado_id, empleado_id):
 @grupo_requerido('rrhh')
 def solicitud_rh(request):
     estado = 'P'
-    permisos = Permisos.objects.filter(Q(estado_solicitud=estado) | Q(estado_solicitud='SB')).order_by('-fecha_solicitud') #filter(permiso__estado_solicitud=estado)
+    permisos = Permisos.objects.filter(Q(estado_solicitud=estado) | Q(estado_solicitud='SB')).order_by('-fecha_solicitud')
 
     context = []
     for permiso in permisos:
         comprobante = PermisoComprobante.objects.filter(permiso=permiso).first()
         context.append({
             'permiso': permiso,
+            'estado_rh_display': permiso.get_estado_solicitud_display(),  # ✅ más limpio
             'comprobante': comprobante.comprobante.url if comprobante else None,
         })
 
     return render(request, 'solicitudes_rh.html', {'permisos': context},)
+
 
 @login_required
 @grupo_requerido('encargado')
@@ -770,6 +933,7 @@ def vista_solicitudes_encargado(request):
         comprobante = PermisoComprobante.objects.filter(permiso=permiso).first()
         context.append({
             'permiso': permiso,
+            'estado_rh_display': permiso.get_estado_solicitud_display(),
             'comprobante': comprobante.comprobante.url if comprobante else None,
         })
     return render(request, 'solicitudes_encargado.html', {'solicitudes': context})
@@ -786,19 +950,28 @@ def ver_historial_encargado(request):
         context.append({
             'permiso': permiso,
             'comprobante': comprobante.comprobante.url if comprobante else None,
+            'estado_rh_display': historial.solicitud.get_estado_solicitud_display(),
             'historial': historial,
         })
 
     return render(request, 'historial_solicitudes_encargado.html', {'solicitudes': context})
 
 def subir_comprobante_especial(request):
-    solicitudes = Permisos.objects.filter(
+    solicitudes_raw = Permisos.objects.filter(
         Q(tiene_comprobante=False) | Q(estado_solicitud='SB', pendiente_subsanar=True)
     ).order_by('-fecha_solicitud')
 
+    solicitudes = []
+    for permiso in solicitudes_raw:
+        solicitudes.append({
+            'permiso': permiso,
+            'estado_rh_display': permiso.get_estado_solicitud_display(),
+        })
+
     return render(request, 'subir_comprobantes_especial.html', {
-        'solicitudes': solicitudes,
+        'solicitudes': solicitudes
     })
+
 
 
 @login_required
@@ -819,6 +992,7 @@ def subir_comprobante(request):
         historial = GestionPermisoDetalle.objects.filter(solicitud=permiso).order_by('-fecha').first()
         solicitudes.append({
             'permiso': permiso,
+            'estado_rh_display': permiso.get_estado_solicitud_display(),
             'historial': historial,
         })
 
@@ -946,6 +1120,8 @@ def accion_solicitud(request):
         solicitud.estado_solicitud = nuevo_estado
         solicitud.save()
 
+
+
         # 5. (Opcional) Retorna un mensaje, puedes actualizar la tabla con HTMX
         return redirect('solicitud_rh')
 
@@ -962,9 +1138,20 @@ def ver_historial_solicitudes(request):
 
         context.append({
             'detalle': h,
+            'estado_rh_display': h.solicitud.get_estado_solicitud_display(),
             'comprobante_url': comprobante_url,
         })
     return render(request, 'historial_solicitudes.html', {'solicitudes': context})
+
+def eliminar_permiso(request, permiso_id):
+    permiso = get_object_or_404(Permisos, id=permiso_id)
+
+    if request.method == 'POST':
+        permiso.delete()
+        return redirect('historial_solicitudes')  # o donde quieras redirigir
+
+    return render(request, 'eliminar_permiso.html', {'permiso': permiso})
+
 
 def cargar_login(request):
     next_url = request.GET.get('next') or request.POST.get('next') or 'home'
@@ -1117,7 +1304,7 @@ def asistencias_encargado(request):
     ESTADO_SOLICITUD = [
     ('P', 'Pendiente'),
     ('A', 'Aprobada'),
-    ('SB', 'SUBSANADO'),
+    ('SB', 'Subsanar'),
     ('R', 'Rechazada'),
     ]
     ESTADO_MAP = dict(ESTADO_SOLICITUD)
@@ -1130,21 +1317,23 @@ def asistencias_encargado(request):
     empleados_asignados = [a.empleado for a in asignaciones]
 
     for empleado in empleados_asignados:
-        tiene_marcaje = MarcajeDepurado.objects.filter(empleado=empleado, fecha=fecha).exists()
-        
+        marcaje_depurado = MarcajeDepurado.objects.filter(empleado=empleado, fecha=fecha).first()
+
         permiso_justificado = Permisos.objects.filter(
                 empleado=empleado, 
                 fecha_inicio__lte=fecha,
                 fecha_final__gte=fecha
             ).select_related('tipo_permiso').first()
-        
-        
-        if tiene_marcaje:
+
+
+        if marcaje_depurado:
             estado = 'ASISTIÓ'
             simbolo_permiso = None
             color = None
             estado_rh = None
             estado_rh_display = None
+            entrada = marcaje_depurado.entrada.strftime('%H:%M') if marcaje_depurado.entrada else '--:--'
+            salida = marcaje_depurado.salida.strftime('%H:%M') if marcaje_depurado.salida else '--:--'
 
         elif permiso_justificado:
             estado = 'JUSTIFICADO'
@@ -1152,13 +1341,17 @@ def asistencias_encargado(request):
             color = permiso_justificado.tipo_permiso.cod_color
             estado_rh = permiso_justificado.estado_solicitud
             estado_rh_display = ESTADO_MAP.get(estado_rh, estado_rh)
+            entrada = simbolo_permiso
+            salida = '--:--'
 
-        elif fecha.weekday() == 6:  # 6 = Domingo
+        elif fecha.weekday() == 6:
             estado = 'DOMINGO'
             simbolo_permiso = None
-            color = "#00f7ff"  # Amarillo, puedes personalizarlo
+            color = "#00f7ff"
             estado_rh = None
             estado_rh_display = 'Descanso dominical'
+            entrada = 'DO'
+            salida = '--:--'
 
         else:
             estado = 'FALTÓ'
@@ -1166,17 +1359,23 @@ def asistencias_encargado(request):
             color = None
             estado_rh = None
             estado_rh_display = None
+            entrada = '--:--'
+            salida = '--:--'
         
         empleados.append({
+            'fecha': fecha,
             'codigo': empleado.codigo,
             'nombre': empleado.nombre,
             'departamento': empleado.departamento,
             'sucursal': empleado.sucursal.nombre,
+            'tipo_nomina': empleado.tipo_nomina,
             'estado': estado,
             'simbolo_permiso': simbolo_permiso,
             'color': color,
             'estado_rh': estado_rh,
             'estado_rh_display': estado_rh_display,
+            'entrada': entrada,
+            'salida': salida,
         })
 
     return render(request, 'asistencias_encargado.html', {
@@ -1184,6 +1383,140 @@ def asistencias_encargado(request):
         'encargado': encargado,
         'empleados': empleados,
     })
+
+@login_required
+@grupo_requerido('encargado')
+def exportar_asistencias_encargado_excel(request):
+    user = request.user
+    try:
+        encargado = Empleado.objects.get(user=user, es_encargado=True)
+    except Empleado.DoesNotExist:
+        return HttpResponse("No tiene permisos para exportar", status=403)
+
+    fecha_str = request.GET.get('fecha')
+    if not fecha_str:
+        return HttpResponse("Fecha no proporcionada", status=400)
+
+    try:
+        fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
+    except ValueError:
+        return HttpResponse("Fecha inválida", status=400)
+
+    asignaciones = AsignacionEmpleadoEncargado.objects.filter(
+        encargado=encargado,
+        empleado__activo=True
+    ).select_related('empleado')
+    empleados = [a.empleado for a in asignaciones]
+
+    ESTADO_SOLICITUD = [
+        ('P', 'Pendiente'),
+        ('A', 'Aprobada'),
+        ('SB', 'Subsanar'),
+        ('R', 'Rechazada'),
+    ]
+    ESTADO_MAP = dict(ESTADO_SOLICITUD)
+
+    resultados = []
+
+    for empleado in empleados:
+        marcaje_depurado = MarcajeDepurado.objects.filter(empleado=empleado, fecha=fecha).first()
+        permiso_justificado = Permisos.objects.filter(
+            empleado=empleado,
+            fecha_inicio__lte=fecha,
+            fecha_final__gte=fecha
+        ).select_related('tipo_permiso').first()
+
+        nombre_tipo = permiso_justificado.tipo_permiso.tipo if permiso_justificado else None
+        simbolo_permiso = permiso_justificado.tipo_permiso.simbolo if permiso_justificado else None
+
+        if marcaje_depurado:
+            estado = 'ASISTIÓ'
+            color = '38c172'
+            estado_rh_display = None
+            entrada = marcaje_depurado.entrada.strftime('%H:%M') if marcaje_depurado.entrada else '--:--'
+            salida = marcaje_depurado.salida.strftime('%H:%M') if marcaje_depurado.salida else '--:--'
+        elif permiso_justificado:
+            estado = 'JUSTIFICADO'
+            color = permiso_justificado.tipo_permiso.cod_color.lstrip('#') if permiso_justificado.tipo_permiso.cod_color else 'fbbf24'
+            estado_rh_display = ESTADO_MAP.get(permiso_justificado.estado_solicitud, permiso_justificado.estado_solicitud)
+            entrada = simbolo_permiso
+            salida = '--:--'
+        elif fecha.weekday() == 6:
+            estado = 'DOMINGO'
+            color = "00f7ff"
+            estado_rh_display = 'Descanso dominical'
+            entrada = 'DO'
+            salida = '--:--'
+        else:
+            estado = 'FALTÓ'
+            color = 'e3342f'
+            estado_rh_display = None
+            entrada = '--:--'
+            salida = '--:--'
+
+        if estado == 'ASISTIÓ':
+            estado_simbolo = '✔'
+        elif estado == 'FALTÓ':
+            estado_simbolo = 'X'
+        elif estado == 'DOMINGO':
+            estado_simbolo = 'DO'
+        elif estado == 'JUSTIFICADO':
+            estado_simbolo = nombre_tipo or ''
+        else:
+            estado_simbolo = ''
+
+        resultados.append({
+            'fecha': fecha.strftime("%d/%m/%Y"),
+            'sucursal': empleado.sucursal.nombre,
+            'tipo_nomina': empleado.tipo_nomina,
+            'codigo': empleado.codigo,
+            'nombre': empleado.nombre,
+            'departamento': empleado.departamento,
+            'entrada': entrada,
+            'salida': salida,
+            'estado_rh_display': estado_rh_display or '',
+            'estado_simbolo': estado_simbolo,
+            'color': color,
+        })
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Asistencia"
+
+    headers = [
+        "Fecha", "Sucursal", "Nómina", "Código", "Nombre", "Departamento",
+        "Marca Entrada", "Marca Salida", "Estado RH", "Asistencia"
+    ]
+    ws.append(headers)
+
+    for cell in ws[ws.max_row]:
+        cell.font = Font(bold=True)
+        cell.alignment = Alignment(horizontal='center')
+
+    for r in resultados:
+        ws.append([
+            r['fecha'],
+            r['sucursal'],
+            r['tipo_nomina'],
+            r['codigo'],
+            r['nombre'],
+            r['departamento'],
+            r['entrada'],
+            r['salida'],
+            r['estado_rh_display'],
+            r['estado_simbolo'],
+        ])
+        fila_actual = ws.max_row
+        fill = PatternFill(start_color=r['color'], end_color=r['color'], fill_type='solid')
+        ws.cell(row=fila_actual, column=10).fill = fill
+
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    filename = f"asistencia_{encargado.nombre}_{fecha.strftime('%d-%m-%Y')}.xlsx"
+    response['Content-Disposition'] = f'attachment; filename={filename}'
+    wb.save(response)
+    return response
 
 @login_required
 @grupo_requerido('rrhh')
@@ -1324,7 +1657,7 @@ def exportar_asistencias_excel(request):
     ESTADO_SOLICITUD = [
         ('P', 'Pendiente'),
         ('A', 'Aprobada'),
-        ('SB', 'Subsanado'),
+        ('SB', 'Subsanar'),
         ('R', 'Rechazada'),
     ]
     ESTADO_MAP = dict(ESTADO_SOLICITUD)
@@ -1384,6 +1717,7 @@ def exportar_asistencias_excel(request):
         resultados.append({
             'fecha': fecha.strftime("%d/%m/%Y"),
             'sucursal': empleado.sucursal.nombre,
+            'tipo_nomina': empleado.tipo_nomina,
             'codigo': empleado.codigo,
             'nombre': empleado.nombre,
             'departamento': empleado.departamento,
@@ -1411,7 +1745,7 @@ def exportar_asistencias_excel(request):
     ws.title = "Asistencia"
 
     headers = [
-        "Fecha", "Sucursal", "Código", "Nombre", "Departamento",
+        "Fecha", "Sucursal", "Nómina", "Código", "Nombre", "Departamento",
         "Marca Entrada", "Marca Salida", "Estado RH", "Asistencia"
     ]
     ws.append(headers)
@@ -1424,6 +1758,7 @@ def exportar_asistencias_excel(request):
         ws.append([
             r['fecha'],
             r['sucursal'],
+            r['tipo_nomina'],
             r['codigo'],
             r['nombre'],
             r['departamento'],
@@ -1434,8 +1769,8 @@ def exportar_asistencias_excel(request):
         ])
         fila_actual = ws.max_row
         fill = PatternFill(start_color=r['color'], end_color=r['color'], fill_type='solid')
-        # Aplica color solo a la celda "Asistencia" (columna 9)
-        ws.cell(row=fila_actual, column=9).fill = fill
+        # Aplica color solo a la celda "Asistencia" (columna 10)
+        ws.cell(row=fila_actual, column=10).fill = fill
 
     response = HttpResponse(
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'

@@ -69,45 +69,45 @@
 
 
 <script>
-document.getElementById('sync-btn').addEventListener('click', function() {
-    fetch('/marcaje/sync-marcaje/', {
-        method: 'POST',
+document.getElementById('sync-btn').addEventListener('click', () => {
+    const fecha = new Date().toISOString().split('T')[0]; // Fecha actual YYYY-MM-DD
+
+    // Mostrar mensaje de sincronización en curso
+    const loadingToast = toastr.info("Conectando con el servidor...", "Sincronizando", {
+        timeOut: 0,
+        extendedTimeOut: 0,
+        tapToDismiss: false,
+        closeButton: false
+    });
+
+    fetch(`/marcaje/sync_marcaje_view/?fecha=${fecha}`, {
         headers: {
-            'X-CSRFToken': getCookie('csrftoken'),
-            'Content-Type': 'application/json'
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
         }
     })
-    .then(response => response.json())
-    .then(data => {
-        // Mostrar errores si hay
-        if (data.errores > 0 && data.errores_detalle?.length) {
-            data.errores_detalle.forEach(err => {
-                toastr.warning(`⚠️ ${err}`, 'Error de sincronización');
-            });
-        }
+    .then(async response => {
+        toastr.clear(); // Quitar el mensaje de "conectando..."
 
-        // Error general
-        if (data.error) {
-            toastr.error(`❌ Error: ${data.error}`);
-        } 
-        // Éxito total o parcial
-        else {
-            const {creados, actualizados, errores} = data;
-
-            if (errores === 0) {
-                toastr.success(`✓ Marcajes sincronizados:<br>🆕 Nuevos: ${creados}<br>🔁 Actualizados: ${actualizados}`);
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.indexOf("application/json") !== -1) {
+            const data = await response.json();
+            if (data.status === 'success') {
+                toastr.success(`✔️ Sincronización completada para ${fecha}<br>
+                    Nuevos: ${data.creados}<br>
+                    Actualizados: ${data.actualizados}<br>
+                    Errores: ${data.errores}`, 'Éxito');
             } else {
-                toastr.info(`Marcajes parcialmente sincronizados:<br>🆕 Nuevos: ${creados}<br>🔁 Actualizados: ${actualizados}<br>⚠️ Errores: ${errores}`);
+                toastr.error(`❌ Error: ${data.message}`, 'Falló la sincronización');
             }
-
-            console.log("✔️ Resultado:", data);
         }
     })
     .catch(error => {
-        toastr.error(`Error de red: ${error}`);
-        console.error(error);
+        toastr.clear();
+        toastr.error(`❌ Error inesperado: ${error}`, 'Falló la sincronización');
     });
 });
+
 
 // Utilidad para obtener el token CSRF (necesario para POST en Django)
 function getCookie(name) {
