@@ -71,18 +71,18 @@ def empleados_proxy(request):
         )
 # @csrf_exempt  
 def asistencias_api(request):
-    if request.method == 'GET':
-        fecha_str = request.GET.get('fecha')
+    # if request.method == 'GET':
+    #     fecha_str = request.GET.get('fecha')
         
-        if fecha_str:
-            try:
-                fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
-            except ValueError:
-                return JsonResponse({'error': 'Formato de fecha inválido'}, status=400)
-        else:
-            fecha = timezone.now().date()
+    #     if fecha_str:
+    #         try:
+    #             fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
+    #         except ValueError:
+    #             return JsonResponse({'error': 'Formato de fecha inválido'}, status=400)
+    #     else:
+    #         fecha = timezone.now().date()
             
-    target_url = f"http://192.168.11.12:8003/api/asistencias/?fecha={fecha.strftime('%Y-%m-%d')}"
+    target_url = f"http://192.168.11.12:8003/api/asistencias/?fecha=2025-07-10"  #?fecha={fecha.strftime('%Y-%m-%d')}"
     
     headers = {
         "X-API-Key": "bec740b7-839b-4268-bb4e-a9d44b51a326"  # o "x-api-key": "TU_API_KEY"
@@ -484,7 +484,7 @@ def eliminar_permiso_especial(request, permiso_id):
 @login_required
 @grupo_requerido('encargado')
 def crear_permiso(request):
-    tipo_permisos = TipoPermisos.objects.exclude(tipo__in=['Especial', 'Servicios Profesionales', 'Suspensión', 'Incapacidad sin Seguro Social', 'Incapacidad con Seguro Social', 'No marcó'])
+    tipo_permisos = TipoPermisos.objects.exclude(tipo__in=['Especial', 'Servicios Profesionales', 'Salió', 'Suspensión', 'Incapacidad sin Seguro Social', 'Incapacidad con Seguro Social', 'No marcó'])
     encargados = Empleado.objects.filter(es_encargado=True)
 
     if request.method == 'POST':
@@ -904,9 +904,8 @@ def quitar_empleado_asignado(request, encargado_id, empleado_id):
 @login_required
 @grupo_requerido('rrhh')
 def solicitud_rh(request):
-    permisos = Permisos.objects.filter(
-        Q(estado_solicitud='P') | Q(estado_solicitud='SB')
-    ).order_by('-fecha_solicitud')
+    estado = 'P'
+    permisos = Permisos.objects.filter(Q(estado_solicitud=estado) | Q(estado_solicitud='SB')).order_by('-fecha_solicitud')
 
     context = []
     for permiso in permisos:
@@ -917,7 +916,7 @@ def solicitud_rh(request):
             'comprobante': comprobante.comprobante.url if comprobante else None,
         })
 
-    return render(request, 'solicitudes_rh.html', {'permisos': context})
+    return render(request, 'solicitudes_rh.html', {'permisos': context},)
 
 
 @login_required
@@ -1121,6 +1120,8 @@ def accion_solicitud(request):
         solicitud.estado_solicitud = nuevo_estado
         solicitud.save()
 
+
+
         # 5. (Opcional) Retorna un mensaje, puedes actualizar la tabla con HTMX
         return redirect('solicitud_rh')
 
@@ -1141,6 +1142,16 @@ def ver_historial_solicitudes(request):
             'comprobante_url': comprobante_url,
         })
     return render(request, 'historial_solicitudes.html', {'solicitudes': context})
+
+def eliminar_permiso(request, permiso_id):
+    permiso = get_object_or_404(Permisos, id=permiso_id)
+
+    if request.method == 'POST':
+        permiso.delete()
+        return redirect('historial_solicitudes')  # o donde quieras redirigir
+
+    return render(request, 'eliminar_permiso.html', {'permiso': permiso})
+
 
 def cargar_login(request):
     next_url = request.GET.get('next') or request.POST.get('next') or 'home'

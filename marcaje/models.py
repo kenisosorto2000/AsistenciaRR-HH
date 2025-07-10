@@ -87,7 +87,7 @@ class Permisos(models.Model):
     tipo_permiso = models.ForeignKey(TipoPermisos, on_delete=models.PROTECT)
     fecha_inicio = models.DateField()
     fecha_final = models.DateField()
-    fecha_solicitud = models.DateField(auto_now_add=True)
+    fecha_solicitud = models.DateTimeField(auto_now_add=True)
     hora_inicio = models.TimeField(null=True, blank=True)
     hora_final = models.TimeField(null=True, blank=True)
     descripcion = models.CharField(max_length=300)
@@ -122,7 +122,7 @@ class AsignacionEmpleadoEncargado(models.Model):
         return f"{self.encargado.nombre} → {self.empleado.nombre}"
     
 class GestionPermisoDetalle(models.Model):
-    solicitud = models.ForeignKey(Permisos, on_delete=models.PROTECT)
+    solicitud = models.ForeignKey(Permisos, on_delete=models.CASCADE)
     accion_realizada = models.CharField(max_length=100)
     revisada_por = models.CharField(max_length=100)
     comentarios = models.CharField(max_length=300)
