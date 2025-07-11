@@ -16,6 +16,7 @@ urlpatterns = [
     path('editar-permiso/<int:permiso_id>/', views.editar_permiso, name='editar_permiso'),
     path('eliminar-permiso/<int:permiso_id>/', views.eliminar_permiso, name='eliminar_permiso'),
     path('crear-incapacidad/', views.crear_incapacidad, name='crear_incapacidad'),
+    path('editar-incapacidad/<int:permiso_id>/', views.editar_incapacidad, name='editar_incapacidad'),
     path('crear-permiso-especial/', views.crear_permiso_especial, name='crear_permiso_especial'),
     path('editar-permiso-especial/<int:permiso_id>/', views.editar_permiso_especial, name='editar_permiso_especial'),
     path('eliminar-permiso-especial/<int:permiso_id>/', views.eliminar_permiso_especial, name='eliminar_permiso_especial'),
