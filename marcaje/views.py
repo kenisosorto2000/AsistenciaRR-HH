@@ -705,6 +705,61 @@ def crear_incapacidad(request):
         'encargados': encargados,
     })
 
+def editar_incapacidad(request, permiso_id):
+    permiso = get_object_or_404(Permisos, id=permiso_id)
+    tipo_permisos = TipoPermisos.objects.filter(tipo__in=['Incapacidad sin Seguro Social', 'Incapacidad con Seguro Social'])
+    encargados = Empleado.objects.filter(es_encargado=True)
+
+    if request.method == 'POST':
+        try:
+            permiso.encargado_id = request.POST.get('encargado')
+            permiso.empleado_id = request.POST.get('empleado')
+            permiso.tipo_permiso_id = request.POST.get('tipo_permiso')
+            permiso.fecha_inicio = request.POST.get('fecha_inicio')
+            permiso.fecha_final = request.POST.get('fecha_final')
+            permiso.descripcion = request.POST.get('descripcion')
+
+            usar_hora = request.POST.get('usar_hora')
+            permiso.hora_inicio = request.POST.get('hora_inicio') if usar_hora else None
+            permiso.hora_final = request.POST.get('hora_final') if usar_hora else None
+
+            if permiso.fecha_inicio > permiso.fecha_final:
+                messages.error(request, "La fecha de inicio no puede ser posterior a la fecha final.")
+                return render(request, 'editar_permiso.html', {
+                    'permiso': permiso,
+                    'tipo_permisos': tipo_permisos,
+                    'encargados': encargados,
+                })
+
+            # Validar traslape excluyendo el permiso actual
+            traslape = Permisos.objects.filter(
+                empleado=permiso.empleado,
+                estado_solicitud__in=['P', 'A'],
+                fecha_inicio__lte=permiso.fecha_final,
+                fecha_final__gte=permiso.fecha_inicio
+            ).exclude(id=permiso.id).exists()
+
+            if traslape:
+                messages.error(request, "Ya existe un permiso pendiente o aprobado que se traslapa con estas fechas.")
+                return render(request, 'editar_permiso.html', {
+                    'permiso': permiso,
+                    'tipo_permisos': tipo_permisos,
+                    'encargados': encargados,
+                })
+
+            permiso.save()
+            messages.success(request, "Permiso actualizado correctamente.")
+            return redirect('subir_comprobantes')  # o donde lo necesites
+
+        except Exception as e:
+            messages.error(request, f"Error al actualizar: {e}")
+
+    return render(request, 'editar_incapacidad.html', {
+        'permiso': permiso,
+        'tipo_permisos': tipo_permisos,
+        'encargados': encargados,
+    })
+
 
 
 @login_required
@@ -1329,6 +1384,7 @@ def asistencias_encargado(request):
         if marcaje_depurado:
             estado = 'ASISTIÓ'
             simbolo_permiso = None
+            nombre_tipo = None
             color = None
             estado_rh = None
             estado_rh_display = None
@@ -1337,6 +1393,7 @@ def asistencias_encargado(request):
 
         elif permiso_justificado:
             estado = 'JUSTIFICADO'
+            nombre_tipo = permiso_justificado.tipo_permiso.tipo
             simbolo_permiso = permiso_justificado.tipo_permiso.simbolo
             color = permiso_justificado.tipo_permiso.cod_color
             estado_rh = permiso_justificado.estado_solicitud
@@ -1347,6 +1404,7 @@ def asistencias_encargado(request):
         elif fecha.weekday() == 6:
             estado = 'DOMINGO'
             simbolo_permiso = None
+            nombre_tipo = None
             color = "#00f7ff"
             estado_rh = None
             estado_rh_display = 'Descanso dominical'
@@ -1356,6 +1414,7 @@ def asistencias_encargado(request):
         else:
             estado = 'FALTÓ'
             simbolo_permiso = None
+            nombre_tipo = None
             color = None
             estado_rh = None
             estado_rh_display = None
@@ -1371,6 +1430,7 @@ def asistencias_encargado(request):
             'tipo_nomina': empleado.tipo_nomina,
             'estado': estado,
             'simbolo_permiso': simbolo_permiso,
+            'nombre_tipo': nombre_tipo,
             'color': color,
             'estado_rh': estado_rh,
             'estado_rh_display': estado_rh_display,
@@ -1432,11 +1492,13 @@ def exportar_asistencias_encargado_excel(request):
         if marcaje_depurado:
             estado = 'ASISTIÓ'
             color = '38c172'
+            nombre_tipo = None
             estado_rh_display = None
             entrada = marcaje_depurado.entrada.strftime('%H:%M') if marcaje_depurado.entrada else '--:--'
             salida = marcaje_depurado.salida.strftime('%H:%M') if marcaje_depurado.salida else '--:--'
         elif permiso_justificado:
             estado = 'JUSTIFICADO'
+            nombre_tipo = permiso_justificado.tipo_permiso.tipo
             color = permiso_justificado.tipo_permiso.cod_color.lstrip('#') if permiso_justificado.tipo_permiso.cod_color else 'fbbf24'
             estado_rh_display = ESTADO_MAP.get(permiso_justificado.estado_solicitud, permiso_justificado.estado_solicitud)
             entrada = simbolo_permiso
@@ -1444,6 +1506,7 @@ def exportar_asistencias_encargado_excel(request):
         elif fecha.weekday() == 6:
             estado = 'DOMINGO'
             color = "00f7ff"
+            nombre_tipo = None
             estado_rh_display = 'Descanso dominical'
             entrada = 'DO'
             salida = '--:--'
@@ -1474,6 +1537,7 @@ def exportar_asistencias_encargado_excel(request):
             'departamento': empleado.departamento,
             'entrada': entrada,
             'salida': salida,
+            'nombre_tipo': nombre_tipo or '',
             'estado_rh_display': estado_rh_display or '',
             'estado_simbolo': estado_simbolo,
             'color': color,
@@ -1775,7 +1839,7 @@ def exportar_asistencias_excel(request):
     response = HttpResponse(
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
-    filename = f"asistencia_{fecha.strftime('%d-%m-%Y')}.xlsx"
+    filename = f"asistencia_{empleado.sucursal.nombre}_{fecha.strftime('%d-%m-%Y')}.xlsx"
     response['Content-Disposition'] = f'attachment; filename={filename}'
     wb.save(response)
     return response
