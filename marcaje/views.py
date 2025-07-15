@@ -33,6 +33,8 @@ from openpyxl import Workbook
 from openpyxl.styles import PatternFill, Font, Alignment
 from django.db.models import ProtectedError
 from collections import defaultdict
+from django.core.paginator import Paginator
+
 
 def grupo_requerido(nombre_grupo):
     def check(user):
@@ -187,26 +189,26 @@ def marcar(request):
 @login_required
 @grupo_requerido('rrhh')
 def lista_registros(request):
-    registros = Marcaje.objects.all()
     departamento = request.GET.get('departamento')
-    empleados = Empleado.objects.all()
-    
-   
+    registros = Marcaje.objects.select_related('empleado').all() 
     if departamento:
         registros = registros.filter(empleado__departamento=departamento)
-   
-    departamentos = Empleado.objects.order_by('departamento'
-                      ).values_list('departamento', flat=True
-                      ).distinct()
+    
+    departamentos = Empleado.objects.values_list('departamento', flat=True).distinct().order_by()
+
+    paginator = Paginator(registros, 100)
+    page_number = request.GET.get('page')
+    registros = paginator.get_page(page_number)
+
     context = {
         'registros': registros,
-        'empleados': empleados,
         'departamentos': departamentos,
         'departamento_seleccionado': departamento,
-        # 'sucursal__seleccionada': sucursal,
     }
-
     return render(request, 'reporte.html', context)
+
+
+
 # Create your views here.
 @login_required
 @grupo_requerido('rrhh')
