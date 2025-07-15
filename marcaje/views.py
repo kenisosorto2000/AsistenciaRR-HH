@@ -14,7 +14,7 @@ from .sync import sincronizar_todas_sucursales
 from .sync_marcaje import sincronizar_marcajes
 from django.core import serializers
 from django.views.decorators.http import require_POST
-from datetime import datetime
+from datetime import datetime, timedelta, date
 from django.utils import timezone
 from .depurar_marcajes import depurar_marcajes
 from .forms import *
@@ -32,6 +32,9 @@ from django.db.models.functions import Upper, Trim
 from openpyxl import Workbook
 from openpyxl.styles import PatternFill, Font, Alignment
 from django.db.models import ProtectedError
+from collections import defaultdict
+from django.core.paginator import Paginator
+
 
 def grupo_requerido(nombre_grupo):
     def check(user):
@@ -186,46 +189,73 @@ def marcar(request):
 @login_required
 @grupo_requerido('rrhh')
 def lista_registros(request):
-    registros = Marcaje.objects.all()
     departamento = request.GET.get('departamento')
-    empleados = Empleado.objects.all()
-    
-   
+    registros = Marcaje.objects.select_related('empleado').all() 
     if departamento:
         registros = registros.filter(empleado__departamento=departamento)
-   
-    departamentos = Empleado.objects.order_by('departamento'
-                      ).values_list('departamento', flat=True
-                      ).distinct()
+    
+    departamentos = Empleado.objects.values_list('departamento', flat=True).distinct().order_by()
+
+    paginator = Paginator(registros, 100)
+    page_number = request.GET.get('page')
+    registros = paginator.get_page(page_number)
+
     context = {
         'registros': registros,
-        'empleados': empleados,
         'departamentos': departamentos,
         'departamento_seleccionado': departamento,
-        # 'sucursal__seleccionada': sucursal,
     }
-
     return render(request, 'reporte.html', context)
+
+
+
 # Create your views here.
 @login_required
 @grupo_requerido('rrhh')
 def validar_asistencias(request):
     sucursales = Sucursal.objects.all()
     resultados = []
-    
+
     sucursal_id = request.GET.get('sucursal')
+    usar_rango = request.GET.get('usar_rango') == 'on'
     fecha_str = request.GET.get('fecha')
-    
-    if sucursal_id and fecha_str:
+    fecha_inicio_str = request.GET.get('fecha_inicio')
+    fecha_final_str = request.GET.get('fecha_final')
+
+    fecha_inicio = fecha_final = None
+
+    if sucursal_id:
         try:
-            fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
-            empleados = Empleado.objects.filter(sucursal_id=sucursal_id, activo=True)
-            
-            for empleado in empleados:
-                marcaje_depurado = MarcajeDepurado.objects.filter(
-                    empleado=empleado,
-                    fecha=fecha
-                ).first()
+            if usar_rango:
+                fecha_inicio = datetime.strptime(fecha_inicio_str, '%Y-%m-%d').date()
+                fecha_final = datetime.strptime(fecha_final_str, '%Y-%m-%d').date()
+            else:
+                fecha_inicio = datetime.strptime(fecha_str, '%Y-%m-%d').date()
+                fecha_final = fecha_inicio
+
+            dias_rango = (fecha_final - fecha_inicio).days + 1
+            fechas = [fecha_inicio + timedelta(days=i) for i in range(dias_rango)]
+
+            empleados = Empleado.objects.filter(sucursal_id=sucursal_id, activo=True).select_related('sucursal')
+            empleados_ids = list(empleados.values_list('id', flat=True))
+
+            marcajes = MarcajeDepurado.objects.filter(
+                empleado_id__in=empleados_ids,
+                fecha__range=(fecha_inicio, fecha_final)
+            )
+            permisos = Permisos.objects.filter(
+                empleado_id__in=empleados_ids,
+                fecha_inicio__lte=fecha_final,
+                fecha_final__gte=fecha_inicio
+            ).select_related('tipo_permiso')
+
+            marcajes_map = defaultdict(dict)
+            for m in marcajes:
+                marcajes_map[m.empleado_id][m.fecha] = m
+
+            permisos_map = defaultdict(list)
+            for p in permisos:
+                permisos_map[p.empleado_id].append(p)
 
                 ESTADO_SOLICITUD = [
                 ('P', 'Pendiente'),
@@ -235,95 +265,90 @@ def validar_asistencias(request):
                 ]
                 ESTADO_MAP = dict(ESTADO_SOLICITUD)
 
-                permiso_justificado = Permisos.objects.filter(
-                empleado=empleado, 
-                fecha_inicio__lte=fecha,
-                fecha_final__gte=fecha
-            ).select_related('tipo_permiso').first()
-                
-                if marcaje_depurado:
-                    estado = 'ASISTIÓ'
-                    simbolo_permiso = None
-                    nombre_tipo = None
-                    color = None
-                    estado_rh = None
-                    estado_rh_display = None
+            for empleado in empleados:
+                for fecha in fechas:
+                    marcaje = marcajes_map[empleado.id].get(fecha)
 
-                elif permiso_justificado:
-                    estado = 'JUSTIFICADO'
-                    nombre_tipo = permiso_justificado.tipo_permiso.tipo
-                    simbolo_permiso = permiso_justificado.tipo_permiso.simbolo
-                    color = permiso_justificado.tipo_permiso.cod_color
-                    estado_rh = permiso_justificado.estado_solicitud
-                    estado_rh_display = ESTADO_MAP.get(estado_rh, estado_rh)
+                    permiso = next((
+                        p for p in permisos_map[empleado.id]
+                        if p.fecha_inicio <= fecha <= p.fecha_final
+                    ), None)
 
-                elif fecha.weekday() == 6:  # 6 = Domingo
-                    estado = 'DOMINGO'
-                    simbolo_permiso = None
-                    nombre_tipo = None
-                    color = "#00f7ff"
-                    estado_rh = None
-                    estado_rh_display = 'Descanso dominical'
+                    if marcaje:
+                        estado = 'ASISTIÓ'
+                        entrada = marcaje.entrada.strftime('%H:%M') if marcaje.entrada else '--:--'
+                        salida = marcaje.salida.strftime('%H:%M') if marcaje.salida else '--:--'
+                        simbolo_permiso = nombre_tipo = color = estado_rh = estado_rh_display = None
 
-                else:
-                    estado = 'FALTÓ'
-                    simbolo_permiso = None
-                    nombre_tipo = None
-                    color = None
-                    estado_rh = None
-                    estado_rh_display = None
+                    elif permiso:
+                        estado = 'JUSTIFICADO'
+                        nombre_tipo = permiso.tipo_permiso.tipo
+                        simbolo_permiso = permiso.tipo_permiso.simbolo
+                        color = permiso.tipo_permiso.cod_color
+                        estado_rh = permiso.estado_solicitud
+                        estado_rh_display = ESTADO_MAP.get(estado_rh, estado_rh)
+                        entrada = simbolo_permiso
+                        salida = '--:--'
 
-                # Símbolo para Excel
-                if estado == 'ASISTIÓ':
-                    simbolo_excel = '✔'
-                elif estado == 'FALTÓ':
-                    simbolo_excel = 'X'
-                elif estado == 'DOMINGO':
-                    simbolo_excel = 'DO'
-                elif estado == 'JUSTIFICADO':
-                    simbolo_excel = simbolo_permiso or ''
-                else:
-                    simbolo_excel = ''
+                    elif fecha.weekday() == 6:
+                        estado = 'DOMINGO'
+                        simbolo_permiso = nombre_tipo = estado_rh = estado_rh_display = None
+                        color = "#00f7ff"
+                        entrada = 'DO'
+                        salida = '--:--'
 
-                resultados.append({
-                    'fecha': fecha,
-                    'sucursal': empleado.sucursal.nombre,
-                    'tipo_nomina': empleado.tipo_nomina,
-                    'codigo': empleado.codigo,
-                    'nombre': empleado.nombre,
-                    'departamento': empleado.departamento,
-                    'asistio': marcaje_depurado is not None,
-                    'entrada': (
-                        marcaje_depurado.entrada.strftime('%H:%M')
-                        if marcaje_depurado and marcaje_depurado.entrada
-                        else (simbolo_permiso if permiso_justificado else '--:--')
-                    ),
-                    'salida': (
-                        marcaje_depurado.salida.strftime('%H:%M')
-                        if marcaje_depurado and marcaje_depurado.salida
-                        else '--:--'
-                    ),
-                    'estado': estado,
-                    'simbolo_permiso': simbolo_permiso,
-                    'nombre_tipo': nombre_tipo,
-                    'color': color,
-                    'estado_rh': estado_rh,
-                    'estado_rh_display': estado_rh_display,
-                    'estado_simbolo': simbolo_excel,
-                })
+                    else:
+                        estado = 'FALTÓ'
+                        simbolo_permiso = nombre_tipo = color = estado_rh = estado_rh_display = None
+                        entrada = salida = '--:--'
+
+                    if estado == 'ASISTIÓ':
+                        simbolo_excel = '✔'
+                    elif estado == 'FALTÓ':
+                        simbolo_excel = 'X'
+                    elif estado == 'DOMINGO':
+                        simbolo_excel = 'DO'
+                    elif estado == 'JUSTIFICADO':
+                        simbolo_excel = simbolo_permiso or ''
+                    else:
+                        simbolo_excel = ''
+
+                    resultados.append({
+                        'fecha': fecha,
+                        'sucursal': empleado.sucursal.nombre,
+                        'tipo_nomina': empleado.tipo_nomina,
+                        'codigo': empleado.codigo,
+                        'nombre': empleado.nombre,
+                        'departamento': empleado.departamento,
+                        'asistio': marcaje is not None,
+                        'entrada': entrada,
+                        'salida': salida,
+                        'estado': estado,
+                        'simbolo_permiso': simbolo_permiso,
+                        'nombre_tipo': nombre_tipo,
+                        'color': color,
+                        'estado_rh': estado_rh,
+                        'estado_rh_display': estado_rh_display,
+                        'estado_simbolo': simbolo_excel,
+                    })
+
         except Exception as e:
             resultados = []
-    
-    if request.headers.get('HX-Request'):  # Si es una petición HTMX, renderiza SOLO la tabla
-        return render(request, 'partials/mostrar-asistencia.html', {'resultados': resultados})
 
-    return render(request, 'validar_asistencia.html', {
+    context = {
         'sucursales': sucursales,
         'resultados': resultados,
         'selected_sucursal': sucursal_id,
         'selected_fecha': fecha_str,
-    })
+        'fecha_inicio': fecha_inicio_str,
+        'fecha_final': fecha_final_str,
+        'usar_rango': usar_rango,
+    }
 
+    if request.headers.get('HX-Request'):
+        return render(request, 'partials/mostrar-asistencia.html', context)
+
+    return render(request, 'validar_asistencia.html', context)
 
 @login_required
 @grupo_requerido('rrhh')
@@ -1347,14 +1372,30 @@ def asistencias_encargado(request):
     except Empleado.DoesNotExist:
         return render(request, 'sin_permisos.html')
 
+    usar_rango = request.GET.get('usar_rango') == 'on'
+
     fecha_str = request.GET.get('fecha')
-    if fecha_str:
+    fecha_inicio_str = request.GET.get('fecha_inicio')
+    fecha_final_str = request.GET.get('fecha_final')
+
+    if usar_rango:
         try:
-            fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
-        except ValueError:
-            fecha = date.today()
+            fecha_inicio = datetime.strptime(fecha_inicio_str, '%Y-%m-%d').date()
+        except (ValueError, TypeError):
+            fecha_inicio = date.today()
+        try:
+            fecha_final = datetime.strptime(fecha_final_str, '%Y-%m-%d').date()
+        except (ValueError, TypeError):
+            fecha_final = fecha_inicio
     else:
-        fecha = date.today()
+        try:
+            fecha_inicio = datetime.strptime(fecha_str, '%Y-%m-%d').date()
+        except (ValueError, TypeError):
+            fecha_inicio = date.today()
+        fecha_final = fecha_inicio
+
+    dias_rango = (fecha_final - fecha_inicio).days + 1
+    fechas = [fecha_inicio + timedelta(days=i) for i in range(dias_rango)]
 
     ESTADO_SOLICITUD = [
     ('P', 'Pendiente'),
@@ -1364,85 +1405,98 @@ def asistencias_encargado(request):
     ]
     ESTADO_MAP = dict(ESTADO_SOLICITUD)
 
-    empleados = []
     asignaciones = AsignacionEmpleadoEncargado.objects.filter(
         encargado=encargado,
         empleado__activo=True
-    ).select_related('empleado')
+    ).select_related('empleado', 'empleado__sucursal')
+
     empleados_asignados = [a.empleado for a in asignaciones]
+    empleados_ids = [e.id for e in empleados_asignados]
+
+    marcajes = MarcajeDepurado.objects.filter(
+        empleado_id__in=empleados_ids,
+        fecha__range=(fecha_inicio, fecha_final)
+    )
+    permisos = Permisos.objects.filter(
+        empleado_id__in=empleados_ids,
+        fecha_inicio__lte=fecha_final,
+        fecha_final__gte=fecha_inicio
+    ).select_related('tipo_permiso')
+
+    marcajes_map = defaultdict(dict)
+    for m in marcajes:
+        marcajes_map[m.empleado_id][m.fecha] = m
+
+    permisos_map = defaultdict(list)
+    for p in permisos:
+        permisos_map[p.empleado_id].append(p)
+
+    empleados = []
 
     for empleado in empleados_asignados:
-        marcaje_depurado = MarcajeDepurado.objects.filter(empleado=empleado, fecha=fecha).first()
+        for fecha in fechas:
+            marcaje = marcajes_map[empleado.id].get(fecha)
+            permiso = next((
+                p for p in permisos_map[empleado.id]
+                if p.fecha_inicio <= fecha <= p.fecha_final
+            ), None)
 
-        permiso_justificado = Permisos.objects.filter(
-                empleado=empleado, 
-                fecha_inicio__lte=fecha,
-                fecha_final__gte=fecha
-            ).select_related('tipo_permiso').first()
+            if marcaje:
+                estado = 'ASISTIÓ'
+                entrada = marcaje.entrada.strftime('%H:%M') if marcaje.entrada else '--:--'
+                salida = marcaje.salida.strftime('%H:%M') if marcaje.salida else '--:--'
+                simbolo_permiso = nombre_tipo = color = estado_rh = estado_rh_display = None
 
+            elif permiso:
+                estado = 'JUSTIFICADO'
+                nombre_tipo = permiso.tipo_permiso.tipo
+                simbolo_permiso = permiso.tipo_permiso.simbolo
+                color = permiso.tipo_permiso.cod_color
+                estado_rh = permiso.estado_solicitud
+                estado_rh_display = ESTADO_MAP.get(estado_rh, estado_rh)
+                entrada = simbolo_permiso
+                salida = '--:--'
 
-        if marcaje_depurado:
-            estado = 'ASISTIÓ'
-            simbolo_permiso = None
-            nombre_tipo = None
-            color = None
-            estado_rh = None
-            estado_rh_display = None
-            entrada = marcaje_depurado.entrada.strftime('%H:%M') if marcaje_depurado.entrada else '--:--'
-            salida = marcaje_depurado.salida.strftime('%H:%M') if marcaje_depurado.salida else '--:--'
+            elif fecha.weekday() == 6:
+                estado = 'DOMINGO'
+                simbolo_permiso = nombre_tipo = estado_rh = estado_rh_display = None
+                color = '#00f7ff'
+                entrada = 'DO'
+                salida = '--:--'
 
-        elif permiso_justificado:
-            estado = 'JUSTIFICADO'
-            nombre_tipo = permiso_justificado.tipo_permiso.tipo
-            simbolo_permiso = permiso_justificado.tipo_permiso.simbolo
-            color = permiso_justificado.tipo_permiso.cod_color
-            estado_rh = permiso_justificado.estado_solicitud
-            estado_rh_display = ESTADO_MAP.get(estado_rh, estado_rh)
-            entrada = simbolo_permiso
-            salida = '--:--'
+            else:
+                estado = 'FALTÓ'
+                simbolo_permiso = nombre_tipo = color = estado_rh = estado_rh_display = None
+                entrada = salida = '--:--'
 
-        elif fecha.weekday() == 6:
-            estado = 'DOMINGO'
-            simbolo_permiso = None
-            nombre_tipo = None
-            color = "#00f7ff"
-            estado_rh = None
-            estado_rh_display = 'Descanso dominical'
-            entrada = 'DO'
-            salida = '--:--'
+            empleados.append({
+                'fecha': fecha,
+                'codigo': empleado.codigo,
+                'nombre': empleado.nombre,
+                'departamento': empleado.departamento,
+                'sucursal': empleado.sucursal.nombre,
+                'tipo_nomina': empleado.tipo_nomina,
+                'estado': estado,
+                'simbolo_permiso': simbolo_permiso,
+                'nombre_tipo': nombre_tipo,
+                'color': color,
+                'estado_rh': estado_rh,
+                'estado_rh_display': estado_rh_display,
+                'entrada': entrada,
+                'salida': salida,
+            })
 
-        else:
-            estado = 'FALTÓ'
-            simbolo_permiso = None
-            nombre_tipo = None
-            color = None
-            estado_rh = None
-            estado_rh_display = None
-            entrada = '--:--'
-            salida = '--:--'
-        
-        empleados.append({
-            'fecha': fecha,
-            'codigo': empleado.codigo,
-            'nombre': empleado.nombre,
-            'departamento': empleado.departamento,
-            'sucursal': empleado.sucursal.nombre,
-            'tipo_nomina': empleado.tipo_nomina,
-            'estado': estado,
-            'simbolo_permiso': simbolo_permiso,
-            'nombre_tipo': nombre_tipo,
-            'color': color,
-            'estado_rh': estado_rh,
-            'estado_rh_display': estado_rh_display,
-            'entrada': entrada,
-            'salida': salida,
-        })
+    empleados.sort(key=lambda x: (x['codigo'], x['fecha']))
 
     return render(request, 'asistencias_encargado.html', {
-        'fecha': fecha,
+        'fecha': fecha_inicio,
+        'fecha_inicio': fecha_inicio,
+        'fecha_final': fecha_final,
+        'usar_rango': usar_rango,
         'encargado': encargado,
         'empleados': empleados,
     })
+
 
 @login_required
 @grupo_requerido('encargado')
@@ -1453,18 +1507,31 @@ def exportar_asistencias_encargado_excel(request):
     except Empleado.DoesNotExist:
         return HttpResponse("No tiene permisos para exportar", status=403)
 
+    usar_rango = request.GET.get('usar_rango') == 'on'
     fecha_str = request.GET.get('fecha')
-    if not fecha_str:
-        return HttpResponse("Fecha no proporcionada", status=400)
+    fecha_inicio_str = request.GET.get('fecha_inicio')
+    fecha_final_str = request.GET.get('fecha_final')
 
-    try:
-        fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
-    except ValueError:
-        return HttpResponse("Fecha inválida", status=400)
+    if usar_rango:
+        try:
+            fecha_inicio = datetime.strptime(fecha_inicio_str, '%Y-%m-%d').date()
+        except:
+            return HttpResponse("Rango de fechas inválido", status=400)
+        try:
+            fecha_final = datetime.strptime(fecha_final_str, '%Y-%m-%d').date()
+        except:
+            fecha_final = fecha_inicio
+    else:
+        try:
+            fecha_inicio = datetime.strptime(fecha_str, '%Y-%m-%d').date()
+        except:
+            return HttpResponse("Fecha inválida", status=400)
+        fecha_final = fecha_inicio
+
+    dias_rango = (fecha_final - fecha_inicio).days + 1
 
     asignaciones = AsignacionEmpleadoEncargado.objects.filter(
-        encargado=encargado,
-        empleado__activo=True
+        encargado=encargado, empleado__activo=True
     ).select_related('empleado')
     empleados = [a.empleado for a in asignaciones]
 
@@ -1475,73 +1542,70 @@ def exportar_asistencias_encargado_excel(request):
         ('R', 'Rechazada'),
     ]
     ESTADO_MAP = dict(ESTADO_SOLICITUD)
-
+    
     resultados = []
 
     for empleado in empleados:
-        marcaje_depurado = MarcajeDepurado.objects.filter(empleado=empleado, fecha=fecha).first()
-        permiso_justificado = Permisos.objects.filter(
-            empleado=empleado,
-            fecha_inicio__lte=fecha,
-            fecha_final__gte=fecha
-        ).select_related('tipo_permiso').first()
+        for i in range(dias_rango):
+            fecha = fecha_inicio + timedelta(days=i)
+            marcaje = MarcajeDepurado.objects.filter(empleado=empleado, fecha=fecha).first()
+            permiso = Permisos.objects.filter(
+                empleado=empleado,
+                fecha_inicio__lte=fecha,
+                fecha_final__gte=fecha
+            ).select_related('tipo_permiso').first()
 
-        nombre_tipo = permiso_justificado.tipo_permiso.tipo if permiso_justificado else None
-        simbolo_permiso = permiso_justificado.tipo_permiso.simbolo if permiso_justificado else None
+            if marcaje:
+                estado = 'ASISTIÓ'
+                color = '38c172'
+                entrada = marcaje.entrada.strftime('%H:%M') if marcaje.entrada else '--:--'
+                salida = marcaje.salida.strftime('%H:%M') if marcaje.salida else '--:--'
+                nombre_tipo = estado_rh_display = simbolo = ''
+            elif permiso:
+                estado = 'JUSTIFICADO'
+                entrada = permiso.tipo_permiso.simbolo
+                salida = '--:--'
+                nombre_tipo = permiso.tipo_permiso.tipo
+                color = permiso.tipo_permiso.cod_color.lstrip('#') if permiso.tipo_permiso.cod_color else 'fbbf24'
+                estado_rh_display = ESTADO_MAP.get(permiso.estado_solicitud, permiso.estado_solicitud)
+            elif fecha.weekday() == 6:
+                estado = 'DOMINGO'
+                entrada = 'DO'
+                salida = '--:--'
+                nombre_tipo = ''
+                color = '00f7ff'
+                estado_rh_display = 'Descanso dominical'
+            else:
+                estado = 'FALTÓ'
+                entrada = salida = '--:--'
+                nombre_tipo = ''
+                estado_rh_display = ''
+                color = 'e3342f'
 
-        if marcaje_depurado:
-            estado = 'ASISTIÓ'
-            color = '38c172'
-            nombre_tipo = None
-            estado_rh_display = None
-            entrada = marcaje_depurado.entrada.strftime('%H:%M') if marcaje_depurado.entrada else '--:--'
-            salida = marcaje_depurado.salida.strftime('%H:%M') if marcaje_depurado.salida else '--:--'
-        elif permiso_justificado:
-            estado = 'JUSTIFICADO'
-            nombre_tipo = permiso_justificado.tipo_permiso.tipo
-            color = permiso_justificado.tipo_permiso.cod_color.lstrip('#') if permiso_justificado.tipo_permiso.cod_color else 'fbbf24'
-            estado_rh_display = ESTADO_MAP.get(permiso_justificado.estado_solicitud, permiso_justificado.estado_solicitud)
-            entrada = simbolo_permiso
-            salida = '--:--'
-        elif fecha.weekday() == 6:
-            estado = 'DOMINGO'
-            color = "00f7ff"
-            nombre_tipo = None
-            estado_rh_display = 'Descanso dominical'
-            entrada = 'DO'
-            salida = '--:--'
-        else:
-            estado = 'FALTÓ'
-            color = 'e3342f'
-            estado_rh_display = None
-            entrada = '--:--'
-            salida = '--:--'
+            if estado == 'ASISTIÓ':
+                estado_simbolo = '✔'
+            elif estado == 'FALTÓ':
+                estado_simbolo = 'X'
+            elif estado == 'DOMINGO':
+                estado_simbolo = 'DO'
+            elif estado == 'JUSTIFICADO':
+                estado_simbolo = nombre_tipo or ''
+            else:
+                estado_simbolo = ''
 
-        if estado == 'ASISTIÓ':
-            estado_simbolo = '✔'
-        elif estado == 'FALTÓ':
-            estado_simbolo = 'X'
-        elif estado == 'DOMINGO':
-            estado_simbolo = 'DO'
-        elif estado == 'JUSTIFICADO':
-            estado_simbolo = nombre_tipo or ''
-        else:
-            estado_simbolo = ''
-
-        resultados.append({
-            'fecha': fecha.strftime("%d/%m/%Y"),
-            'sucursal': empleado.sucursal.nombre,
-            'tipo_nomina': empleado.tipo_nomina,
-            'codigo': empleado.codigo,
-            'nombre': empleado.nombre,
-            'departamento': empleado.departamento,
-            'entrada': entrada,
-            'salida': salida,
-            'nombre_tipo': nombre_tipo or '',
-            'estado_rh_display': estado_rh_display or '',
-            'estado_simbolo': estado_simbolo,
-            'color': color,
-        })
+            resultados.append({
+                'fecha': fecha.strftime('%d/%m/%Y'),
+                'sucursal': empleado.sucursal.nombre,
+                'tipo_nomina': empleado.tipo_nomina,
+                'codigo': empleado.codigo,
+                'nombre': empleado.nombre,
+                'departamento': empleado.departamento,
+                'entrada': entrada,
+                'salida': salida,
+                'estado_rh_display': estado_rh_display,
+                'estado_simbolo': estado_simbolo,
+                'color': color,
+            })
 
     wb = Workbook()
     ws = wb.active
@@ -1552,35 +1616,30 @@ def exportar_asistencias_encargado_excel(request):
         "Marca Entrada", "Marca Salida", "Estado RH", "Asistencia"
     ]
     ws.append(headers)
-
-    for cell in ws[ws.max_row]:
+    for cell in ws[1]:
         cell.font = Font(bold=True)
         cell.alignment = Alignment(horizontal='center')
 
-    for r in resultados:
+    for row in resultados:
         ws.append([
-            r['fecha'],
-            r['sucursal'],
-            r['tipo_nomina'],
-            r['codigo'],
-            r['nombre'],
-            r['departamento'],
-            r['entrada'],
-            r['salida'],
-            r['estado_rh_display'],
-            r['estado_simbolo'],
+            row['fecha'], row['sucursal'], row['tipo_nomina'], row['codigo'],
+            row['nombre'], row['departamento'], row['entrada'], row['salida'],
+            row['estado_rh_display'], row['estado_simbolo']
         ])
-        fila_actual = ws.max_row
-        fill = PatternFill(start_color=r['color'], end_color=r['color'], fill_type='solid')
-        ws.cell(row=fila_actual, column=10).fill = fill
+        ws.cell(row=ws.max_row, column=10).fill = PatternFill(start_color=row['color'], end_color=row['color'], fill_type='solid')
+
+    filename = f"asistencia_{encargado.nombre}_{fecha_inicio.strftime('%d-%m-%Y')}"
+    if usar_rango and fecha_inicio != fecha_final:
+        filename += f"_a_{fecha_final.strftime('%d-%m-%Y')}"
+    filename += ".xlsx"
 
     response = HttpResponse(
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
-    filename = f"asistencia_{encargado.nombre}_{fecha.strftime('%d-%m-%Y')}.xlsx"
     response['Content-Disposition'] = f'attachment; filename={filename}'
     wb.save(response)
     return response
+
 
 @login_required
 @grupo_requerido('rrhh')
@@ -1705,18 +1764,47 @@ def reporte_asistencia(request):
 @grupo_requerido('rrhh')
 def exportar_asistencias_excel(request):
     sucursal_id = request.GET.get('sucursal')
+    usar_rango = request.GET.get('usar_rango') == 'on'
     fecha_str = request.GET.get('fecha')
+    fecha_inicio_str = request.GET.get('fecha_inicio')
+    fecha_final_str = request.GET.get('fecha_final')
 
-    if not sucursal_id or not fecha_str:
-        return HttpResponse("Parámetros inválidos", status=400)
+    if not sucursal_id:
+        return HttpResponse("Parámetro 'sucursal' requerido", status=400)
 
     try:
-        fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
-    except ValueError:
-        return HttpResponse("Fecha inválida", status=400)
+        if usar_rango:
+            fecha_inicio = datetime.strptime(fecha_inicio_str, '%Y-%m-%d').date()
+            fecha_final = datetime.strptime(fecha_final_str, '%Y-%m-%d').date()
+        else:
+            fecha_inicio = datetime.strptime(fecha_str, '%Y-%m-%d').date()
+            fecha_final = fecha_inicio
+    except (ValueError, TypeError):
+        return HttpResponse("Fechas inválidas", status=400)
 
-    empleados = Empleado.objects.filter(sucursal_id=sucursal_id, activo=True)
-    resultados = []
+    dias_rango = (fecha_final - fecha_inicio).days + 1
+    fechas = [fecha_inicio + timedelta(days=i) for i in range(dias_rango)]
+
+    empleados = Empleado.objects.filter(sucursal_id=sucursal_id, activo=True).select_related('sucursal')
+    empleados_ids = list(empleados.values_list('id', flat=True))
+
+    marcajes = MarcajeDepurado.objects.filter(
+        empleado_id__in=empleados_ids,
+        fecha__range=(fecha_inicio, fecha_final)
+    )
+    permisos = Permisos.objects.filter(
+        empleado_id__in=empleados_ids,
+        fecha_inicio__lte=fecha_final,
+        fecha_final__gte=fecha_inicio
+    ).select_related('tipo_permiso')
+
+    marcajes_map = defaultdict(dict)
+    for m in marcajes:
+        marcajes_map[m.empleado_id][m.fecha] = m
+
+    permisos_map = defaultdict(list)
+    for p in permisos:
+        permisos_map[p.empleado_id].append(p)
 
     ESTADO_SOLICITUD = [
         ('P', 'Pendiente'),
@@ -1726,84 +1814,6 @@ def exportar_asistencias_excel(request):
     ]
     ESTADO_MAP = dict(ESTADO_SOLICITUD)
 
-    for empleado in empleados:
-        marcaje_depurado = MarcajeDepurado.objects.filter(
-            empleado=empleado,
-            fecha=fecha
-        ).first()
-
-        permiso_justificado = Permisos.objects.filter(
-            empleado=empleado,
-            fecha_inicio__lte=fecha,
-            fecha_final__gte=fecha
-        ).select_related('tipo_permiso').first()
-
-        # Inicializa nombre y símbolo desde el permiso si existe
-        nombre_tipo = permiso_justificado.tipo_permiso.tipo if permiso_justificado else None
-        simbolo_permiso = permiso_justificado.tipo_permiso.simbolo if permiso_justificado else None
-
-        if marcaje_depurado:
-            estado = 'ASISTIÓ'
-            color = '38c172'  # Verde
-            estado_rh = None
-            estado_rh_display = None
-
-        elif permiso_justificado:
-            estado = 'JUSTIFICADO'
-            color = permiso_justificado.tipo_permiso.cod_color.lstrip('#') if permiso_justificado.tipo_permiso.cod_color else 'fbbf24'
-            estado_rh = permiso_justificado.estado_solicitud
-            estado_rh_display = ESTADO_MAP.get(estado_rh, estado_rh)
-
-        elif fecha.weekday() == 6:  # Domingo
-            estado = 'DOMINGO'
-            color = "00f7ff"
-            estado_rh = None
-            estado_rh_display = 'Descanso dominical'
-
-        else:
-            estado = 'FALTÓ'
-            color = 'e3342f'
-            estado_rh = None
-            estado_rh_display = None
-
-        # Símbolo para Excel
-        if estado == 'ASISTIÓ':
-            estado_simbolo = '✔'
-        elif estado == 'FALTÓ':
-            estado_simbolo = 'X'
-        elif estado == 'DOMINGO':
-            estado_simbolo = 'DO'
-        elif estado == 'JUSTIFICADO':
-            estado_simbolo = nombre_tipo or ''
-        else:
-            estado_simbolo = ''
-
-        resultados.append({
-            'fecha': fecha.strftime("%d/%m/%Y"),
-            'sucursal': empleado.sucursal.nombre,
-            'tipo_nomina': empleado.tipo_nomina,
-            'codigo': empleado.codigo,
-            'nombre': empleado.nombre,
-            'departamento': empleado.departamento,
-            'entrada': (
-                marcaje_depurado.entrada.strftime('%H:%M')
-                if marcaje_depurado and marcaje_depurado.entrada
-                else (simbolo_permiso if permiso_justificado else '--:--')
-            ),
-            'salida': (
-                marcaje_depurado.salida.strftime('%H:%M')
-                if marcaje_depurado and marcaje_depurado.salida
-                else '--:--'
-            ),
-            'estado_rh_display': estado_rh_display or '',
-            'estado': estado,
-            'estado_simbolo': estado_simbolo if estado_simbolo else nombre_tipo or '',  # Aquí ahora va el NOMBRE del permiso
-            'color': color,
-        })
-
-
-
-    # Crear archivo Excel
     wb = Workbook()
     ws = wb.active
     ws.title = "Asistencia"
@@ -1813,33 +1823,83 @@ def exportar_asistencias_excel(request):
         "Marca Entrada", "Marca Salida", "Estado RH", "Asistencia"
     ]
     ws.append(headers)
-
-    for cell in ws[ws.max_row]:
+    for cell in ws[1]:
         cell.font = Font(bold=True)
         cell.alignment = Alignment(horizontal='center')
 
-    for r in resultados:
-        ws.append([
-            r['fecha'],
-            r['sucursal'],
-            r['tipo_nomina'],
-            r['codigo'],
-            r['nombre'],
-            r['departamento'],
-            r['entrada'],
-            r['salida'],
-            r['estado_rh_display'],
-            r['estado_simbolo'],
-        ])
-        fila_actual = ws.max_row
-        fill = PatternFill(start_color=r['color'], end_color=r['color'], fill_type='solid')
-        # Aplica color solo a la celda "Asistencia" (columna 10)
-        ws.cell(row=fila_actual, column=10).fill = fill
+    for empleado in empleados:
+        for fecha in fechas:
+            marcaje = marcajes_map[empleado.id].get(fecha)
+            permiso = next((p for p in permisos_map[empleado.id] if p.fecha_inicio <= fecha <= p.fecha_final), None)
+
+            if marcaje:
+                estado = 'ASISTIÓ'
+                entrada = marcaje.entrada.strftime('%H:%M') if marcaje.entrada else '--:--'
+                salida = marcaje.salida.strftime('%H:%M') if marcaje.salida else '--:--'
+                simbolo_permiso = nombre_tipo = estado_rh = estado_rh_display = None
+                color = '38c172'  # Verde
+
+            elif permiso:
+                estado = 'JUSTIFICADO'
+                nombre_tipo = permiso.tipo_permiso.tipo
+                simbolo_permiso = permiso.tipo_permiso.simbolo
+                color = permiso.tipo_permiso.cod_color.lstrip('#') if permiso.tipo_permiso.cod_color else 'fbbf24'
+                estado_rh = permiso.estado_solicitud
+                estado_rh_display = ESTADO_MAP.get(estado_rh, estado_rh)
+                entrada = simbolo_permiso or '--'
+                salida = '--:--'
+
+            elif fecha.weekday() == 6:
+                estado = 'DOMINGO'
+                entrada = 'DO'
+                salida = '--:--'
+                color = '00f7ff'
+                simbolo_permiso = nombre_tipo = estado_rh = estado_rh_display = None
+
+            else:
+                estado = 'FALTÓ'
+                entrada = salida = '--:--'
+                color = 'e3342f'
+                simbolo_permiso = nombre_tipo = estado_rh = estado_rh_display = None
+
+            # Símbolo para Excel
+            if estado == 'ASISTIÓ':
+                estado_simbolo = '✔'
+            elif estado == 'FALTÓ':
+                estado_simbolo = 'X'
+            elif estado == 'DOMINGO':
+                estado_simbolo = 'DO'
+            elif estado == 'JUSTIFICADO':
+                estado_simbolo = simbolo_permiso or nombre_tipo or ''
+            else:
+                estado_simbolo = ''
+
+            ws.append([
+                fecha.strftime('%d/%m/%Y'),
+                empleado.sucursal.nombre,
+                empleado.tipo_nomina,
+                empleado.codigo,
+                empleado.nombre,
+                empleado.departamento,
+                entrada,
+                salida,
+                estado_rh_display or '',
+                estado_simbolo,
+            ])
+
+            fila_actual = ws.max_row
+            fill = PatternFill(start_color=color, end_color=color, fill_type='solid')
+            ws.cell(row=fila_actual, column=10).fill = fill  # Asistencia
 
     response = HttpResponse(
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
-    filename = f"asistencia_{empleado.sucursal.nombre}_{fecha.strftime('%d-%m-%Y')}.xlsx"
+    nombre_sucursal = empleados[0].sucursal.nombre if empleados else 'sucursal'
+    if usar_rango:
+        filename = f"asistencias_{nombre_sucursal}_{fecha_inicio.strftime('%d-%m')}_al_{fecha_final.strftime('%d-%m-%Y')}.xlsx"
+    else:
+        filename = f"asistencias_{nombre_sucursal}_{fecha_inicio.strftime('%d-%m-%Y')}.xlsx"
+
     response['Content-Disposition'] = f'attachment; filename={filename}'
     wb.save(response)
     return response

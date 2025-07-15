@@ -7,43 +7,63 @@
 
 <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-300">
     <div class="flex justify-between mb-4">
-        <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-200">Validar Asistencia</h2>
-        <a id="btn-exportar" href="#" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+        <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-200 -mt-4">Validar Asistencia</h2>
+        <a id="btn-exportar" href="#" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 -mt-4">
             Exportar a Excel
         </a>
-        <a href="{% url 'ausencias_encargado' %}" class="bg-blue-600 text-white px-6 py-2 rounded-lg shadow hover:bg-blue-700 transition duration-200 flex items-center">
+        <a href="{% url 'ausencias_encargado' %}" class="bg-blue-600 text-white px-6 py-2 rounded-lg shadow hover:bg-blue-700 transition duration-200 flex items-center -mt-4">
             Cargar ausencias por encargado
         </a>
     </div>
     <div class="bg-white dark:bg-gray-800 rounded-lg mb-6">
         <div class="p-4 border border-gray-300 shadow-md rounded-lg">
-            <form class="grid grid-cols-1 md:grid-cols-3 gap-4" 
+            <form class="flex flex-wrap items-end gap-4 w-full -mt-4"
                 hx-get="{% url 'validar_asistencia' %}"
                 hx-target="#cargar-asis"
                 hx-swap="innerHTML">
-                <div>
-                    <label for="sucursal" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Sucursal:</label>
-                    <select name="sucursal" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-gray-200 dark:bg-gray-700 dark:text-white text-sm">
-                    {% for suc in sucursales %}
-                    <option value="{{ suc.id }}" {% if suc.id|stringformat:"s" == selected_sucursal %}selected{% endif %}>{{ suc.nombre }}</option>
-                    {% endfor %}
+                
+                <div class="flex flex-col w-64">
+                    <label for="sucursal" class="text-sm font-medium text-gray-700 dark:text-gray-200">Sucursal:</label>
+                    <select name="sucursal" class="mt-1 rounded-md border-gray-300 dark:border-gray-600 bg-gray-200 dark:bg-gray-700 dark:text-white text-sm">
+                        {% for suc in sucursales %}
+                        <option value="{{ suc.id }}" {% if suc.id|stringformat:"s" == selected_sucursal %}selected{% endif %}>{{ suc.nombre }}</option>
+                        {% endfor %}
                     </select>
                 </div>
-                <div>
-                    <label for="fecha" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Fecha:</label>
-                    <input type="date" name="fecha" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-gray-200 dark:bg-gray-700 dark:text-white text-sm">
+
+                <div class="flex flex-col w-28">
+                    <label for="usar_rango" class="text-sm font-medium text-gray-700 dark:text-gray-200">Usar rango:</label>
+                    <input type="checkbox" id="usar_rango" name="usar_rango" {% if usar_rango %}checked{% endif %} class="mt-2">
                 </div>
-                <div class="flex items-end">
-                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded text-sm flex items-center justify-center">
+
+                <div id="fecha_unica" class="flex flex-col w-96" {% if usar_rango %}style="display:none"{% endif %}>
+                    <label class="text-sm font-medium text-gray-700 dark:text-gray-200">Fecha:</label>
+                    <input type="date" name="fecha" value="{{ selected_fecha }}" class="mt-1 rounded-md border-gray-300 dark:border-gray-600 bg-gray-200 dark:bg-gray-700 dark:text-white text-sm">
+                </div>
+
+                <div id="rango_fechas" class="flex gap-2" {% if not usar_rango %}style="display:none"{% endif %}>
+                    <div class="flex flex-col w-48">
+                        <label class="text-sm font-medium text-gray-700 dark:text-gray-200">Desde:</label>
+                        <input type="date" name="fecha_inicio" value="{{ fecha_inicio }}" class="mt-1 rounded-md border-gray-300 dark:border-gray-600 bg-gray-200 dark:bg-gray-700 dark:text-white text-sm">
+                    </div>
+                    <div class="flex flex-col w-48">
+                        <label class="text-sm font-medium text-gray-700 dark:text-gray-200">Hasta:</label>
+                        <input type="date" name="fecha_final" value="{{ fecha_final }}" class="mt-1 rounded-md border-gray-300 dark:border-gray-600 bg-gray-200 dark:bg-gray-700 dark:text-white text-sm">
+                    </div>
+                </div>
+
+                <div class="flex flex-col">
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold text-md py-1 px-20 rounded text-base flex items-center justify-center ml-20 mt-5">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                         </svg> 
                         Validar
                     </button>
                 </div>
-            </form>   
+            </form>
+ 
         </div>
-        <div id="cargar-asis" class="bg-white dark:bg-gray-800 max-h-[600px] shadow-md rounded-lg mt-4 overflow-hidden" style="height: 62vh;">
+        <div id="cargar-asis" class="bg-white dark:bg-gray-800 max-h-[600px] shadow-md rounded-lg mt-1 overflow-hidden" style="height: 62vh;">
             {% include 'partials/mostrar-asistencia.html' %}
         </div>
     </div>
@@ -75,22 +95,66 @@ document.body.addEventListener('htmx:afterSwap', (e) => {
 <!-- <script src="{% static 'scripts/validar_asistencia.js' %}"></script> -->
 
 <script>
-document.getElementById("btn-exportar").addEventListener("click", function (e) {
-    e.preventDefault();
+document.addEventListener("DOMContentLoaded", function () {
+    const usarRango = document.getElementById("usar_rango");
+    const fechaUnica = document.getElementById("fecha_unica");
+    const rangoFechas = document.getElementById("rango_fechas");
+    const botonExportar = document.getElementById("btn-exportar");
 
-    const sucursal = document.querySelector("select[name='sucursal']").value;
-    const fecha = document.querySelector("input[name='fecha']").value;
-
-    if (!sucursal || !fecha) {
-        alert("Selecciona una sucursal y una fecha.");
-        return;
+    // Mostrar u ocultar campos según el checkbox
+    if (usarRango) {
+        usarRango.addEventListener("change", function () {
+            if (this.checked) {
+                fechaUnica.style.display = "none";
+                rangoFechas.style.display = "flex";
+            } else {
+                fechaUnica.style.display = "flex";
+                rangoFechas.style.display = "none";
+            }
+        });
     }
 
-    const baseUrl = "{% url 'exportar_asistencias_excel' %}";
-    const finalUrl = `${baseUrl}?sucursal=${sucursal}&fecha=${fecha}`;
-    window.location.href = finalUrl;
+    // Manejar exportación
+    if (botonExportar) {
+        botonExportar.addEventListener("click", function (e) {
+            e.preventDefault();
+
+            const sucursal = document.querySelector("select[name='sucursal']");
+            if (!sucursal || !sucursal.value) {
+                alert("Selecciona una sucursal.");
+                return;
+            }
+
+            let finalUrl = "{% url 'exportar_asistencias_excel' %}";
+            let params = `?sucursal=${sucursal.value}`;
+
+            if (usarRango && usarRango.checked) {
+                const fechaInicio = document.querySelector("input[name='fecha_inicio']").value;
+                const fechaFinal = document.querySelector("input[name='fecha_final']").value;
+
+                if (!fechaInicio || !fechaFinal) {
+                    alert("Selecciona ambas fechas del rango.");
+                    return;
+                }
+
+                params += `&fecha_inicio=${fechaInicio}&fecha_final=${fechaFinal}&usar_rango=on`;
+            } else {
+                const fecha = document.querySelector("input[name='fecha']").value;
+
+                if (!fecha) {
+                    alert("Selecciona una fecha.");
+                    return;
+                }
+
+                params += `&fecha=${fecha}`;
+            }
+
+            window.location.href = finalUrl + params;
+        });
+    }
 });
 </script>
+
 
 
 {% endblock %}

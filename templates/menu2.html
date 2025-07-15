@@ -84,6 +84,26 @@
                     </ul>
                 </details>
             </li>
+            <li class="mb-1">
+                <details class="group">
+                    <summary class="flex items-center px-5 py-3 cursor-pointer hover:bg-opacity-10 hover:bg-white transition-colors duration-200 outline-none">
+                        <i data-lucide="list" class="w-5 h-5 mr-3"></i>
+                        Solicitudes de Pago
+                        <svg class="ml-auto w-4 h-4 transition-transform duration-200 group-open:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </summary>
+                    <ul class="px-10 py-2 space-y-1">
+                        {% if request.user|has_group:"encargado" %}
+                        <li>
+                            <a href="#" class="flex items-center py-2 hover:bg-opacity-10 hover:bg-white transition-colors duration-200 rounded">
+                                <i data-lucide="upload" class="w-4 h-4 mr-2"></i> Subir Solicitud de Pago
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </details>
+            </li>
             {% if request.user|has_group:"rrhh" %}
             <li class="mb-1">
                 <details class="group">
