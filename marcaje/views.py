@@ -34,6 +34,10 @@ from openpyxl.styles import PatternFill, Font, Alignment
 from django.db.models import ProtectedError
 from collections import defaultdict
 from django.core.paginator import Paginator
+from django.contrib.auth.models import User
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes
 
 
 def grupo_requerido(nombre_grupo):
@@ -1903,3 +1907,19 @@ def exportar_asistencias_excel(request):
     response['Content-Disposition'] = f'attachment; filename={filename}'
     wb.save(response)
     return response
+
+@login_required
+@grupo_requerido('rrhh')
+def generar_enlace_reset_view(request, username):
+    try:
+        user = User.objects.get(username=username)
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        token = default_token_generator.make_token(user)
+
+        # Detecta el host automáticamente desde la solicitud
+        dominio = request.get_host()  # ejemplo: 192.168.11.12:8005
+        enlace = f"http://{dominio}/marcaje/reset/{uid}/{token}/"
+
+        return JsonResponse({'enlace': enlace})
+    except User.DoesNotExist:
+        return JsonResponse({'error': 'Usuario no encontrado'}, status=404)
