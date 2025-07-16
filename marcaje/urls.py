@@ -1,6 +1,7 @@
 from django.urls import path
 from . import views
 from marcaje.views import logout_view
+from django.contrib.auth import views as auth_views
 
 urlpatterns = [
     path('', views.lista_registros, name='marcaje'),
@@ -55,4 +56,9 @@ urlpatterns = [
     # path('sin-permiso/', views.sin_permiso, name='sin_permiso'),
     path('cambiar-password/', views.ForzarCambioPasswordView.as_view(), name='cambiar_password'),
     path('extraer-asistencias/', views.exportar_asistencias_excel, name='exportar_asistencias_excel'),
+    path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(
+        template_name='password_reset_confirm.html',
+        success_url='/login/'  # o el destino que desees después del cambio
+    ), name='password_reset_confirm'),
+    path('generar-reset/<str:username>/', views.generar_enlace_reset_view, name='generar_enlace_reset'),
 ]
