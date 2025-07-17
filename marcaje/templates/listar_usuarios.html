@@ -6,15 +6,15 @@
 {% block content %}
 <div class="w-full max-w-7xl mx-auto bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-300">
     <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-200">Lista de Usuarios</h2>
-    <div class="flex justify-end mb-4">
+    <div class="flex justify-end mb-4 -mt-10">
         <a href="{% url 'crear_usuario' %}" class="bg-blue-600 text-white px-6 py-2 rounded-lg shadow hover:bg-blue-700 transition duration-200 flex items-center">
             <i data-lucide="user-plus" class="w-4 h-4 mr-2"></i>
             Crear Usuario
         </a>
     </div>
-    <div class="bg-white dark:bg-gray-800 max-h-[450px] rounded-lg mb-6 mt-4" style="height: 75vh;">
+    <div class="bg-white dark:bg-gray-800 max-h-[500px] rounded-lg mb-6 mt-4" style="height: 75vh;">
         <div class="p-4 border border-gray-300 shadow-md rounded-lg">
-            <table class="min-w-full text-sm text-left text-gray-700 dark:text-gray-200">
+            <table id="tabla_Usuarios" class="min-w-full text-sm text-left text-gray-700 dark:text-gray-200">
                 <thead class="bg-gray-100 dark:bg-gray-600 uppercase text-xs">
                     <tr>
                         <th class="px-4 py-2" style="text-align: center;">Nombre de Usuario</th>
@@ -45,5 +45,19 @@
         </div>
     </div>
 </div>
+<script>
+    function initDataTable() {
+        $('#tabla_Usuarios').DataTable({
+            scrollY: 350,
+            ordering: false
+        });
+    }
+
+    // Inicializa la tabla cuando la página carga por primera vez
+    document.addEventListener("DOMContentLoaded", function() {
+        initDataTable();
+    });
+</script>
+
 
 {% endblock %}

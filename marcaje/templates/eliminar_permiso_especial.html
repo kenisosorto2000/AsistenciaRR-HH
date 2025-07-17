@@ -14,9 +14,13 @@
         <form method="post" class="space-y-4">
             {% csrf_token %}
             <div class="flex justify-center space-x-4">
-                <a href="{% url 'subir_comprobantes_especial' %}" class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-lg shadow">
+                <button 
+                    type="button"
+                    onclick="window.history.back()" 
+                    class="w-full sm:w-auto px-8 py-3 bg-promaco-red text-gray-700 dark:text-gray-200 font-semibold rounded-lg hover:bg-red-600 transition-colors duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+                >
                     Cancelar
-                </a>
+                </button>
                 <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg shadow">
                     Sí, eliminar
                 </button>

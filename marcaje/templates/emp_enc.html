@@ -15,7 +15,7 @@
                 Empleados
             </h2>
         </div>
-        <table class="min-w-full table-auto text-sm text-left text-gray-700 dark:text-gray-200">
+        <table id="tabla_No_Encargado" class="min-w-full table-auto text-sm text-left text-gray-700 dark:text-gray-200">
             <thead class="bg-blue-100 text-blue-800 sticky top-[52px] z-10">
                 <tr>
                     <th class="px-4 py-2">Empleado</th>
@@ -54,7 +54,7 @@
             Encargados
         </h2>
     </div>
-        <table class="min-w-full table-auto text-sm text-left text-gray-700 dark:text-gray-200">
+        <table id="tabla_Encargados" class="min-w-full table-auto text-sm text-left text-gray-700 dark:text-gray-200">
             <thead class="bg-blue-100 text-blue-800 sticky top-[52px] z-10">
                 <tr>
                     <th class="px-4 py-2">Empleado</th>
@@ -86,4 +86,25 @@
     </div>
 
 </div>
+<script>
+        function initDataTable() {
+            $('#tabla_No_Encargado').DataTable({
+                scrollY: 400,
+                ordering: false
+            });
+        }
+        function initDataTable2() {
+            $('#tabla_Encargados').DataTable({
+                scrollY: 400,
+                ordering: false
+            });
+        }
+
+        // Inicializa la tabla cuando la página carga por primera vez
+        document.addEventListener("DOMContentLoaded", function() {
+            initDataTable();
+            initDataTable2();
+        });
+    </script>
+
 {% endblock %}
