@@ -513,7 +513,7 @@ def eliminar_permiso_especial(request, permiso_id):
 @login_required
 @grupo_requerido('encargado')
 def crear_permiso(request):
-    tipo_permisos = TipoPermisos.objects.exclude(tipo__in=['Especial', 'Servicios Profesionales', 'Salió', 'Suspensión', 'Incapacidad sin Seguro Social', 'Incapacidad con Seguro Social', 'No marcó', 'Domingo'])
+    tipo_permisos = TipoPermisos.objects.exclude(tipo__in=['Especial', 'Servicios Profesionales', 'Salió', 'Suspensión', 'Incapacidad sin Seguro Social', 'Incapacidad con Seguro Social', 'No marcó', 'Domingo', 'Asueto'])
     encargados = Empleado.objects.filter(es_encargado=True)
 
     if request.method == 'POST':
@@ -596,8 +596,8 @@ def crear_permiso(request):
 def editar_permiso(request, permiso_id):
     permiso = get_object_or_404(Permisos, id=permiso_id)
     tipo_permisos = TipoPermisos.objects.exclude(tipo__in=[
-        'Especial', 'Servicios Profesionales', 'Suspensión',
-        'Incapacidad sin Seguro Social', 'Incapacidad con Seguro Social', 'No marcó'
+        'Especial', 'Servicios Profesionales', 'Suspensión', 'Incapacidad sin Seguro Social', 
+        'Incapacidad con Seguro Social', 'No marcó', 'Domingo', 'Asueto'
     ])
     encargados = Empleado.objects.filter(es_encargado=True)
 
@@ -1040,10 +1040,15 @@ def ver_historial_encargado(request):
 
     return render(request, 'historial_solicitudes_encargado.html', {'solicitudes': context})
 
+
+@login_required
+@grupo_requerido('rrhh')
 def subir_comprobante_especial(request):
     solicitudes_raw = Permisos.objects.filter(
         Q(tiene_comprobante=False) | Q(estado_solicitud='SB', pendiente_subsanar=True)
-    ).order_by('-fecha_solicitud')
+    ).exclude(encargado__isnull=False)  # Excluye todos los que ya tienen encargado
+
+    solicitudes_raw = solicitudes_raw.order_by('-fecha_solicitud')
 
     solicitudes = []
     for permiso in solicitudes_raw:

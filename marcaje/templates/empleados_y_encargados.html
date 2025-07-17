@@ -6,7 +6,7 @@
             Empleados
         </h2>
     </div>
-        <table class="min-w-full table-auto text-sm text-left text-gray-700 dark:text-gray-200">
+        <table id="tabla_No_Encargado" class="min-w-full table-auto text-sm text-left text-gray-700 dark:text-gray-200">
             <thead class="bg-blue-100 text-blue-800 sticky top-[52px] z-10">
                 <tr>
                     <th class="px-4 py-2">Empleado</th>
@@ -45,7 +45,7 @@
             Encargados
         </h2>
     </div>
-        <table class="min-w-full table-auto text-sm text-left text-gray-700 dark:text-gray-200">
+        <table id="tabla_Encargados" class="min-w-full table-auto text-sm text-left text-gray-700 dark:text-gray-200">
             <thead class="bg-blue-100 text-blue-800 sticky top-[52px] z-10">
                 <tr>
                     <th class="px-4 py-2">Empleado</th>
@@ -75,3 +75,29 @@
             </tbody>
         </table>
     </div>
+
+    <script>
+        function initDataTable(selector) {
+            const table = document.querySelector(selector);
+            if (table && !$.fn.DataTable.isDataTable(table)) {
+                $(selector).DataTable({
+                    scrollY: 400,
+                    ordering: false,
+                });
+            }
+        }
+
+        function inicializarTablas() {
+            initDataTable('#tabla_No_Encargado');
+            initDataTable('#tabla_Encargados');
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            inicializarTablas();
+        });
+
+        document.body.addEventListener("htmx:afterSwap", function(evt) {
+            // Se vuelve a ejecutar la inicialización cuando HTMX carga contenido
+            inicializarTablas();
+        });
+    </script>
