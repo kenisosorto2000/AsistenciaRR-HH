@@ -15,7 +15,7 @@
     <link rel="stylesheet" href="{% static 'styles/menu.css' %}">
 
     <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="{% static 'scripts/tailwind.js' %}"></script>
     <script>
         // 1. Verificar tema al cargar
         const storedTheme = localStorage.getItem('theme') || 
@@ -47,7 +47,10 @@
         }
     </script>
     <!-- Iconos de Lucide -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="{% static 'scripts/lucide.min.js' %}"></script>
+    <script>
+        lucide.createIcons();
+    </script>
 </head>
 <body class="bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-300">
     <div class="flex flex-col min-h-screen">

@@ -1923,7 +1923,7 @@ def generar_enlace_reset_view(request, username):
 
         # Detecta el host automáticamente desde la solicitud
         dominio = request.get_host()  # ejemplo: 192.168.11.12:8005
-        enlace = f"http://{dominio}/marcaje/reset/{uid}/{token}/"
+        enlace = f"http://{dominio}:8005/marcaje/reset/{uid}/{token}/"
 
         return JsonResponse({'enlace': enlace})
     except User.DoesNotExist:

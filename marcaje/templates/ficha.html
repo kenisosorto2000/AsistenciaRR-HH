@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>Ficha de Solicitud</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="{% static 'scripts/tailwind.js' %}"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
   <style>
@@ -159,7 +159,7 @@
       boton.style.display = 'none';
 
       // Desplaza ligeramente el contenido a la izquierda solo para el PDF
-      element.style.transform = 'translate(-32px, -20px)';
+      element.style.transform = 'translate(-32px, -30px)';
 
       // Obtiene el nombre del empleado desde el input (ajusta el selector si cambias el orden)
       const nombreInput = document.querySelector('input[value="{{ solicitud.empleado }}"]');
