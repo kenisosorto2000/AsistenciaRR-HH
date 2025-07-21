@@ -58,7 +58,9 @@ class MarcajeDepurado(models.Model):
     fecha = models.DateField()
     entrada = models.TimeField(null=True)
     salida = models.TimeField(null=True)
-   
+    class Meta:
+        unique_together = ('empleado', 'fecha')
+
     def __str__(self):
         return self.empleado.codigo
     
