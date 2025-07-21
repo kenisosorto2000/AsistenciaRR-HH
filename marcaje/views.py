@@ -38,6 +38,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
+import traceback
 
 
 def grupo_requerido(nombre_grupo):
@@ -135,24 +136,24 @@ def sync_empleados_view(request):
 @require_POST
 def sync_marcaje_view(request):
     try:
-        # Ejecutar tu función de sincronización
-        fecha_str = request.GET.get('fecha') or timezone.now().strftime('%Y-%m-%d')
+        fecha_str = request.GET.get('fecha')
+        if not fecha_str:
+            fecha_str = timezone.now().strftime('%Y-%m-%d')
         fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
+
         resultado = sincronizar_marcajes(fecha=fecha)
-        
-        # Si hay error en la sincronización
+
         if 'error' in resultado:
             return JsonResponse({
                 'status': 'error',
                 'message': resultado['error'],
                 'marcajes': []
             }, status=400)
-        
+
         depurar_marcajes(fecha)
-        # Obtener marcajes recién sincronizados
+
         marcajes = Marcaje.objects.all().order_by('-fecha_hora')
-        
-        # Preparar respuesta compatible con tu frontend
+
         return JsonResponse({
             'status': 'success',
             'message': f'Sincronización completada para {fecha}',
@@ -161,13 +162,17 @@ def sync_marcaje_view(request):
             'errores': resultado.get('errores', 0),
             'marcajes': serializers.serialize('json', marcajes)
         })
-        
+
     except Exception as e:
+        tb = traceback.format_exc()
+        print(tb)  # Ver detalle en consola
         return JsonResponse({
             'status': 'error',
             'message': str(e),
+            'traceback': tb,
             'marcajes': []
         }, status=500)
+
 
 @login_required
 @grupo_requerido('rrhh')
@@ -197,6 +202,8 @@ def lista_registros(request):
     registros = Marcaje.objects.select_related('empleado').all() 
     if departamento:
         registros = registros.filter(empleado__departamento=departamento)
+    
+    registros = registros.order_by('-fecha_hora')
     
     departamentos = Empleado.objects.values_list('departamento', flat=True).distinct().order_by()
 

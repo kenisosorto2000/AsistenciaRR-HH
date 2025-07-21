@@ -136,8 +136,10 @@ document.getElementById('sync-btn').addEventListener('click', () => {
         closeButton: false
     });
 
-    fetch(`/marcaje/sync_marcaje_view/?fecha=${fecha}`, {
+    fetch(`/marcaje/sync-marcaje/?fecha=${fecha}`, {
+        method: 'POST',
         headers: {
+            'X-CSRFToken': getCookie('csrftoken'), // Obtener el token CSRF
             'X-Requested-With': 'XMLHttpRequest',
             'Accept': 'application/json'
         }
