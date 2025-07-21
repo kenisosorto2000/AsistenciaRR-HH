@@ -27,7 +27,7 @@
             </svg>
             Sincronizar Marcajes
         </button>
-        <span id="sync-status" class="text-sm text-gray-500 dark:text-gray-400"></span>
+        <!-- <span id="sync-status" class="text-sm text-gray-500 dark:text-gray-400"></span> -->
     </form>
 
     <div class="overflow-x-auto overflow-y-auto max-h-[580px] top-[0px] z-10 -mt-6">
@@ -126,7 +126,7 @@
 
 <script>
 document.getElementById('sync-btn').addEventListener('click', () => {
-    const fecha = new Date().toISOString().split('T')[0]; // Fecha actual YYYY-MM-DD
+    const fechaSeleccionada = document.getElementById('fecha-sync').value; // Fecha actual YYYY-MM-DD
 
     // Mostrar mensaje de sincronización en curso
     const loadingToast = toastr.info("Conectando con el servidor...", "Sincronizando", {
@@ -136,7 +136,7 @@ document.getElementById('sync-btn').addEventListener('click', () => {
         closeButton: false
     });
 
-    fetch(`/marcaje/sync-marcaje/?fecha=${fecha}`, {
+    fetch(`/marcaje/sync-marcaje/?fecha=${fechaSeleccionada}`, {
         method: 'POST',
         headers: {
             'X-CSRFToken': getCookie('csrftoken'), // Obtener el token CSRF
@@ -151,7 +151,7 @@ document.getElementById('sync-btn').addEventListener('click', () => {
         if (contentType && contentType.indexOf("application/json") !== -1) {
             const data = await response.json();
             if (data.status === 'success') {
-                toastr.success(`✔️ Sincronización completada para ${fecha}<br>
+                toastr.success(`✔️ Sincronización completada para ${fechaSeleccionada}<br>
                     Nuevos: ${data.creados}<br>
                     Actualizados: ${data.actualizados}<br>
                     Errores: ${data.errores}`, 'Éxito');
