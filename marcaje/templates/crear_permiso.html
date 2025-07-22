@@ -286,12 +286,14 @@
         if (toast) {
             toast.insertAdjacentHTML("beforeend", `
                 <div class="flex space-x-2 ms-4">
+                    <p class="text-white">¿Desea confirmar aun así la solicitud?</p>
+                    <br>
                     <button onclick="confirmarTraslape()" class="px-3 py-1 text-white bg-green-600 rounded hover:bg-green-700">Sí</button>
                     <button onclick="cancelarToast()" class="px-3 py-1 text-white bg-gray-500 rounded hover:bg-gray-600">No</button>
                 </div>
             `);
         }
-    }, 100); // le da un breve retardo para que el toast cargue
+    }, 50); // le da un breve retardo para que el toast cargue
 </script>
 
 <script>
