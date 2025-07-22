@@ -15,6 +15,7 @@ urlpatterns = [
     path('solicitud/', views.solicitud_rh),
     path('crear-permiso/', views.crear_permiso, name='crear_permiso'),
     path('editar-permiso/<int:permiso_id>/', views.editar_permiso, name='editar_permiso'),
+    path('eliminar-permiso-h/<int:permiso_id>/', views.eliminar_permiso_H, name='eliminar_permiso_h'),
     path('eliminar-permiso/<int:permiso_id>/', views.eliminar_permiso, name='eliminar_permiso'),
     path('crear-incapacidad/', views.crear_incapacidad, name='crear_incapacidad'),
     path('editar-incapacidad/<int:permiso_id>/', views.editar_incapacidad, name='editar_incapacidad'),

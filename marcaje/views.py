@@ -520,27 +520,68 @@ def eliminar_permiso_especial(request, permiso_id):
 @login_required
 @grupo_requerido('encargado')
 def crear_permiso(request):
-    tipo_permisos = TipoPermisos.objects.exclude(tipo__in=['Especial', 'Servicios Profesionales', 'Salió', 'Suspensión', 'Incapacidad sin Seguro Social', 'Incapacidad con Seguro Social', 'No marcó', 'Domingo', 'Asueto'])
+    tipo_permisos = TipoPermisos.objects.exclude(tipo__in=[
+        'Especial', 'Servicios Profesionales', 'Salió', 'Suspensión',
+        'Incapacidad sin Seguro Social', 'Incapacidad con Seguro Social',
+        'No marcó', 'Domingo', 'Asueto'
+    ])
     encargados = Empleado.objects.filter(es_encargado=True)
 
     if request.method == 'POST':
         try:
             encargado_id = request.POST.get('encargado')
             empleado_id = request.POST.get('empleado')
-            tipo_permiso = request.POST.get('tipo_permiso')
+            tipo_permiso_id = request.POST.get('tipo_permiso')
             fecha_inicio = request.POST.get('fecha_inicio')
             fecha_final = request.POST.get('fecha_final')
             descripcion = request.POST.get('descripcion')
 
-            usar_hora = request.POST.get('usar_hora')  # checkbox
-
+            usar_hora = request.POST.get('usar_hora')
             hora_inicio = request.POST.get('hora_inicio') if usar_hora else None
             hora_final = request.POST.get('hora_final') if usar_hora else None
 
+            confirmar_traslape = request.POST.get('confirmar_traslape') == 'true'
+
+            # Validaciones de existencia
             empleado = Empleado.objects.get(id=empleado_id)
             encargado = Empleado.objects.get(id=encargado_id)
-            tipo_permiso = TipoPermisos.objects.get(id=tipo_permiso)
+            tipo_permiso = TipoPermisos.objects.get(id=tipo_permiso_id)
 
+            if not empleado_id or not empleado_id.isdigit():
+                return render(request, 'crear_permiso.html', {
+                    'tipo_permisos': tipo_permisos,
+                    'encargados': encargados,
+                    'error': "Debe seleccionar un empleado válido.",
+                    'datos_formulario': request.POST
+                })
+
+            if not encargado_id or not encargado_id.isdigit():
+                return render(request, 'crear_permiso.html', {
+                    'tipo_permisos': tipo_permisos,
+                    'encargados': encargados,
+                    'error': "Debe seleccionar un encargado válido.",
+                    'datos_formulario': request.POST
+                })
+
+            if not tipo_permiso_id or not tipo_permiso_id.isdigit():
+                return render(request, 'crear_permiso.html', {
+                    'tipo_permisos': tipo_permisos,
+                    'encargados': encargados,
+                    'error': "Debe seleccionar un tipo de permiso válido.",
+                    'datos_formulario': request.POST
+                })
+
+
+            # Validación: fecha inicio <= fecha final
+            if fecha_inicio > fecha_final:
+                return render(request, 'crear_permiso.html', {
+                    'tipo_permisos': tipo_permisos,
+                    'encargados': encargados,
+                    'error': "La fecha de inicio no puede ser posterior a la fecha final.",
+                    'datos_formulario': request.POST
+                })
+
+            # Validación de traslape
             traslape = Permisos.objects.filter(
                 empleado=empleado,
                 estado_solicitud__in=['P', 'A'],
@@ -548,23 +589,16 @@ def crear_permiso(request):
                 fecha_final__gte=fecha_inicio
             ).exists()
 
-            if traslape:
-                messages.error(request, "Ya existe un permiso pendiente o aprobado que se traslapa con estas fechas.")
+            if traslape and not confirmar_traslape:
                 return render(request, 'crear_permiso.html', {
                     'tipo_permisos': tipo_permisos,
                     'encargados': encargados,
+                    'mostrar_confirmacion': True,
                     'error': "Ya existe un permiso pendiente o aprobado que se traslapa con estas fechas.",
+                    'datos_formulario': request.POST
                 })
 
-            if fecha_inicio > fecha_final:
-                messages.error(request, "La fecha de inicio no puede ser posterior a la fecha final.")
-                return render(request, 'crear_permiso.html', {
-                    'tipo_permisos': tipo_permisos,
-                    'encargados': encargados,
-                    'error': "La fecha de inicio no puede ser posterior a la fecha final.",
-                })
-
-            # ⚠️ Aquí es donde guardas el permiso
+            # Guardado si no hay errores
             Permisos.objects.create(
                 encargado=encargado,
                 empleado=empleado,
@@ -580,22 +614,23 @@ def crear_permiso(request):
             return redirect('subir_comprobantes')
 
         except Empleado.DoesNotExist:
-            messages.error(request, 'Empleado no válido')
             return render(request, 'crear_permiso.html', {
                 'tipo_permisos': tipo_permisos,
                 'encargados': encargados,
+                'error': "Empleado o encargado no válido.",
             })
         except Exception as e:
-            messages.error(request, f"Error al guardar: {e}")
             return render(request, 'crear_permiso.html', {
                 'tipo_permisos': tipo_permisos,
                 'encargados': encargados,
+                'error': f"Error al guardar: {e}"
             })
 
     return render(request, 'crear_permiso.html', {
         'tipo_permisos': tipo_permisos,
         'encargados': encargados,
     })
+
 
 
 @login_required
@@ -1239,7 +1274,7 @@ def ver_historial_solicitudes(request):
         })
     return render(request, 'historial_solicitudes.html', {'solicitudes': context})
 
-def eliminar_permiso(request, permiso_id):
+def eliminar_permiso_H(request, permiso_id):
     permiso = get_object_or_404(Permisos, id=permiso_id)
 
     if request.method == 'POST':
