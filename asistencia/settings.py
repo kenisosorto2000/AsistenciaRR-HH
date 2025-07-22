@@ -96,7 +96,7 @@ WSGI_APPLICATION = 'asistencia.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'mssql',
-        'NAME': 'prueba_db',
+        'NAME': 'server_db',
         'USER': 'sa',
         'PASSWORD': 'Pass@w0-2710',
         'HOST': 'localhost\\SQLEXPRESS',

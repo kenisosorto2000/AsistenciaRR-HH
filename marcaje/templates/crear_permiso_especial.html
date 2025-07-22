@@ -82,7 +82,7 @@
         </a>
     </div>
     <div class="max-w-3xl mx-auto px-4 -mt-16">
-        <form method="post" enctype="multipart/form-data" class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-md border border-blue-200">
+        <form id="formulario-permiso" method="post" enctype="multipart/form-data" class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-md border border-blue-200">
             {% csrf_token %}
             <div class="flex items-center justify-center border dark:bg-blue-700 border-gray-300 p-4 rounded-lg mb-6 bg-gray-50">
                 <h1 class="text-xl font-bold text-gray-800 dark:text-gray-200">Solicitar Permiso Especial</h1>
@@ -94,7 +94,8 @@
                     class="select2-tailwind w-full text-gray-800 bg-gray-800 dark:bg-gray-600 border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
                     <option value="">Seleccione un empleado</option>
                     {% for emp in empleados %}
-                        <option value="{{ emp.id }}" data-departamento="{{ emp.departamento }}">
+                         <option value="{{ emp.id }}" data-departamento="{{ emp.departamento }}"
+                            {% if datos_formulario.empleado == emp.id|stringformat:"s" %}selected{% endif %}>
                             {{ emp.nombre }}
                         </option>
                     {% endfor %}
@@ -113,7 +114,10 @@
                 <select id="tipo_permiso" name="tipo_permiso" class="w-full text-gray-800 dark:text-gray-200 bg-blue-gray-800 dark:bg-gray-600 border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
                     <option value="">Seleccione</option>
                     {% for tp in tipo_permisos %}
-                        <option value="{{tp.id}}">{{tp.tipo}}</option>
+                        <option value="{{ tp.id }}"
+                            {% if datos_formulario.tipo_permiso == tp.id|stringformat:"s" %}selected{% endif %}>
+                            {{ tp.tipo }}
+                        </option>
                     {% endfor %}
                 </select>
             </div>
@@ -121,29 +125,44 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div>
                     <label for="fecha_inicio" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Fecha de inicio</label>
-                    <input type="date" name="fecha_inicio" id="fecha_inicio" class="w-full dark:bg-gray-600 border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
+                    <input type="date" name="fecha_inicio" id="fecha_inicio"
+                        class="w-full dark:bg-gray-600 border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                        value="{{ datos_formulario.fecha_inicio }}"
+                        required>
                 </div>
                 <div>
                     <label for="fecha_final" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Fecha final</label>
-                    <input type="date" name="fecha_final" id="fecha_final" class="w-full dark:bg-gray-600 border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                    <input type="date" name="fecha_final" id="fecha_final"
+                        class="w-full dark:bg-gray-600 border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                        value="{{ datos_formulario.fecha_final }}"
+                        required>
                 </div>
                 <label>
-                    <input type="checkbox" id="usar_hora" name="usar_hora" value="1" onchange="toggleHoras()"> Incluir hora de permiso
+                    <input type="checkbox" id="usar_hora" name="usar_hora" value="1"
+                        onchange="toggleHoras()"
+                        {% if datos_formulario.usar_hora %} checked {% endif %}>
+                    Incluir hora de permiso
                 </label>
                 <br>
-                <div id="horas_section" style="display: none;">
+                <div id="horas_section" {% if not datos_formulario.usar_hora %} style="display:none" {% endif %}>
                     <label for="hora_inicio">Hora inicio:</label>
-                    <input type="time" name="hora_inicio" id="hora_inicio" class="form-control dark:bg-gray-600 border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                    <input type="time" name="hora_inicio" id="hora_inicio"
+                        class="form-control dark:bg-gray-600 border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                        value="{{ datos_formulario.hora_inicio }}">
+
                     <label for="hora_final">Hora final:</label>
-                    <input type="time" name="hora_final" id="hora_final" class="form-control dark:bg-gray-600 border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                    <input type="time" name="hora_final" id="hora_final"
+                        class="form-control dark:bg-gray-600 border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                        value="{{ datos_formulario.hora_final }}">
                 </div>
             </div>
 
             <div class="mb-4">
                 <label for="descripcion" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Descripción del Motivo</label>
-                <textarea name="descripcion" id="descripcion" rows="4" class="px-1 py-1 w-full bg-gray-100 dark:bg-gray-600 border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required></textarea>
+            <textarea name="descripcion" id="descripcion" rows="4"
+                    class="px-1 py-1 w-full bg-gray-100 dark:bg-gray-600 border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                    required>{{ datos_formulario.descripcion }}</textarea>
             </div>
-
             <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded mb-6" role="alert">
                 Las solicitudes de permiso laboral se deben presentar dos días antes del primer día de ausencia, a excepción del permiso por enfermedad. RRHH es quien dará la aprobación final de los permisos.
             </div>
@@ -157,14 +176,29 @@
                 </button>
             </div>
             {% if error %}
-                <div class="fixed top-20 right-6 z-50 flex justify-center items-center -mt-12">
-                    <div id="toast-simple" class="flex items-center max-w-xs p-4 space-x-4 text-gray-500 bg-white divide-x divide-gray-200 rounded-lg shadow-lg dark:text-gray-400 dark:divide-gray-700 dark:bg-gray-700" role="alert">
-                        <svg class="w-5 h-5 text-blue-600 dark:text-blue-500 rotate-45" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 20">
-                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m9 17 8 2L9 1 1 19l8-2Zm0 0V9"/>
-                        </svg>
-                        <div class="ps-4 text-sm font-normal">{{ error }}</div>
-                    </div>
+                <div id="toast-error" class="fixed top-4 right-4 bg-red-600 text-white px-4 py-3 rounded shadow-lg z-50">
+                    <p class="font-semibold">{{ error }}</p>
+
+                    {% if mostrar_confirmacion %}
+                        <div class="mt-3 flex justify-end space-x-3">
+                            <form method="post">
+                                {% csrf_token %}
+                                {% for key, value in datos_formulario.items %}
+                                    <input type="hidden" name="{{ key }}" value="{{ value }}">
+                                {% endfor %}
+                            </form>
+                        </div>
+                    {% endif %}
                 </div>
+            {% endif %}
+
+            {% if not mostrar_confirmacion %}
+            <script>
+                setTimeout(() => {
+                    const toast = document.getElementById('toast-error');
+                    if (toast) toast.remove();
+                }, 5000);
+            </script>
             {% endif %}
         </form>
     </div>
@@ -197,15 +231,39 @@
         });
     });
 </script>
+{% if mostrar_confirmacion %}
 <script>
-    // toast para mensajes de error
-    setTimeout(function() {
-        const toast = document.getElementById('toast-simple');
+    setTimeout(() => {
+        const toast = document.getElementById("toast-error");
         if (toast) {
-            toast.style.display = 'none';
+            toast.insertAdjacentHTML("beforeend", `
+                <div class="flex space-x-2 ms-4">
+                    <p class="text-white">¿Desea confirmar aun así la solicitud?</p>
+                    <button onclick="confirmarTraslape()" class="px-3 py-1 text-white bg-green-600 rounded hover:bg-green-700">Sí</button>
+                    <button onclick="cancelarToast()" class="px-3 py-1 text-white bg-gray-500 rounded hover:bg-gray-600">No</button>
+                </div>
+            `);
         }
-    }, 4000); // 4 segundos
+    }, 50); // le da un breve retardo para que el toast cargue
 </script>
+
+<script>
+    function confirmarTraslape() {
+        const form = document.getElementById("formulario-permiso");
+        const input = document.createElement("input");
+        input.type = "hidden";
+        input.name = "confirmar_traslape";
+        input.value = "true";
+        form.appendChild(input);
+        form.submit();
+    }
+
+    function cancelarToast() {
+        const toast = document.getElementById("toast-error");
+        toast.remove();
+    }
+</script>
+{% endif %}
 <script>
     function toggleHoras() {
         const checkbox = document.getElementById('usar_hora');
