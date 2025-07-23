@@ -282,9 +282,15 @@ def validar_asistencias(request):
 
                     if marcaje:
                         estado = 'ASISTIÓ'
-                        entrada = marcaje.entrada.strftime('%H:%M') if marcaje.entrada else '--:--'
+                        if not marcaje.entrada and marcaje.salida:
+                            entrada = 'NM'
+                        elif marcaje.entrada:
+                            entrada = marcaje.entrada.strftime('%H:%M')
+                        else:
+                            entrada = '--:--'
                         salida = marcaje.salida.strftime('%H:%M') if marcaje.salida else '--:--'
                         simbolo_permiso = nombre_tipo = color = estado_rh = estado_rh_display = None
+
 
                     else:
                         if fecha.weekday() == 6:
@@ -314,35 +320,35 @@ def validar_asistencias(request):
                                 simbolo_permiso = nombre_tipo = color = estado_rh = estado_rh_display = None
                                 entrada = salida = '--:--'
                             
-                            if estado == 'ASISTIÓ':
-                                simbolo_excel = '✔'
-                            elif estado == 'FALTÓ':
-                                simbolo_excel = 'X'
-                            elif estado == 'DOMINGO':
-                                simbolo_excel = 'DO'
-                            elif estado == 'JUSTIFICADO':
-                                simbolo_excel = simbolo_permiso or ''
-                            else:
-                                simbolo_excel = ''
+                    if estado == 'ASISTIÓ':
+                        simbolo_excel = '✔'
+                    elif estado == 'FALTÓ':
+                        simbolo_excel = 'X'
+                    elif estado == 'DOMINGO':
+                        simbolo_excel = 'DO'
+                    elif estado == 'JUSTIFICADO':
+                        simbolo_excel = simbolo_permiso or ''
+                    else:
+                        simbolo_excel = ''
 
-                            resultados.append({
-                                'fecha': fecha,
-                                'sucursal': empleado.sucursal.nombre,
-                                'tipo_nomina': empleado.tipo_nomina,
-                                'codigo': empleado.codigo,
-                                'nombre': empleado.nombre,
-                                'departamento': empleado.departamento,
-                                'asistio': marcaje is not None,
-                                'entrada': entrada,
-                                'salida': salida,
-                                'estado': estado,
-                                'simbolo_permiso': simbolo_permiso,
-                                'nombre_tipo': nombre_tipo,
-                                'color': color,
-                                'estado_rh': estado_rh,
-                                'estado_rh_display': estado_rh_display,
-                                'estado_simbolo': simbolo_excel,
-                            })
+                    resultados.append({
+                        'fecha': fecha,
+                        'sucursal': empleado.sucursal.nombre,
+                        'tipo_nomina': empleado.tipo_nomina,
+                        'codigo': empleado.codigo,
+                        'nombre': empleado.nombre,
+                        'departamento': empleado.departamento,
+                        'asistio': marcaje is not None,
+                        'entrada': entrada,
+                        'salida': salida,
+                        'estado': estado,
+                        'simbolo_permiso': simbolo_permiso,
+                        'nombre_tipo': nombre_tipo,
+                        'color': color,
+                        'estado_rh': estado_rh,
+                        'estado_rh_display': estado_rh_display,
+                        'estado_simbolo': simbolo_excel,
+                    })
 
         except Exception as e:
             resultados = []
@@ -484,12 +490,17 @@ def editar_permiso_especial(request, permiso_id):
             hora_inicio = request.POST.get('hora_inicio') if usar_hora else None
             hora_final = request.POST.get('hora_final') if usar_hora else None
 
+            if fecha_inicio > fecha_final:
+                return render(request, 'editar_permiso_especial.html', {
+                    'permiso': permiso,
+                    'tipo_permisos': tipo_permisos,
+                    'empleados': empleados,
+                    'error': "La fecha de inicio no puede ser posterior a la fecha final.",
+                    'datos_formulario': request.POST
+                })
+
             empleado = Empleado.objects.get(id=empleado_id)
             tipo_permiso = TipoPermisos.objects.get(id=tipo_permiso_id)
-
-            if fecha_inicio > fecha_final:
-                messages.error(request, "La fecha de inicio no puede ser posterior a la fecha final.")
-                raise ValueError("Fechas inválidas")
 
             traslape = Permisos.objects.filter(
                 empleado=empleado,
@@ -498,9 +509,17 @@ def editar_permiso_especial(request, permiso_id):
                 fecha_final__gte=fecha_inicio
             ).exclude(id=permiso.id).exists()
 
-            if traslape:
-                messages.error(request, "Ya existe un permiso pendiente o aprobado que se traslapa con estas fechas.")
-                raise ValueError("Traslape detectado")
+            confirmar_traslape = request.POST.get('confirmar_traslape') == 'true'
+
+            if traslape and not confirmar_traslape:
+                return render(request, 'editar_permiso_especial.html', {
+                    'permiso': permiso,
+                    'tipo_permisos': tipo_permisos,
+                    'empleados': empleados,
+                    'mostrar_confirmacion': True,
+                    'error': "Ya existe un permiso pendiente o aprobado que se traslapa con estas fechas.",
+                    'datos_formulario': request.POST
+                })
 
             # Actualizar campos
             permiso.empleado = empleado
@@ -510,7 +529,7 @@ def editar_permiso_especial(request, permiso_id):
             permiso.descripcion = descripcion
             permiso.hora_inicio = hora_inicio
             permiso.hora_final = hora_final
-            permiso.encargado = None  # sigue sin encargado
+            permiso.encargado = None
             permiso.save()
 
             messages.success(request, "Permiso actualizado correctamente.")
@@ -520,6 +539,13 @@ def editar_permiso_especial(request, permiso_id):
             messages.error(request, 'Empleado no válido')
         except Exception as e:
             messages.error(request, f"Error al actualizar: {e}")
+            return render(request, 'editar_permiso_especial.html', {
+                'permiso': permiso,
+                'tipo_permisos': tipo_permisos,
+                'empleados': empleados,
+                'error': str(e),
+                'datos_formulario': request.POST
+            })
 
     return render(request, 'editar_permiso_especial.html', {
         'permiso': permiso,
@@ -669,8 +695,9 @@ def crear_permiso(request):
 def editar_permiso(request, permiso_id):
     permiso = get_object_or_404(Permisos, id=permiso_id)
     tipo_permisos = TipoPermisos.objects.exclude(tipo__in=[
-        'Especial', 'Servicios Profesionales', 'Suspensión', 'Incapacidad sin Seguro Social', 
-        'Incapacidad con Seguro Social', 'No marcó', 'Domingo', 'Asueto'
+        'Especial', 'Servicios Profesionales', 'Suspensión',
+        'Incapacidad sin Seguro Social', 'Incapacidad con Seguro Social',
+        'No marcó', 'Domingo', 'Asueto'
     ])
     encargados = Empleado.objects.filter(es_encargado=True)
 
@@ -687,12 +714,15 @@ def editar_permiso(request, permiso_id):
             permiso.hora_inicio = request.POST.get('hora_inicio') if usar_hora else None
             permiso.hora_final = request.POST.get('hora_final') if usar_hora else None
 
+            confirmar_traslape = request.POST.get('confirmar_traslape') == 'true'
+
+            # Validar fechas
             if permiso.fecha_inicio > permiso.fecha_final:
-                messages.error(request, "La fecha de inicio no puede ser posterior a la fecha final.")
                 return render(request, 'editar_permiso.html', {
                     'permiso': permiso,
                     'tipo_permisos': tipo_permisos,
                     'encargados': encargados,
+                    'error': "La fecha de inicio no puede ser posterior a la fecha final."
                 })
 
             # Validar traslape excluyendo el permiso actual
@@ -703,26 +733,34 @@ def editar_permiso(request, permiso_id):
                 fecha_final__gte=permiso.fecha_inicio
             ).exclude(id=permiso.id).exists()
 
-            if traslape:
-                messages.error(request, "Ya existe un permiso pendiente o aprobado que se traslapa con estas fechas.")
+            if traslape and not confirmar_traslape:
                 return render(request, 'editar_permiso.html', {
                     'permiso': permiso,
                     'tipo_permisos': tipo_permisos,
                     'encargados': encargados,
+                    'mostrar_confirmacion': True,
+                    'error': "Ya existe un permiso pendiente o aprobado que se traslapa con estas fechas.",
+                    'datos_formulario': request.POST
                 })
 
             permiso.save()
             messages.success(request, "Permiso actualizado correctamente.")
-            return redirect('subir_comprobantes')  # o donde lo necesites
+            return redirect('subir_comprobantes')
 
         except Exception as e:
-            messages.error(request, f"Error al actualizar: {e}")
+            return render(request, 'editar_permiso.html', {
+                'permiso': permiso,
+                'tipo_permisos': tipo_permisos,
+                'encargados': encargados,
+                'error': f"Error al actualizar: {e}"
+            })
 
     return render(request, 'editar_permiso.html', {
         'permiso': permiso,
         'tipo_permisos': tipo_permisos,
         'encargados': encargados,
     })
+
 
 @login_required
 @grupo_requerido('encargado')
@@ -853,7 +891,9 @@ def crear_incapacidad(request):
 @grupo_requerido('encargado')
 def editar_incapacidad(request, permiso_id):
     permiso = get_object_or_404(Permisos, id=permiso_id)
-    tipo_permisos = TipoPermisos.objects.filter(tipo__in=['Incapacidad sin Seguro Social', 'Incapacidad con Seguro Social'])
+    tipo_permisos = TipoPermisos.objects.filter(tipo__in=[
+        'Incapacidad sin Seguro Social', 'Incapacidad con Seguro Social'
+    ])
     encargados = Empleado.objects.filter(es_encargado=True)
 
     if request.method == 'POST':
@@ -869,12 +909,16 @@ def editar_incapacidad(request, permiso_id):
             permiso.hora_inicio = request.POST.get('hora_inicio') if usar_hora else None
             permiso.hora_final = request.POST.get('hora_final') if usar_hora else None
 
+            confirmar_traslape = request.POST.get('confirmar_traslape') == 'true'
+
+            # Validar fechas
             if permiso.fecha_inicio > permiso.fecha_final:
-                messages.error(request, "La fecha de inicio no puede ser posterior a la fecha final.")
-                return render(request, 'editar_permiso.html', {
+                return render(request, 'editar_incapacidad.html', {
                     'permiso': permiso,
                     'tipo_permisos': tipo_permisos,
                     'encargados': encargados,
+                    'error': "La fecha de inicio no puede ser posterior a la fecha final.",
+                    'datos_formulario': request.POST
                 })
 
             # Validar traslape excluyendo el permiso actual
@@ -885,26 +929,35 @@ def editar_incapacidad(request, permiso_id):
                 fecha_final__gte=permiso.fecha_inicio
             ).exclude(id=permiso.id).exists()
 
-            if traslape:
-                messages.error(request, "Ya existe un permiso pendiente o aprobado que se traslapa con estas fechas.")
-                return render(request, 'editar_permiso.html', {
+            if traslape and not confirmar_traslape:
+                return render(request, 'editar_incapacidad.html', {
                     'permiso': permiso,
                     'tipo_permisos': tipo_permisos,
                     'encargados': encargados,
+                    'mostrar_confirmacion': True,
+                    'error': "Ya existe un permiso pendiente o aprobado que se traslapa con estas fechas.",
+                    'datos_formulario': request.POST
                 })
 
             permiso.save()
-            messages.success(request, "Permiso actualizado correctamente.")
-            return redirect('subir_comprobantes')  # o donde lo necesites
+            messages.success(request, "Incapacidad actualizada correctamente.")
+            return redirect('subir_comprobantes')
 
         except Exception as e:
-            messages.error(request, f"Error al actualizar: {e}")
+            return render(request, 'editar_incapacidad.html', {
+                'permiso': permiso,
+                'tipo_permisos': tipo_permisos,
+                'encargados': encargados,
+                'error': f"Error al actualizar: {e}",
+                'datos_formulario': request.POST
+            })
 
     return render(request, 'editar_incapacidad.html', {
         'permiso': permiso,
         'tipo_permisos': tipo_permisos,
         'encargados': encargados,
     })
+
 
 
 
