@@ -291,14 +291,24 @@ def validar_asistencias(request):
                         salida = marcaje.salida.strftime('%H:%M') if marcaje.salida else '--:--'
                         simbolo_permiso = nombre_tipo = color = estado_rh = estado_rh_display = None
 
-
                     else:
                         if fecha.weekday() == 6:
                             estado = 'DOMINGO'
+                            color = "#FFFF00"  # Color amarillo claro
                             simbolo_permiso = nombre_tipo = estado_rh = estado_rh_display = None
-                            color = "#00f7ff"
-                            entrada = 'DO'
+
+                            permisos_activos = [
+                                p for p in permisos_map[empleado.id]
+                                if p.fecha_inicio <= fecha <= p.fecha_final
+                            ]
+                            permiso = permisos_activos[-1] if permisos_activos else None
+
+                            if permiso and permiso.tipo_permiso.tipo.strip().lower() == 'nuevo ingreso':
+                                entrada = 'N'
+                            else:
+                                entrada = 'DO'
                             salida = '--:--'
+
                         else:
                             permisos_activos = [
                                 p for p in permisos_map[empleado.id]
@@ -581,7 +591,7 @@ def crear_permiso(request):
     tipo_permisos = TipoPermisos.objects.exclude(tipo__in=[
         'Especial', 'Servicios Profesionales', 'Salió', 'Suspensión',
         'Incapacidad sin Seguro Social', 'Incapacidad con Seguro Social',
-        'No marcó', 'Domingo', 'Asueto'
+        'No marcó', 'Domingo', 'Asueto', 'Nuevo Ingreso'
     ])
     encargados = Empleado.objects.filter(es_encargado=True)
 
@@ -697,7 +707,7 @@ def editar_permiso(request, permiso_id):
     tipo_permisos = TipoPermisos.objects.exclude(tipo__in=[
         'Especial', 'Servicios Profesionales', 'Suspensión',
         'Incapacidad sin Seguro Social', 'Incapacidad con Seguro Social',
-        'No marcó', 'Domingo', 'Asueto'
+        'No marcó', 'Domingo', 'Asueto', 'Nuevo Ingreso'
     ])
     encargados = Empleado.objects.filter(es_encargado=True)
 
@@ -2033,17 +2043,36 @@ def exportar_asistencias_excel(request):
 
             if marcaje:
                 estado = 'ASISTIÓ'
-                entrada = marcaje.entrada.strftime('%H:%M') if marcaje.entrada else '--:--'
+                if not marcaje.entrada and marcaje.salida:
+                    entrada = 'NM'
+                elif marcaje.entrada:
+                    entrada = marcaje.entrada.strftime('%H:%M')
+                else:
+                    entrada = '--:--'
                 salida = marcaje.salida.strftime('%H:%M') if marcaje.salida else '--:--'
-                simbolo_permiso = nombre_tipo = estado_rh = estado_rh_display = None
+                simbolo_permiso = nombre_tipo = color = estado_rh = estado_rh_display = None
                 color = '38c172'  # Verde
 
             elif fecha.weekday() == 6:
                 estado = 'DOMINGO'
-                entrada = 'DO'
+                color = "00f7ff"
+                if permiso and permiso.tipo_permiso.tipo == 'Nuevo Ingreso':
+                    nombre_tipo = 'Nuevo Ingreso'
+                else:
+                    nombre_tipo = None
+                simbolo_permiso = estado_rh = estado_rh_display = None
+
+                permisos_activos = [
+                    p for p in permisos_map[empleado.id]
+                    if p.fecha_inicio <= fecha <= p.fecha_final
+                ]
+                permiso = permisos_activos[-1] if permisos_activos else None
+
+                if permiso and permiso.tipo_permiso.tipo.strip().lower() == 'nuevo ingreso':
+                    entrada = 'N'
+                else:
+                    entrada = 'DO'
                 salida = '--:--'
-                color = '00f7ff'
-                simbolo_permiso = nombre_tipo = estado_rh = estado_rh_display = None
 
             else:
                 permisos_validos = [
@@ -2073,7 +2102,10 @@ def exportar_asistencias_excel(request):
             elif estado == 'FALTÓ':
                 estado_simbolo = 'X'
             elif estado == 'DOMINGO':
-                estado_simbolo = 'DO'
+                if nombre_tipo == 'Nuevo Ingreso':
+                    estado_simbolo = 'Nuevo Ingreso'
+                else:
+                    estado_simbolo = 'Domingo'
             elif estado == 'JUSTIFICADO':
                 estado_simbolo = nombre_tipo or ''
             else:

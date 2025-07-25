@@ -33,12 +33,15 @@
             <td>
                 {% if r.estado == 'ASISTIÓ' %}
                     {{ r.entrada }}
+                {% elif r.estado == 'DOMINGO' %}
+                    {{ r.entrada }}
                 {% elif r.simbolo_permiso %}
                     {{ r.simbolo_permiso }}
                 {% else %}
-                        --:--
+                    --:--
                 {% endif %}
             </td>
+
             <td>{{ r.salida }}</td>
             <td class="px-2 py-2">
                 {% if r.estado == 'ASISTIÓ' or r.estado == 'DOMINGO' %}
@@ -51,14 +54,22 @@
             </td>
             <td class="px-2 py-2" 
                 style="background: {% if r.estado == 'ASISTIÓ' %}#38c172{% elif r.estado == 'JUSTIFICADO' %}{{ r.color }}{% elif r.estado == 'DOMINGO' %}#00f7ff{% else %}#e3342f{% endif %};">
+                
                 {% if r.estado == 'DOMINGO' %}
-                    <p class="text-gray-800 text-sm">DO</p>
+                    <p class="text-gray-800 text-sm">
+                        {% if r.entrada == 'N' %}
+                            Nuevo Ingreso
+                        {% else %}
+                            Domingo
+                        {% endif %}
+                    </p>
                 {% elif r.estado == 'JUSTIFICADO' %}
                     {{ r.nombre_tipo }}
                 {% else %}
                     <p></p>
                 {% endif %}
             </td>
+
         </tr>
         {% endfor %} <!-- Datos se cargarán por AJAX -->
     </tbody>
