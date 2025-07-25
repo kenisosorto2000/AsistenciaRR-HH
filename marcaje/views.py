@@ -54,6 +54,34 @@ def grupo_requerido(nombre_grupo):
 
 @login_required
 @grupo_requerido('rrhh')
+def vacaciones_proxy(request):
+    empleado = request.GET.get("empleado")
+    if not empleado:
+        return JsonResponse({"error": "Falta el parámetro 'empleado'"}, status=400)
+
+    # Aquí se construye la URL completa con el parámetro ya insertado
+    target_url = f"http://192.168.11.12:8000/planilla/webservice/vacaciones/disponibles/?empleado={empleado}"
+
+    headers = {
+        "X-API-Key": "f5141182-1530-4050-86c2-9fdec88703f8",
+        "X-Requested-With": "XMLHttpRequest",
+        "Accept": "application/json",
+    }
+
+    try:
+        response = requests.get(
+            target_url,
+            headers=headers,
+            timeout=10
+        )
+        response.raise_for_status()
+        return JsonResponse(response.json(), safe=False)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+
+@login_required
+@grupo_requerido('rrhh')
 def empleados_proxy(request):
     target_url = "http://192.168.11.12:8000/planilla/webservice/empleados/"
     
@@ -90,7 +118,7 @@ def asistencias_api(request):
     #     else:
     #         fecha = timezone.now().date()
             
-    target_url = f"http://192.168.11.12:8003/api/asistencias/?fecha=2025-07-10"  #?fecha={fecha.strftime('%Y-%m-%d')}"
+    target_url = f"http://192.168.11.12:8003/api/asistencias/?fecha=2025-07-25"  #?fecha={fecha.strftime('%Y-%m-%d')}"
     
     headers = {
         "X-API-Key": "bec740b7-839b-4268-bb4e-a9d44b51a326"  # o "x-api-key": "TU_API_KEY"

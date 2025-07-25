@@ -13,3 +13,6 @@ def turnos_view(request):
 
 def ficha_view(request):
     return render(request, 'ficha_turnos.html')
+
+def ficha_vacaciones_view(request):
+    return render(request, 'ficha_vacaciones.html')

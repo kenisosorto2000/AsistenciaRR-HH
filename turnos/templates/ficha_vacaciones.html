@@ -1,0 +1,205 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Ficha de Solicitud</title>
+  <script src="{% static 'scripts/tailwind.js' %}"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+  <style>
+    .no-print {
+      display: block;
+    }
+    @media print {
+      .no-print {
+        display: none !important;
+      }
+      body {
+        margin: 0;
+      }
+      .page {
+        margin: 0;
+        box-shadow: none;
+      }
+    }
+  </style>
+</head>
+<body class="bg-gray-100 print:bg-white text-base font-sans">
+  <div id="formulario" class="page w-[8.5in] h-[11in] bg-white mx-auto my-4 p-6 shadow-md print:shadow-none print:p-2 print:m-0 print:w-full print:h-full flex flex-col">
+    <!-- Encabezado -->
+    <div class="container mx-auto p-4">
+            <table class="w-full border-collapse text-xs">
+                <tr>
+                    <td class="border border-black p-4 w-1/3 align-middle">
+                        <img src="{% static 'img/logo_new2.png' %}" alt="Logo claro" class="h-20 flex items-center justify-center mx-auto">
+                        <p class="text-center font-bold">
+                        Proveedora de Materiales de Construcción S de R.L
+                        </p>
+                    </td>
+                    <td class="border border-black p-4 w-1/3 align-middle">
+                        <p class="text-center font-bold text-xl">
+                        Solicitud de Pago de Vacaciones
+                        </p>
+                    </td>
+                    <td class="border border-black w-1/3 p-0">
+                        <table class="w-full border-collapse">
+                        <tr>
+                            <td class="border-b border-black p-2">
+                            <span class="font-bold">CÓDIGO:</span><span class="font-semibold">RRHH-RE-26</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="border-b border-black p-2">
+                            <span class="font-bold">VERSIÓN:</span><span class="font-semibold"> 00</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="border-b border-black p-2">
+                            <span class="font-bold">FECHA DE ACTUALIZACIÓN:</span> <span class="font-semibold">11/07/2025</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="p-2">
+                            <span class="font-bold">ACTUALIZADO POR:</span><span class="font-semibold"> DEPTO. PROCESOS</span>
+                            </td>
+                        </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    <!-- Contenido principal -->
+    <div class="mx-auto p-6 text-[16px] leading-7 mb-10 mt-6 font-sans text-sm" style="font-size: smaller;">
+      <span>
+        Yo <input type="text" name="nombre" value="{{ empleado.nombre_completo }}" 
+              readonly class="border-b border-black w-64 mx-1 bg-transparent focus:outline-none" />
+      </span>
+        <span> con Número de Identidad:</span>
+        <input type="text" name="identidad" value="{{ empleado.identidad }}" 
+              readonly class="border-b border-black w-48 mx-1 bg-transparent focus:outline-none" />
+        <span> de la Sucursal:</span>
+        <input type="text" name="sucursal" value="{{ empleado.sucursal.nombre }}" 
+              readonly class="border-b border-black w-48 mx-1 bg-transparent focus:outline-none" />
+        <span> de la Nómina:</span>
+        <input type="text" name="nomina" value="{{ empleado.nomina }}" 
+              readonly class="border-b border-black w-48 mx-1 bg-transparent focus:outline-none" />
+        <span> y el departamento:</span>
+        <input type="text" name="departamento" value="{{ empleado.departamento }}" 
+              readonly class="border-b border-black w-48 mx-1 bg-transparent focus:outline-none" />.
+        <span> Solicito libre y espontáneamente el pago de </span>  
+        <input type="text" name="dias" value="{{ vacaciones.dias_pendientes }}" 
+              readonly class="border-b border-black w-12 mx-1 bg-transparent focus:outline-none text-center" />
+        <span> días de vacaciones correspondientes al período</span>
+      <span class="mt-4">
+        <input type="text" name="periodo" value="" 
+              readonly class="border-b border-black w-48 mx-1 bg-transparent focus:outline-none" />
+      </span>
+      <div class="md:col-span-2 mt-4">
+        <label class="block font-semibold mb-1">Observaciones:</label>
+        <textarea readonly class="w-full border border-gray-300 p-1 rounded text-sm" rows="3">{{ solicitud.descripcion }}</textarea>
+      </div>
+      <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-2 rounded mb-2 col-span-1 md:col-span-2 w-full italic text-sm" role="alert">
+          Nota: Este documento debe estar debidamente firmado y entregado a RRHH, a más tardar el 10 y 25 de cada mes.
+        </div>
+    </div>
+        <!-- Firmas -->
+         <div class="flex flex-col items-center justify-center col-span-1 md:col-span-2 mt-10 mb-20">
+          <table class="w-full text-xs border-collapse">
+            <tr>
+                <td class="p-2 w-1/3">
+                  <p class="text-center mt-2 pt-2">_________________________________</p>
+                  <p class="text-center font-bold">Firma del Empleado:</p>
+                </td>
+                <td class="p-2 w-1/3">
+                  <p class="text-center mt-2 pt-2">_________________________________</p>
+                  <p class="text-center font-bold">Firma del Encargado del Área:</p>
+                </td>
+                <td class="p-2 w-1/3">
+                  <p class="text-center mt-2 pt-2">_________________________________</p>
+                  <p class="text-center font-bold">Firma del Gerente del Área:</p>
+                </td>
+            </tr>
+          </table>
+        </div>
+        <div class="mt-32"> <!-- Puedes ajustar mt-64, mt-80, etc. -->
+          <div class="flex flex-col items-center justify-center col-span-1 md:col-span-2 mx-auto">
+            <table class="w-full text-xs border border-black border-collapse">
+              <tr class="border border-black">
+                <td class="p-2 w-1/3 border border-black">
+                  <p class="font-bold">Elaborado por: <span class="font-normal">Jefe de compensaciones y Nóminas</span></p>
+                </td>
+                <td class="p-2 w-1/3 border border-black">
+                  <p class="font-bold">Revisado por: <span class="font-normal">Gerente de RRHH</span></p>
+                </td>
+                <td class="p-2 w-1/3 border border-black">
+                  <p class="font-bold">Aprobado por: <span class="font-normal">Gerente General</span></p>
+                </td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      <!-- Botón -->
+      <button onclick="descargarPDF()" id="btn-descargar" class="no-print fixed top-6 left-8 z-50 bg-indigo-700 text-white px-4 py-2 rounded hover:bg-indigo-900">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="inline w-5 h-5 align-middle mr-2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+        </svg>
+        Descargar como PDF
+      </button>
+      <button onclick="imprimirDocumento()" id="btn-imprimir" class="no-print fixed top-6 right-8 z-50 bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-900">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="inline w-5 h-5 align-middle mr-2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z" />
+        </svg>
+        Imprimir
+      </button>
+  </div>
+
+  <script>
+    function imprimirDocumento() {
+            window.print();
+        }
+    function descargarPDF() {
+      const boton = document.getElementById('btn-descargar');
+      const element = document.getElementById('formulario');
+
+      // Oculta el botón
+      boton.style.display = 'none';
+
+      // Desplaza ligeramente el contenido a la izquierda solo para el PDF
+      element.style.transform = 'translate(-32px, -40px)';
+
+      // Obtiene el nombre del empleado desde el input (ajusta el selector si cambias el orden)
+      const nombreInput = document.querySelector('input[value="{{ solicitud.empleado }}"]');
+      let nombre = nombreInput ? nombreInput.value.trim() : 'documento';
+
+      // Formatea el nombre del archivo (quita acentos, espacios, etc.)
+      nombre = nombre
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // quitar acentos
+        .replace(/\s+/g, '_')                             // espacios por guion bajo
+        .replace(/[^a-zA-Z0-9_]/g, '')                    // quitar caracteres raros
+        .toLowerCase();
+
+      const opciones = {
+        margin: 0.25,
+        filename: `permiso_${nombre}.pdf`,
+        image: { type: 'jpeg', quality: 1 },
+        html2canvas: {
+          scale: 8,
+          useCORS: true
+        },
+        jsPDF: {
+          unit: 'in',
+          format: 'letter',
+          orientation: 'portrait'
+        }
+      };
+
+      html2pdf().set(opciones).from(element).save().then(() => {
+        // Restaura la posición original
+        element.style.transform = 'none';
+        boton.style.display = 'block';
+      });
+    }
+  </script>
+</body>
+</html>
