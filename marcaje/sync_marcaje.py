@@ -5,6 +5,7 @@ from django.db import transaction
 from .models import Marcaje
 from .models import Empleado
 from django.utils import timezone
+from django.conf import settings
 
 def sincronizar_marcajes(fecha=None):
     """
@@ -16,7 +17,7 @@ def sincronizar_marcajes(fecha=None):
     fecha = fecha or timezone.now().date()
     API_URL = f"http://192.168.11.12:8003/api/asistencias/?fecha={fecha.strftime('%Y-%m-%d')}" # Reemplaza con tu URL real
     headers = {
-        "X-API-Key": "bec740b7-839b-4268-bb4e-a9d44b51a326"  # o "x-api-key": "TU_API_KEY"
+        "X-API-Key": settings.API_KEY_ASISTENCIA  # o "x-api-key": "TU_API_KEY"
     }
     try:
         # 1. Obtener datos de la API

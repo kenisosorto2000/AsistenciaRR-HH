@@ -9,7 +9,16 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
+
+import environ
 import os
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+env = environ.Env()
+environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
+
+API_KEY_VACACIONES = env("API_KEY_VACACIONES")
+API_KEY_ASISTENCIA = env("API_KEY_ASISTENCIA")
 
 
 from pathlib import Path
