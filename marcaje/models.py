@@ -5,7 +5,6 @@ class Empresa(models.Model):
     nombre = models.CharField(max_length=100)
     def __str__(self):
         return self.nombre
-    
 class Sucursal(models.Model):
     nombre = models.CharField(max_length=100)
     empresa = models.ForeignKey('Empresa', on_delete=models.SET_NULL, null=True)
@@ -61,8 +60,6 @@ class Marcaje(models.Model):
         choices=TIPO_REGISTRO,
         verbose_name="Tipo de marcaje"
     )
-
-
 
     def __str__(self):
         return f"{self.empleado.codigo} - {self.fecha_hora} ({self.get_tipo_registro_display()})"

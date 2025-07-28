@@ -46,7 +46,7 @@
                         <table class="w-full border-collapse">
                         <tr>
                             <td class="border-b border-black p-2">
-                            <span class="font-bold">CÓDIGO:</span><span class="font-semibold">RRHH-RE-26</span>
+                            <span class="font-bold">CÓDIGO:</span><span class="font-semibold"> RRHH-RE-26</span>
                             </td>
                         </tr>
                         <tr>
@@ -72,32 +72,35 @@
     <!-- Contenido principal -->
     <div class="mx-auto p-6 text-[16px] leading-7 mb-10 mt-6 font-sans text-sm" style="font-size: smaller;">
       <span>
-        Yo <input type="text" name="nombre" value="{{ empleado.nombre_completo }}" 
+        Yo <input type="text" value="{{ solicitudes.empleado }}"
               readonly class="border-b border-black w-64 mx-1 bg-transparent focus:outline-none" />
       </span>
         <span> con Número de Identidad:</span>
-        <input type="text" name="identidad" value="{{ empleado.identidad }}" 
+        <input type="text" name="identidad" value="{{ solicitudes.empleado.dni }}" 
               readonly class="border-b border-black w-48 mx-1 bg-transparent focus:outline-none" />
         <span> de la Sucursal:</span>
-        <input type="text" name="sucursal" value="{{ empleado.sucursal.nombre }}" 
+        <input type="text" name="sucursal" value="{{ solicitudes.empleado.sucursal.nombre }}" 
               readonly class="border-b border-black w-48 mx-1 bg-transparent focus:outline-none" />
         <span> de la Nómina:</span>
-        <input type="text" name="nomina" value="{{ empleado.nomina }}" 
+        <input type="text" name="nomina" value="{{ solicitudes.empleado.tipo_nomina }}" 
               readonly class="border-b border-black w-48 mx-1 bg-transparent focus:outline-none" />
         <span> y el departamento:</span>
-        <input type="text" name="departamento" value="{{ empleado.departamento }}" 
-              readonly class="border-b border-black w-48 mx-1 bg-transparent focus:outline-none" />.
+        <input type="text" name="departamento" value="{{ solicitudes.empleado.departamento }}" 
+              readonly class="border-b border-black w-48 mx-1 bg-transparent focus:outline-none" />
+        <span> y con el puesto de:</span>
+        <input type="text" name="puesto" value="{{ solicitudes.empleado.puesto }}" 
+              readonly class="border-b border-black w-48 mx-1 bg-transparent focus:outline-none" />.     
         <span> Solicito libre y espontáneamente el pago de </span>  
-        <input type="text" name="dias" value="{{ vacaciones.dias_pendientes }}" 
+        <input type="text" name="dias" value="{{ solicitudes.dias }}" 
               readonly class="border-b border-black w-12 mx-1 bg-transparent focus:outline-none text-center" />
         <span> días de vacaciones correspondientes al período</span>
       <span class="mt-4">
-        <input type="text" name="periodo" value="" 
+        <input type="text" name="periodo" value="{{ solicitudes.periodo }}" 
               readonly class="border-b border-black w-48 mx-1 bg-transparent focus:outline-none" />
       </span>
       <div class="md:col-span-2 mt-4">
         <label class="block font-semibold mb-1">Observaciones:</label>
-        <textarea readonly class="w-full border border-gray-300 p-1 rounded text-sm" rows="3">{{ solicitud.descripcion }}</textarea>
+        <textarea readonly class="w-full border border-gray-300 p-1 rounded text-sm" rows="3">{{ solicitudes.descripcion }}</textarea>
       </div>
       <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-2 rounded mb-2 col-span-1 md:col-span-2 w-full italic text-sm" role="alert">
           Nota: Este documento debe estar debidamente firmado y entregado a RRHH, a más tardar el 10 y 25 de cada mes.
