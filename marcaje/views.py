@@ -307,8 +307,25 @@ def validar_asistencias(request):
             for empleado in empleados:
                 for fecha in fechas:
                     marcaje = marcajes_map[empleado.id].get(fecha)
+                    
+                    permiso_contrato_vencido = next(
+                        (p for p in permisos_map[empleado.id]
+                        if p.fecha_inicio <= fecha <= p.fecha_final
+                        and p.tipo_permiso.tipo.strip().lower() == 'contrato vencido'),
+                        None
+                    )
 
-                    if marcaje:
+                    if permiso_contrato_vencido:
+                        estado = 'JUSTIFICADO'
+                        nombre_tipo = permiso_contrato_vencido.tipo_permiso.tipo
+                        simbolo_permiso = permiso_contrato_vencido.tipo_permiso.simbolo
+                        color = permiso_contrato_vencido.tipo_permiso.cod_color
+                        estado_rh = permiso_contrato_vencido.estado_solicitud
+                        estado_rh_display = ESTADO_MAP.get(estado_rh, estado_rh)
+                        entrada = simbolo_permiso
+                        salida = '--:--'
+
+                    elif marcaje:
                         estado = 'ASISTIÓ'
                         if not marcaje.entrada and marcaje.salida:
                             entrada = 'NM'
@@ -333,6 +350,10 @@ def validar_asistencias(request):
 
                             if permiso and permiso.tipo_permiso.tipo.strip().lower() == 'nuevo ingreso':
                                 entrada = 'N'
+                            elif permiso and permiso.tipo_permiso.tipo.strip().lower() == 'salió':
+                                entrada = 'S'
+                            elif permiso and permiso.tipo_permiso.tipo.strip().lower() == 'contrato vencido':
+                                entrada = 'CV'
                             else:
                                 entrada = 'DO'
                             salida = '--:--'

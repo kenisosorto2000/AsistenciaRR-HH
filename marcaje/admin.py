@@ -44,6 +44,7 @@ class AsignacionEmpleadoEncargadoAdmin(admin.ModelAdmin):
 
 # Otros registros
 admin.site.register(Sucursal)
+admin.site.register(Empresa)
 admin.site.register(TipoPermisos)
 admin.site.register(PermisoComprobante)
 admin.site.register(GestionPermisoDetalle)

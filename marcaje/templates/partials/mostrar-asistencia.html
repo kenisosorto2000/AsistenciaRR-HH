@@ -59,6 +59,10 @@
                     <p class="text-gray-800 text-sm">
                         {% if r.entrada == 'N' %}
                             Nuevo Ingreso
+                        {% elif r.entrada == 'S' %}
+                            Salió
+                        {% elif r.entrada == 'CV' %}
+                            Contrato Vencido
                         {% else %}
                             Domingo
                         {% endif %}
