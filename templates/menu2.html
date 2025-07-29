@@ -94,10 +94,24 @@
                         </svg>
                     </summary>
                     <ul class="px-10 py-2 space-y-1">
-                        {% if request.user|has_group:"encargado" %}
+                        {% if request.user|has_group:"rrhh" %}
                         <li>
-                            <a href="#" class="flex items-center py-2 hover:bg-opacity-10 hover:bg-white transition-colors duration-200 rounded">
+                            <a href="/turnos/subir-comprobante-pago" class="flex items-center py-2 hover:bg-opacity-10 hover:bg-white transition-colors duration-200 rounded">
                                 <i data-lucide="upload" class="w-4 h-4 mr-2"></i> Subir Solicitud de Pago
+                            </a>
+                        </li>
+                        {% endif %}
+                        {% if request.user|has_group:"rrhh" %}
+                        <li>
+                            <a href="/turnos/solicitudes-rh-pago" class="flex items-center py-2 hover:bg-opacity-10 hover:bg-white transition-colors duration-200 rounded">
+                                <i data-lucide="list" class="w-4 h-4 mr-2"></i> Solicitudes Pendientes
+                            </a>
+                        </li>
+                        {% endif %}
+                        {% if request.user|has_group:"rrhh" %}
+                        <li>
+                            <a href="/turnos/historial-solicitudes-pago" class="flex items-center py-2 hover:bg-opacity-10 hover:bg-white transition-colors duration-200 rounded">
+                                <i data-lucide="history" class="w-4 h-4 mr-2"></i> Historial de Solicitudes
                             </a>
                         </li>
                         {% endif %}
