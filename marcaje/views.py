@@ -638,9 +638,9 @@ def eliminar_permiso_especial(request, permiso_id):
 @grupo_requerido('encargado')
 def crear_permiso(request):
     tipo_permisos = TipoPermisos.objects.exclude(tipo__in=[
-        'Especial', 'Servicios Profesionales', 'Salió', 'Suspensión',
+        'Especial', 'Servicios Profesionales', 'Suspensión',
         'Incapacidad sin Seguro Social', 'Incapacidad con Seguro Social',
-        'Domingo', 'Asueto', 'Nuevo Ingreso'
+        'Domingo', 'Nuevo Ingreso'
     ])
     encargados = Empleado.objects.filter(es_encargado=True)
 
@@ -754,9 +754,9 @@ def crear_permiso(request):
 def editar_permiso(request, permiso_id):
     permiso = get_object_or_404(Permisos, id=permiso_id)
     tipo_permisos = TipoPermisos.objects.exclude(tipo__in=[
-        'Especial', 'Servicios Profesionales', 'Salió', 'Suspensión',
+        'Especial', 'Servicios Profesionales', 'Suspensión',
         'Incapacidad sin Seguro Social', 'Incapacidad con Seguro Social',
-        'Domingo', 'Asueto', 'Nuevo Ingreso'
+        'Domingo', 'Nuevo Ingreso'
     ])
     encargados = Empleado.objects.filter(es_encargado=True)
 
