@@ -32,10 +32,22 @@
             <table class="w-full border-collapse text-xs">
                 <tr>
                     <td class="border border-black p-4 w-1/3 align-middle">
-                        <img src="{% static 'img/logo_new2.png' %}" alt="Logo claro" class="h-20 flex items-center justify-center mx-auto">
-                        <p class="text-center font-bold">
-                        Proveedora de Materiales de Construcción S de R.L
+                      {% if solicitud.empleado.empresa %}
+                        {% if solicitud.empleado.empresa.nombre == "URBANIZADORA" %}
+                          <img src="{% static 'img/Urba.jpg' %}" alt="Logo Urbanizadora" class="h-20 flex items-center justify-center mx-auto -mt-2">
+                        {% elif solicitud.empleado.empresa.nombre == "TMSGAD" %}
+                          <img src="{% static 'img/Tritu.jpg' %}" alt="Logo Triturados" class="h-20 flex items-center justify-center mx-auto -mt-2">
+                        {% elif solicitud.empleado.empresa.nombre == "IMPORTADORA" %}
+                          <img src="{% static 'img/Impor.jpg' %}" alt="Logo Importadora" class="h-24 flex items-center justify-center mx-auto -mt-2">
+                        {% elif solicitud.empleado.empresa.nombre == "PROMACO PRODUCCIÓN" %}
+                          <img src="{% static 'img/logo_new2.png' %}" alt="Logo Promaco Producción" class="h-20 flex items-center justify-center mx-auto -mt-2">
+                        {% else %}
+                          <img src="{% static 'img/logo_new2.png' %}" alt="Logo PROMACO" class="h-20 flex items-center justify-center mx-auto -mt-2">
+                        {% endif %}
+                        <p class="text-center font-bold text-sm mt-1">
+                          {{ solicitud.empleado.empresa.nombre }}
                         </p>
+                      {% endif %}
                     </td>
                     <td class="border border-black p-4 w-1/3 align-middle">
                         <p class="text-center font-bold text-xl">
@@ -46,7 +58,7 @@
                         <table class="w-full border-collapse">
                         <tr>
                             <td class="border-b border-black p-2">
-                            <span class="font-bold">CÓDIGO:</span><span class="font-semibold">RRHH-RE-26</span>
+                            <span class="font-bold">CÓDIGO: </span><span class="font-semibold">RRHH-RE-26</span>
                             </td>
                         </tr>
                         <tr>

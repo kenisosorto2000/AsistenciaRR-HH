@@ -1695,7 +1695,12 @@ def asistencias_encargado(request):
 
             elif marcaje:
                 estado = 'ASISTIÓ'
-                entrada = marcaje.entrada.strftime('%H:%M') if marcaje.entrada else '--:--'
+                if not marcaje.entrada and marcaje.salida:
+                    entrada = 'NM'
+                elif marcaje.entrada:
+                    entrada = marcaje.entrada.strftime('%H:%M')
+                else:
+                    entrada = '--:--'
                 salida = marcaje.salida.strftime('%H:%M') if marcaje.salida else '--:--'
                 simbolo_permiso = nombre_tipo = estado_rh = estado_rh_display = None
                 color = '#38c172'  # Verde
@@ -1864,7 +1869,12 @@ def exportar_asistencias_encargado_excel(request):
             # 2️⃣ Asistió
             elif marcaje:
                 estado = 'ASISTIÓ'
-                entrada = marcaje.entrada.strftime('%H:%M') if marcaje.entrada else '--:--'
+                if not marcaje.entrada and marcaje.salida:
+                    entrada = 'NM'
+                elif marcaje.entrada:
+                    entrada = marcaje.entrada.strftime('%H:%M')
+                else:
+                    entrada = '--:--'
                 salida = marcaje.salida.strftime('%H:%M') if marcaje.salida else '--:--'
                 nombre_tipo = estado_rh_display = simbolo = ''
                 color = '38c172'  # Verde
