@@ -77,7 +77,17 @@
                         <td class="px-2 py-2 text-gray-800" 
                             style="background: {% if e.estado == 'ASISTIÓ' %}#38c172{% elif e.estado == 'JUSTIFICADO' %}{{ e.color }}{% elif e.estado == 'DOMINGO' %}#00f7ff{% else %}#e3342f{% endif %};">
                             {% if e.estado == 'DOMINGO' %}
-                                <p class="text-gray-800 text-sm">DO</p>
+                                <p class="text-gray-800 text-sm">
+                                    {% if e.entrada == 'N' %}
+                                        Nuevo Ingreso
+                                    {% elif e.entrada == 'S' %}
+                                        Salió
+                                    {% elif e.entrada == 'CV' %}
+                                        Contrato Vencido
+                                    {% else %}
+                                        Domingo
+                                    {% endif %}
+                                </p>
                             {% elif e.estado == 'JUSTIFICADO' %}
                                 {{ e.nombre_tipo }}
                             {% else %}
