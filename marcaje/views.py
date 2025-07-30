@@ -39,6 +39,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 import traceback
+from django.conf import settings
 
 
 def grupo_requerido(nombre_grupo):
@@ -51,6 +52,33 @@ def grupo_requerido(nombre_grupo):
             return view_func(request, *args, **kwargs)
         return _wrapped_view
     return decorator
+
+@login_required
+@grupo_requerido('rrhh')
+def vacaciones_proxy(request):
+    empleado = request.GET.get("empleado")
+    if not empleado:
+        return JsonResponse({"error": "Falta el parámetro 'empleado'"}, status=400)
+
+    # Aquí se construye la URL completa con el parámetro ya insertado
+    target_url = f"http://192.168.11.12:8000/planilla/webservice/vacaciones/disponibles/?empleado={empleado}"
+
+    headers = {
+        "X-API-Key": settings.API_KEY_VACACIONES,
+        "X-Requested-With": "XMLHttpRequest"
+    }
+
+    try:
+        response = requests.get(
+            target_url,
+            headers=headers,
+            timeout=10
+        )
+        response.raise_for_status()
+        return JsonResponse(response.json(), safe=False)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
 
 @login_required
 @grupo_requerido('rrhh')
@@ -90,10 +118,10 @@ def asistencias_api(request):
     #     else:
     #         fecha = timezone.now().date()
             
-    target_url = f"http://192.168.11.12:8003/api/asistencias/?fecha=2025-07-10"  #?fecha={fecha.strftime('%Y-%m-%d')}"
+    target_url = f"http://192.168.11.12:8003/api/asistencias/?fecha=2025-07-28"  #?fecha={fecha.strftime('%Y-%m-%d')}"
     
     headers = {
-        "X-API-Key": "bec740b7-839b-4268-bb4e-a9d44b51a326"  # o "x-api-key": "TU_API_KEY"
+        "X-API-Key": settings.API_KEY_ASISTENCIA  # o "x-api-key": "TU_API_KEY"
     }
     
     try:
@@ -279,8 +307,25 @@ def validar_asistencias(request):
             for empleado in empleados:
                 for fecha in fechas:
                     marcaje = marcajes_map[empleado.id].get(fecha)
+                    
+                    permiso_contrato_vencido = next(
+                        (p for p in permisos_map[empleado.id]
+                        if p.fecha_inicio <= fecha <= p.fecha_final
+                        and p.tipo_permiso.tipo.strip().lower() == 'contrato vencido'),
+                        None
+                    )
 
-                    if marcaje:
+                    if permiso_contrato_vencido:
+                        estado = 'JUSTIFICADO'
+                        nombre_tipo = permiso_contrato_vencido.tipo_permiso.tipo
+                        simbolo_permiso = permiso_contrato_vencido.tipo_permiso.simbolo
+                        color = permiso_contrato_vencido.tipo_permiso.cod_color
+                        estado_rh = permiso_contrato_vencido.estado_solicitud
+                        estado_rh_display = ESTADO_MAP.get(estado_rh, estado_rh)
+                        entrada = simbolo_permiso
+                        salida = '--:--'
+
+                    elif marcaje:
                         estado = 'ASISTIÓ'
                         if not marcaje.entrada and marcaje.salida:
                             entrada = 'NM'
@@ -291,14 +336,28 @@ def validar_asistencias(request):
                         salida = marcaje.salida.strftime('%H:%M') if marcaje.salida else '--:--'
                         simbolo_permiso = nombre_tipo = color = estado_rh = estado_rh_display = None
 
-
                     else:
                         if fecha.weekday() == 6:
                             estado = 'DOMINGO'
+                            color = "#FFFF00"  # Color amarillo claro
                             simbolo_permiso = nombre_tipo = estado_rh = estado_rh_display = None
-                            color = "#00f7ff"
-                            entrada = 'DO'
+
+                            permisos_activos = [
+                                p for p in permisos_map[empleado.id]
+                                if p.fecha_inicio <= fecha <= p.fecha_final
+                            ]
+                            permiso = permisos_activos[-1] if permisos_activos else None
+
+                            if permiso and permiso.tipo_permiso.tipo.strip().lower() == 'nuevo ingreso':
+                                entrada = 'N'
+                            elif permiso and permiso.tipo_permiso.tipo.strip().lower() == 'salió':
+                                entrada = 'S'
+                            elif permiso and permiso.tipo_permiso.tipo.strip().lower() == 'contrato vencido':
+                                entrada = 'CV'
+                            else:
+                                entrada = 'DO'
                             salida = '--:--'
+
                         else:
                             permisos_activos = [
                                 p for p in permisos_map[empleado.id]
@@ -581,7 +640,7 @@ def crear_permiso(request):
     tipo_permisos = TipoPermisos.objects.exclude(tipo__in=[
         'Especial', 'Servicios Profesionales', 'Salió', 'Suspensión',
         'Incapacidad sin Seguro Social', 'Incapacidad con Seguro Social',
-        'No marcó', 'Domingo', 'Asueto'
+        'Domingo', 'Asueto', 'Nuevo Ingreso'
     ])
     encargados = Empleado.objects.filter(es_encargado=True)
 
@@ -695,9 +754,9 @@ def crear_permiso(request):
 def editar_permiso(request, permiso_id):
     permiso = get_object_or_404(Permisos, id=permiso_id)
     tipo_permisos = TipoPermisos.objects.exclude(tipo__in=[
-        'Especial', 'Servicios Profesionales', 'Suspensión',
+        'Especial', 'Servicios Profesionales', 'Salió', 'Suspensión',
         'Incapacidad sin Seguro Social', 'Incapacidad con Seguro Social',
-        'No marcó', 'Domingo', 'Asueto'
+        'Domingo', 'Asueto', 'Nuevo Ingreso'
     ])
     encargados = Empleado.objects.filter(es_encargado=True)
 
@@ -1616,41 +1675,83 @@ def asistencias_encargado(request):
         for fecha in fechas:
             marcaje = marcajes_map[empleado.id].get(fecha)
 
-            if marcaje:
+            # 🔹 Primero: verificar si tiene contrato vencido
+            permiso_contrato_vencido = next(
+                (p for p in permisos_map[empleado.id]
+                if p.fecha_inicio <= fecha <= p.fecha_final
+                and p.tipo_permiso.tipo.strip().lower() == 'contrato vencido'),
+                None
+            )
+
+            if permiso_contrato_vencido:
+                estado = 'JUSTIFICADO'
+                nombre_tipo = permiso_contrato_vencido.tipo_permiso.tipo
+                simbolo_permiso = permiso_contrato_vencido.tipo_permiso.simbolo
+                color = permiso_contrato_vencido.tipo_permiso.cod_color or '#fbbf24'
+                estado_rh = permiso_contrato_vencido.estado_solicitud
+                estado_rh_display = ESTADO_MAP.get(estado_rh, estado_rh)
+                entrada = simbolo_permiso or '--'
+                salida = '--:--'
+
+            elif marcaje:
                 estado = 'ASISTIÓ'
                 entrada = marcaje.entrada.strftime('%H:%M') if marcaje.entrada else '--:--'
                 salida = marcaje.salida.strftime('%H:%M') if marcaje.salida else '--:--'
                 simbolo_permiso = nombre_tipo = estado_rh = estado_rh_display = None
                 color = '#38c172'  # Verde
 
-            elif fecha.weekday() == 6:
-                estado = 'DOMINGO'
-                entrada = 'DO'
-                salida = '--:--'
-                simbolo_permiso = nombre_tipo = estado_rh = estado_rh_display = None
-                color = '#00f7ff'  # Celeste
-
             else:
-                permisos_validos = [
-                    p for p in permisos_map[empleado.id]
-                    if p.fecha_inicio <= fecha <= p.fecha_final
-                ]
-                permiso = permisos_validos[-1] if permisos_validos else None
+                if fecha.weekday() == 6:
+                    estado = 'DOMINGO'
+                    permisos_activos = [
+                        p for p in permisos_map[empleado.id]
+                        if p.fecha_inicio <= fecha <= p.fecha_final
+                    ]
+                    permiso = permisos_activos[-1] if permisos_activos else None
 
-                if permiso:
-                    estado = 'JUSTIFICADO'
-                    nombre_tipo = permiso.tipo_permiso.tipo
-                    simbolo_permiso = permiso.tipo_permiso.simbolo
-                    color = permiso.tipo_permiso.cod_color or '#fbbf24'  # Amarillo por defecto
-                    estado_rh = permiso.estado_solicitud
-                    estado_rh_display = ESTADO_MAP.get(estado_rh, estado_rh)
-                    entrada = simbolo_permiso or '--'
-                    salida = '--:--'
+                    if permiso:
+                        nombre_tipo = permiso.tipo_permiso.tipo
+                        simbolo_permiso = permiso.tipo_permiso.simbolo
+                        color = permiso.tipo_permiso.cod_color or "#FFFF00"
+                        estado_rh = permiso.estado_solicitud
+                        estado_rh_display = ESTADO_MAP.get(estado_rh, estado_rh)
+
+                        if nombre_tipo.strip().lower() == 'nuevo ingreso':
+                            entrada = 'N'
+                        elif nombre_tipo.strip().lower() == 'salió':
+                            entrada = 'S'
+                        elif nombre_tipo.strip().lower() == 'contrato vencido':
+                            entrada = 'CV'
+                        else:
+                            entrada = 'DO'
+                    else:
+                        # Domingo sin permiso
+                        nombre_tipo = simbolo_permiso = estado_rh = estado_rh_display = None
+                        color = "#FFFF00"
+                        entrada = 'DO'
+                        salida = '--:--'
+
                 else:
-                    estado = 'FALTÓ'
-                    entrada = salida = '--:--'
-                    simbolo_permiso = nombre_tipo = estado_rh = estado_rh_display = None
-                    color = '#e3342f'  # Rojo
+                    permisos_validos = [
+                        p for p in permisos_map[empleado.id]
+                        if p.fecha_inicio <= fecha <= p.fecha_final
+                    ]
+                    permiso = permisos_validos[-1] if permisos_validos else None
+
+                    if permiso:
+                        estado = 'JUSTIFICADO'
+                        nombre_tipo = permiso.tipo_permiso.tipo
+                        simbolo_permiso = permiso.tipo_permiso.simbolo
+                        color = permiso.tipo_permiso.cod_color or '#fbbf24'  # Amarillo por defecto
+                        estado_rh = permiso.estado_solicitud
+                        estado_rh_display = ESTADO_MAP.get(estado_rh, estado_rh)
+                        entrada = simbolo_permiso or '--'
+                        salida = '--:--'
+                    else:
+                        estado = 'FALTÓ'
+                        entrada = salida = '--:--'
+                        simbolo_permiso = nombre_tipo = estado_rh = estado_rh_display = None
+                        color = '#e3342f'  # Rojo
 
             empleados.append({
                 'fecha': fecha,
@@ -1732,12 +1833,9 @@ def exportar_asistencias_encargado_excel(request):
         for i in range(dias_rango):
             fecha = fecha_inicio + timedelta(days=i)
 
-            # Marcaje (si existe, siempre prioridad)
-            marcaje = MarcajeDepurado.objects.filter(
-                empleado=empleado, fecha=fecha
-            ).first()
-
-            # Permisos: obtenemos todos los que cubren la fecha, y tomamos el último
+            # Obtener marcaje
+            marcaje = MarcajeDepurado.objects.filter(empleado=empleado, fecha=fecha).first()
+            # Obtener permisos que cubren la fecha
             permisos_validos = list(
                 Permisos.objects.filter(
                     empleado=empleado,
@@ -1749,22 +1847,55 @@ def exportar_asistencias_encargado_excel(request):
             )
             permiso = permisos_validos[-1] if permisos_validos else None
 
-            if marcaje:
-                estado = 'ASISTIÓ'
-                color = '38c172'  # Verde
-                entrada = marcaje.entrada.strftime('%H:%M') if marcaje.entrada else '--:--'
-                salida  = marcaje.salida.strftime('%H:%M')   if marcaje.salida  else '--:--'
-                nombre_tipo = estado_rh_display = simbolo = ''
+            # 1️⃣ Contrato vencido primero
+            permiso_contrato_vencido = next(
+                (p for p in permisos_validos if p.tipo_permiso.tipo.strip().lower() == 'contrato vencido'),
+                None
+            )
+            if permiso_contrato_vencido:
+                estado = 'JUSTIFICADO'
+                entrada = permiso_contrato_vencido.tipo_permiso.simbolo or '--'
+                salida = '--:--'
+                nombre_tipo = permiso_contrato_vencido.tipo_permiso.tipo
+                color = permiso_contrato_vencido.tipo_permiso.cod_color.lstrip('#') if permiso_contrato_vencido.tipo_permiso.cod_color else 'fbbf24'
+                estado_rh_display = ESTADO_MAP.get(permiso_contrato_vencido.estado_solicitud, permiso_contrato_vencido.estado_solicitud)
+                simbolo = permiso_contrato_vencido.tipo_permiso.simbolo
 
+            # 2️⃣ Asistió
+            elif marcaje:
+                estado = 'ASISTIÓ'
+                entrada = marcaje.entrada.strftime('%H:%M') if marcaje.entrada else '--:--'
+                salida = marcaje.salida.strftime('%H:%M') if marcaje.salida else '--:--'
+                nombre_tipo = estado_rh_display = simbolo = ''
+                color = '38c172'  # Verde
+
+            # 3️⃣ Domingo con prioridad sobre justificado
             elif fecha.weekday() == 6:
                 estado = 'DOMINGO'
-                entrada = 'DO'
-                salida = '--:--'
-                nombre_tipo = ''
-                color = '00f7ff'  # Celeste
-                estado_rh_display = 'Descanso dominical'
-                simbolo = ''
+                color = "00f7ff"
 
+                # Aquí usamos permisos_validos, que ya es la lista de permisos del empleado
+                permisos_activos = [
+                    p for p in permisos_validos
+                    if p.fecha_inicio <= fecha <= p.fecha_final
+                ]
+                permiso = permisos_activos[-1] if permisos_activos else None
+
+                if permiso and permiso.tipo_permiso.tipo.strip().lower() == 'nuevo ingreso':
+                    entrada = 'N'
+                elif permiso and permiso.tipo_permiso.tipo.strip().lower() == 'salió':
+                    entrada = 'S'
+                elif permiso and permiso.tipo_permiso.tipo.strip().lower() == 'contrato vencido':
+                    entrada = 'CV'
+                else:
+                    entrada = 'DO'
+
+                salida = '--:--'
+                simbolo_permiso = estado_rh = estado_rh_display = None
+                nombre_tipo = permiso.tipo_permiso.tipo if permiso else None
+
+
+            # 4️⃣ Justificado normal
             elif permiso:
                 estado = 'JUSTIFICADO'
                 entrada = permiso.tipo_permiso.simbolo or '--'
@@ -1774,20 +1905,29 @@ def exportar_asistencias_encargado_excel(request):
                 estado_rh_display = ESTADO_MAP.get(permiso.estado_solicitud, permiso.estado_solicitud)
                 simbolo = permiso.tipo_permiso.simbolo
 
+            # 5️⃣ Faltó
             else:
                 estado = 'FALTÓ'
                 entrada = salida = '--:--'
                 nombre_tipo = ''
                 estado_rh_display = ''
-                color = 'e3342f'  # Rojo
+                color = 'e3342f'
                 simbolo = ''
 
+            # Símbolo de asistencia
             if estado == 'ASISTIÓ':
                 estado_simbolo = '✔'
             elif estado == 'FALTÓ':
                 estado_simbolo = 'X'
             elif estado == 'DOMINGO':
-                estado_simbolo = 'DO'
+                if entrada == 'N':
+                    estado_simbolo = 'Nuevo Ingreso'
+                elif entrada == 'S':
+                    estado_simbolo = 'Salió'
+                elif entrada == 'CV':
+                    estado_simbolo = 'Contrato Vencido'
+                else:
+                    estado_simbolo = 'Domingo'
             elif estado == 'JUSTIFICADO':
                 estado_simbolo = nombre_tipo or ''
             else:
@@ -2031,19 +2171,56 @@ def exportar_asistencias_excel(request):
         for fecha in fechas:
             marcaje = marcajes_map[empleado.id].get(fecha)
 
-            if marcaje:
+            # 🔹 Primero: verificar si tiene contrato vencido
+            permiso_contrato_vencido = next(
+                (p for p in permisos_map[empleado.id]
+                if p.fecha_inicio <= fecha <= p.fecha_final
+                and p.tipo_permiso.tipo.strip().lower() == 'contrato vencido'),
+                None
+            )
+
+            if permiso_contrato_vencido:
+                estado = 'JUSTIFICADO'
+                nombre_tipo = permiso_contrato_vencido.tipo_permiso.tipo
+                simbolo_permiso = permiso_contrato_vencido.tipo_permiso.simbolo
+                color = permiso_contrato_vencido.tipo_permiso.cod_color.lstrip('#') if permiso_contrato_vencido.tipo_permiso.cod_color else 'fbbf24'
+                estado_rh = permiso_contrato_vencido.estado_solicitud
+                estado_rh_display = ESTADO_MAP.get(estado_rh, estado_rh)
+                entrada = simbolo_permiso or '--'
+                salida = '--:--'
+
+            elif marcaje:
                 estado = 'ASISTIÓ'
-                entrada = marcaje.entrada.strftime('%H:%M') if marcaje.entrada else '--:--'
+                if not marcaje.entrada and marcaje.salida:
+                    entrada = 'NM'
+                elif marcaje.entrada:
+                    entrada = marcaje.entrada.strftime('%H:%M')
+                else:
+                    entrada = '--:--'
                 salida = marcaje.salida.strftime('%H:%M') if marcaje.salida else '--:--'
                 simbolo_permiso = nombre_tipo = estado_rh = estado_rh_display = None
                 color = '38c172'  # Verde
 
             elif fecha.weekday() == 6:
                 estado = 'DOMINGO'
-                entrada = 'DO'
+                color = "00f7ff"
+                permisos_activos = [
+                    p for p in permisos_map[empleado.id]
+                    if p.fecha_inicio <= fecha <= p.fecha_final
+                ]
+                permiso = permisos_activos[-1] if permisos_activos else None
+
+                if permiso and permiso.tipo_permiso.tipo.strip().lower() == 'nuevo ingreso':
+                    entrada = 'N'
+                elif permiso and permiso.tipo_permiso.tipo.strip().lower() == 'salió':
+                    entrada = 'S'
+                elif permiso and permiso.tipo_permiso.tipo.strip().lower() == 'contrato vencido':
+                    entrada = 'CV'
+                else:
+                    entrada = 'DO'
                 salida = '--:--'
-                color = '00f7ff'
-                simbolo_permiso = nombre_tipo = estado_rh = estado_rh_display = None
+                simbolo_permiso = estado_rh = estado_rh_display = None
+                nombre_tipo = permiso.tipo_permiso.tipo if permiso else None
 
             else:
                 permisos_validos = [
@@ -2073,7 +2250,14 @@ def exportar_asistencias_excel(request):
             elif estado == 'FALTÓ':
                 estado_simbolo = 'X'
             elif estado == 'DOMINGO':
-                estado_simbolo = 'DO'
+                if nombre_tipo == 'Nuevo Ingreso':
+                    estado_simbolo = 'Nuevo Ingreso'
+                elif nombre_tipo == 'Salió':
+                    estado_simbolo = 'Salió'
+                elif nombre_tipo == 'Contrato Vencido':
+                    estado_simbolo = 'Contrato Vencido'
+                else:
+                    estado_simbolo = 'Domingo'
             elif estado == 'JUSTIFICADO':
                 estado_simbolo = nombre_tipo or ''
             else:
@@ -2094,7 +2278,8 @@ def exportar_asistencias_excel(request):
 
             fila_actual = ws.max_row
             fill = PatternFill(start_color=color, end_color=color, fill_type='solid')
-            ws.cell(row=fila_actual, column=10).fill = fill  # Asistencia
+            ws.cell(row=fila_actual, column=10).fill = fill
+
 
     response = HttpResponse(
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'

@@ -1,8 +1,13 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+class Empresa(models.Model):
+    nombre = models.CharField(max_length=100)
+    def __str__(self):
+        return self.nombre
 class Sucursal(models.Model):
     nombre = models.CharField(max_length=100)
+    empresa = models.ForeignKey('Empresa', on_delete=models.SET_NULL, null=True)
     def __str__(self):
         return f"{self.nombre}"
 
@@ -10,23 +15,32 @@ class Empleado(models.Model):
     user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='empleado_marcaje')
     id_externo = models.IntegerField(unique=True)
     codigo = models.CharField(max_length=20)
+    dni = models.CharField(max_length=20, blank=True, null=True)
     nombre = models.CharField(max_length=100)
     departamento = models.CharField(max_length=100)
     sucursal = models.ForeignKey('Sucursal', on_delete=models.SET_NULL, null=True)
+    empresa = models.ForeignKey('Empresa', on_delete=models.SET_NULL, null=True)
     tipo_nomina = models.CharField(max_length=100, blank=True, null=True)
     es_encargado = models.BooleanField(default=False)
-
-    # nuevo campo
     activo = models.BooleanField(default=True)
+
     class Meta:
         verbose_name = "Empleado"
         verbose_name_plural = "Empleados"
         ordering = ['nombre']
 
-    
     def __str__(self):
         return f"{self.nombre} "
- 
+
+    
+class Vacacion(models.Model):
+    empleado = models.ForeignKey('Empleado', on_delete=models.CASCADE, related_name='vacaciones')
+    dias_disponibles = models.DecimalField(max_digits=5, decimal_places=2)
+
+    def __str__(self):
+        return f"{self.empleado.nombre} - {self.dias_disponibles} días"
+
+
 class Marcaje(models.Model):
     TIPO_REGISTRO = [
         ('I', 'Entrada'),
@@ -46,8 +60,6 @@ class Marcaje(models.Model):
         choices=TIPO_REGISTRO,
         verbose_name="Tipo de marcaje"
     )
-
-
 
     def __str__(self):
         return f"{self.empleado.codigo} - {self.fecha_hora} ({self.get_tipo_registro_display()})"
