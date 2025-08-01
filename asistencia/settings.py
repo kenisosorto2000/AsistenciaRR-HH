@@ -108,7 +108,8 @@ DATABASES = {
         'NAME': 'server_db',
         'USER': 'sa',
         'PASSWORD': 'Pass@w0-2710',
-        'HOST': 'localhost\\SQLEXPRESS',
+        #'HOST': 'localhost\\SQLEXPRESS',
+        'HOST': '127.0.0.1',
         'PORT': '',
         'OPTIONS': {
             'driver': 'ODBC Driver 17 for SQL Server',
